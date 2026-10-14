@@ -1,0 +1,165 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: #1f2937;
+  background: #f5f7fb;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-header {
+  height: 68px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #17365d;
+  color: white;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.brand-icon {
+  padding: 8px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17365d;
+}
+
+.profile-area {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  padding: 8px;
+  color: white;
+  background: transparent;
+  cursor: pointer;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #17365d;
+  font-weight: bold;
+}
+
+.profile-menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 190px;
+  padding: 6px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px #00000015;
+}
+
+.profile-menu button {
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  border: none;
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+}
+
+.profile-menu button:hover {
+  background: #f1f5f9;
+}
+
+.dashboard-body {
+  display: flex;
+  min-height: calc(100vh - 68px);
+}
+
+.app-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  padding: 24px 16px;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar-label {
+  margin: 0 0 16px;
+  padding-left: 12px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.app-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-link {
+  padding: 12px;
+  border-radius: 6px;
+  color: #475569;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background: #f1f5f9;
+}
+
+.sidebar-link.active {
+  background: #e8efff;
+  color: #17365d;
+  font-weight: bold;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 32px;
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    padding: 0 12px;
+  }
+
+  .app-sidebar {
+    width: 150px;
+    padding: 16px 8px;
+  }
+
+  .main-content {
+    padding: 16px;
+  }
+
+  .profile-button {
+    gap: 5px;
+  }
+}

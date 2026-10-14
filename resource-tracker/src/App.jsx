@@ -10,10 +10,17 @@ function LoginPage() {
 function App() {
   return (
     <BrowserRouter>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<DashboardLayout />}>
-        <Route path="/team-lead/dashboard" element={<TeamLeadDashboard />} />
-      </Route>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<DashboardLayout />}>
+          <Route path="/team-lead/dashboard" element={<TeamLeadDashboard />} />
+        </Route>
+
+        <Route
+          path="*"
+          element={<Navigate to="/team-lead/dashboard" replace />}
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

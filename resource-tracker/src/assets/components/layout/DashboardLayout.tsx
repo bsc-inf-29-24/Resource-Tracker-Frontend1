@@ -10,7 +10,7 @@ function DashboardLayout() {
 
   //Temporary User details for the interface
   const [userName] = useState("Hezekiah Tokoma");
-  const [userRole] = useState<UserRole>("SYSTEM_ADMIN");
+  const [userRole] = useState<UserRole>("LINE_MANAGER");
 
   function handleLogout() {
     // Temporary Logout behaviour

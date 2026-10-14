@@ -18,6 +18,7 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
     { label: "Dashboard", path: "/team-lead/dashboard" },
     { label: "New Request", path: "/team-lead/requests/new" },
     { label: "Request History", path: "/team-lead/requests" },
+    
   ],
 // Navigation items for each user role: LINE_MANAGER
   LINE_MANAGER: [

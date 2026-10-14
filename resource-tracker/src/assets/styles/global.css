@@ -1,10 +1,10 @@
-
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  margin: 0;
   font-family: Arial, sans-serif;
   color: #1f2937;
   background: #f5f7fb;
@@ -18,12 +18,12 @@ select {
 }
 
 .app-header {
+  display: inline;
   height: 68px;
-  padding: 0 24px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: #17365d;
+  background: #142b36;
   color: white;
 }
 
@@ -38,23 +38,25 @@ select {
 .brand-icon {
   padding: 8px;
   border-radius: 8px;
-  background: #ffffff;
+  background: #888484;
   color: #17365d;
 }
 
-.profile-area {
+.profile-section {
   position: relative;
+  margin-left: auto;
 }
 
 .profile-button {
+  background-color: #04151a;
   display: flex;
   align-items: center;
   gap: 10px;
   border: none;
-  padding: 8px;
+  padding: 5px;
   color: white;
-  background: transparent;
   cursor: pointer;
+  border-radius: 10px;
 }
 
 .avatar {
@@ -64,35 +66,42 @@ select {
   height: 34px;
   border-radius: 50%;
   background: #dbeafe;
-  color: #17365d;
+  color: #283f5c;
   font-weight: bold;
 }
 
 .profile-menu {
   position: absolute;
-  z-index: 10;
-  top: calc(100% + 6px);
+  top: 100%;
   right: 0;
-  width: 190px;
-  padding: 6px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  margin-top: 5px;
+  width: 100px;
+  background: rgb(86, 85, 85);
   border-radius: 8px;
   box-shadow: 0 6px 20px #00000015;
+  z-index: 1000;
 }
 
 .profile-menu button {
+  display: block;
   width: 100%;
-  padding: 10px;
-  text-align: left;
+  height: 50%;
+  padding: 5px;
+  text-align: center;
   border: none;
+  font-size: 90%;
   border-radius: 5px;
-  background: white;
+  background: #313d47;
+
+  color: #7b8593;
+
   cursor: pointer;
 }
 
 .profile-menu button:hover {
-  background: #f1f5f9;
+  background: rgb(5, 17, 19);
+
+  color: #de3e0d;
 }
 
 .dashboard-body {
@@ -104,15 +113,17 @@ select {
   width: 240px;
   flex-shrink: 0;
   padding: 24px 16px;
-  background: white;
+  background: #011b15;
   border-right: 1px solid #e5e7eb;
+  text-align: left;
 }
 
 .sidebar-label {
   margin: 0 0 16px;
   padding-left: 12px;
-  color: #64748b;
-  font-size: 12px;
+  color: #c5ccd7;
+  border-bottom: 2px solid #475569;
+  font-size: 14px;
   font-weight: bold;
 }
 
@@ -124,25 +135,26 @@ select {
 
 .sidebar-link {
   padding: 12px;
+  font-size: 16px;
   border-radius: 6px;
-  color: #475569;
+  color: #959fad;
   text-decoration: none;
 }
 
 .sidebar-link:hover {
-  background: #f1f5f9;
+  background: #0e272e;
+  color: #7b8593;
 }
 
 .sidebar-link.active {
-  background: #e8efff;
-  color: #17365d;
+  color: #154d92;
   font-weight: bold;
 }
 
 .main-content {
   flex: 1;
   min-width: 0;
-  padding: 32px;
+  padding: 12px;
 }
 
 @media (max-width: 640px) {
@@ -156,10 +168,22 @@ select {
   }
 
   .main-content {
-    padding: 16px;
+    padding: 0px;
   }
 
   .profile-button {
     gap: 5px;
   }
+}
+
+a {
+  text-decoration: none;
+}
+
+.profile-section {
+  margin-left: auto;
+}
+
+h1 {
+  color: #1f2937;
 }

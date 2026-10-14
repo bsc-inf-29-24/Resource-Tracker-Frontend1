@@ -204,3 +204,10 @@ h1 {
    font-size: 15px;
    color: #64748b;
 }
+
+.page-header{
+  background-color: #e7e9ed;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px;
+}

@@ -1,6 +1,7 @@
 import PageHeader from "../../components/layout/PageHeader";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
-
+import EmptyState from "../../components/feedback/EmptyState";
+import LoadingState from "../../components/feedback/LoadingState";
 function TeamLeadDashboard() {
   return (
     <section>
@@ -10,7 +11,15 @@ function TeamLeadDashboard() {
       />
 
       <p>Your Content dashboard will appear here.</p>
-      
+      <EmptyState title="No Resource requests"
+      message="You have not submitted any resource requests yet."/>
+
+       <ErrorMessage
+        title="Unable to load resources"
+        message="Please check your connection and try again."
+        onRetry={() => window.location.reload()}
+      />
+
     </section>
   );
 }

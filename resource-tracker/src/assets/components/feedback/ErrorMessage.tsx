@@ -22,7 +22,7 @@ function ErrorMessage({
 
       {onRetry && (
         <button type="button" className="retry-button" onClick={onRetry}>
-          Try Again
+          Try again
         </button>
       )}
     </div>

@@ -7,11 +7,9 @@ function LoadingState({
 }: LoadingStateProps) {
   return (
     <div className="feedback-state loading-state" role="status">
-      <div className="loading-spinner">
-
         <div className="loading-spinner"></div>
         <p>{message}</p>
-      </div>
+    
     </div>
   );
 }

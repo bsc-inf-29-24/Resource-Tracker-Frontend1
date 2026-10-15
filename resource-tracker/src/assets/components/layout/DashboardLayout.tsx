@@ -10,6 +10,7 @@ function DashboardLayout() {
 
   //Temporary User details for the interface
   const [userName] = useState("Hezekiah Tokoma");
+  //Allow the sidebar to changr according to user role
   const [userRole] = useState<UserRole>("SYSTEM_ADMIN");
 
   function handleLogout() {

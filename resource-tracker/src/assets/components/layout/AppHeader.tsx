@@ -25,7 +25,7 @@ function AppHeader({ userName, onLogout }: AppHeaderProps) {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-expanded={menuOpen}
         >
-         
+       
           <span aria-hidden="true"></span>
           <span>{userName}</span>
           
@@ -33,7 +33,7 @@ function AppHeader({ userName, onLogout }: AppHeaderProps) {
 
         {menuOpen && (
           <div className="profile-menu">
-            
+            <span className="Remark">Thank you, for using RT</span>
             <button onClick={onLogout}>Sign Out</button>
           </div>
         )}

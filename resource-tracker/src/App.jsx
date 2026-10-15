@@ -2,9 +2,12 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import DashboardLayout from "./assets/components/layout/DashboardLayout";
 import TeamLeadDashboard from "./assets/pages/team-lead/TeamLeadDashboard";
+import LoadingState from "./assets/components/feedback/LoadingState";
 
 function LoginPage() {
-  return <h1>Resource Tracker System</h1>;
+  return (<div><h1 className="sigIN">Sign in</h1>
+  <LoadingState message="Loading, Please wait..."/></div>);
+  
 }
 
 function App() {
@@ -12,6 +15,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        
         <Route element={<DashboardLayout />}>
           <Route path="/team-lead/dashboard" element={<TeamLeadDashboard />} />
         </Route>

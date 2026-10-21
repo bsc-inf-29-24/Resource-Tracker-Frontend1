@@ -81,7 +81,7 @@ function LoginPage() {
         Enter your credentials to get started.
       </p>
 
-      <h2>Login in</h2>
+      <h2 >Login in</h2>
     
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="auth-field">

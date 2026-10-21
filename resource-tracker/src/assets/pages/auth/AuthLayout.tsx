@@ -1,4 +1,3 @@
-
 import type { ReactNode } from "react";
 //This lets three pages (Login, Register and Forgot Password) share the same layout and styling, 
 // while still allowing each page to have its own unique content.

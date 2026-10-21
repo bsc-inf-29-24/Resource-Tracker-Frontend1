@@ -5,7 +5,7 @@ import { navigationConfig, type UserRole } from "../../config/navigation";
 interface AppSidebarProps {
   role: UserRole;
 }
-// AppSidebar component that renders the sidebar navigation based on the user's role
+// AppSidebar: display the corect links according to the logged-in user's role
 function AppSidebar({ role }: AppSidebarProps) {
   const navigationItems = navigationConfig[role];
 

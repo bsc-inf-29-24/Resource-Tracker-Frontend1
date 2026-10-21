@@ -11,13 +11,15 @@ export type UserRole =
   path: string;
 }
 
-//Defining the navigation configuration for each user role
+//Defining the the links displayed for each role.
 export const navigationConfig: Record<UserRole, NavigationItem[]> = {
  // Navigation items for each user role: TEAM_LEAD
   TEAM_LEAD: [
     { label: "Dashboard", path: "/team-lead/dashboard" },
     { label: "New Request", path: "/team-lead/requests/new" },
     { label: "Request History", path: "/team-lead/requests" },
+    { label: "My Project Team", path: "/team-lead/project-team" },
+
     
   ],
 // Navigation items for each user role: LINE_MANAGER

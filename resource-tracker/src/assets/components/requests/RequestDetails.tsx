@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { ResourceRequest } from "../../types/resource-request";
 import {formatCurrency, formatDate} from "../../utils/format";
-import styles from ".RequestDetails.module.css";
+import styles from "./RequestDetails.module.css";
 
 interface RequestDetailsProps {
     request: ResourceRequest;

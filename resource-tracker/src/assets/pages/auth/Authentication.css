@@ -1,0 +1,292 @@
+
+/* AUTHENTICATION PAGE */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  background: #ffffff;
+  color: #151515;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Brand panel*/
+
+.auth-brand-panel {
+  flex: 1;
+  min-height: 100vh;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #ffffff;
+  background:
+    radial-gradient(
+      ellipse at 20% 45%,
+      #15845b 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      145deg,
+      #003b2a,
+      #006747 60%,
+      #002f22
+    );
+  overflow: hidden;
+}
+
+.auth-brand {
+  font-size: clamp(64px, 8vw, 110px);
+  font-weight: 800;
+  line-height: 1;
+  margin: 0;
+}
+
+.auth-brand-subtitle {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.auth-brand-description {
+  line-height: 1.7;
+  color: #e3f4ec;
+}
+
+/* Brand benefits */
+
+.auth-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+}
+
+.auth-benefits span {
+  padding: 14px 20px;
+  border: 1px solid #ffffff35;
+  border-radius: 10px;
+  background: #003b2a80;
+  font-weight: 700;
+}
+
+/* 
+   AUTHENTICATION FORM PANEL
+ */
+
+.auth-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 7%;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+}
+
+.auth-card h1 {
+  font-size: clamp(32px, 4vw, 48px);
+  margin: 0 0 8px;
+}
+
+.auth-description {
+  color: #737373;
+  line-height: 1.6;
+  margin-top: 20px;
+  margin-bottom: 32px;
+}
+
+/* 
+   AUTHENTICATION FORM
+ */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.auth-field label {
+  text-align: left;
+  color: #053126;
+  font-size: 14px;
+  font-weight: bolder;
+}
+
+.auth-field input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 52px;
+  border: 1px solid #929292;
+  border-radius: 12px;
+  padding: 13px 16px;
+  font: inherit;
+  outline: none;
+  background: #ffffff;
+  color: #151515;
+}
+
+.auth-field input:focus {
+  border-color: #176747;
+  box-shadow: 0 0 0 3px #17674720;
+}
+
+/* Password fields*/
+
+.auth-password-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-radius: 12px;
+}
+
+.auth-password-wrapper input {
+  flex: 1;
+  min-width: 0;
+}
+
+.auth-text-button {
+  border: none;
+  background: transparent;
+  color: #176747;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/*The authentication links*/
+
+.auth-link-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -10px;
+}
+
+.auth-page a {
+  color: #176747;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-page a:hover {
+  text-decoration: underline;
+}
+
+.auth-back-link {
+  display: inline-block;
+  margin-bottom: 36px;
+}
+
+/*  Submit button*/
+
+.auth-submit {
+  width: 100%;
+  min-height: 54px;
+  border: none;
+  border-radius: 28px;
+  padding: 14px 20px;
+  color: #ffffff;
+  background: #176747;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-submit:hover {
+  background: #0d5036;
+}
+
+.auth-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* 
+   Error and success mesages css on the authentication pages
+ */
+
+.auth-error,
+.auth-success {
+  padding: 12px 14px;
+  border-radius: 8px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.auth-error {
+  color: #a21b1b;
+  background: #fff0f0;
+  border: 1px solid #f2c4c4;
+}
+
+.auth-success {
+  color: #145b38;
+  background: #eaf7ef;
+  border: 1px solid #b8e1c5;
+}
+
+
+  /*Footer CSS*/
+
+.auth-footer {
+  text-align: center;
+  color: #777777;
+  margin-top: 28px;
+  line-height: 1.7;
+}
+
+.signIN {
+  font-size: 14px;
+}
+
+.login{
+  color: #053126;
+  font-weight: bold;
+}
+
+
+   /*Making the authentication pages tobe responsive when size change*/
+
+@media (max-width: 760px) {
+  .auth-page {
+    flex-direction: column;
+  }
+
+  .auth-brand-panel {
+    min-height: auto;
+    padding: 32px 24px;
+  }
+
+  .auth-brand {
+    font-size: 58px;
+  }
+
+  .auth-brand-subtitle {
+    font-size: 18px;
+  }
+
+  .auth-brand-description {
+    margin-bottom: 0;
+  }
+
+  .auth-benefits {
+    margin-top: 20px;
+  }
+
+  .auth-benefits span {
+    padding: 10px 14px;
+  }
+
+  .auth-form-panel {
+    padding: 36px 24px;
+  }
+}

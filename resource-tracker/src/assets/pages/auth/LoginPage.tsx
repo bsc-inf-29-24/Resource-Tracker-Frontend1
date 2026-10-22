@@ -81,7 +81,7 @@ function LoginPage() {
         Enter your credentials to get started.
       </p>
 
-      <h2 >Login in</h2>
+      <h2 className="login">Login in</h2>
     
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="auth-field">
@@ -136,16 +136,6 @@ function LoginPage() {
 
       <div className="auth-footer">
         Staff Access Only
-      </div>
-
-      <div className="auth-demo-box">
-        <strong>Demo account</strong>
-        <br />
-        Email: teamlead@resourcetracker.test
-        <br />
-        Password: Demo1234!
-        <br />
-        Use this account to test the Team Lead dashboard.
       </div>
     </AuthLayout>
   );

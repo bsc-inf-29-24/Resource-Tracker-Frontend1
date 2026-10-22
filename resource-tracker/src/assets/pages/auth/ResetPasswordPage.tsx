@@ -2,6 +2,7 @@
 import { useState} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
+import { Eye, EyeOff } from "lucide-react";
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -65,9 +66,9 @@ function ResetPasswordPage() {
             <button
               className="auth-text-button"
               type="button"
-              onClick={() => setShowPassword((previous) => !previous)}
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? <EyeOff/> : <Eye/>}
             </button>
           </div>
           <span className="auth-hint">
@@ -90,13 +91,13 @@ function ResetPasswordPage() {
               required
             />
             <button
-              className="auth-text-button"
+              className="eye-button"
               type="button"
               onClick={() =>
-                setShowConfirmPassword((previous) => !previous)
+                setShowConfirmPassword(!showConfirmPassword)
               }
             >
-              {showConfirmPassword ? "Hide" : "Show"}
+              {showPassword ? <EyeOff/> : <Eye/>}
             </button>
           </div>
           <span className="auth-hint">

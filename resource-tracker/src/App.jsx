@@ -1,46 +1,38 @@
-
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
+import { Suspense } from "react";
+import { BrowserRouter, Navigate, useRoutes } from "react-router-dom";
 import DashboardLayout from "./assets/components/layout/DashboardLayout";
-import TeamLeadDashboard from "./assets/pages/team-lead/TeamLeadDashboard";
-import SystemAdminDashboard from "./assets/pages/system-admin/DashboardPage";
+import authRoutes from "./assets/routes/authRoutes";
+import teamLeadRoutes from "./assets/routes/teamLeadRoutes";
+import lineManagerRoutes from "./assets/routes/lineManagerRoutes";
+import departmentManagerRoutes from "./assets/routes/departmentManagerRoutes";
+import systemAdminRoutes from "./assets/routes/systemAdminRoutes";
 
-function LoginPage() {
-  return <h1>Resource Tracker System</h1>;
+function AppRoutes() {
+  return useRoutes([
+    // Pages without the sidebar and header
+    ...authRoutes,
+
+    // Pages inside the dashboard layout
+    {
+      element: <DashboardLayout />,
+      children: [
+        ...teamLeadRoutes,
+        ...lineManagerRoutes,
+        ...departmentManagerRoutes,
+        ...systemAdminRoutes,
+      ],
+    },
+
+    { path: "*", element: <Navigate to="/team-lead/dashboard" replace /> },
+  ]);
 }
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-
-        {/* System Administrator Dashboard */}
-        <Route
-          path="/system-admin/dashboard"
-          element={<SystemAdminDashboard />}
-        />
-
-        {/* Team Lead Dashboard */}
-        <Route element={<DashboardLayout />}>
-          <Route
-            path="/team-lead/dashboard"
-            element={<TeamLeadDashboard />}
-          />
-        </Route>
-
-        {/* Default page */}
-        <Route
-          path="/"
-          element={<Navigate to="/system-admin/dashboard" replace />}
-        />
-
-        {/* Unknown URLs */}
-        <Route
-          path="*"
-          element={<Navigate to="/system-admin/dashboard" replace />}
-        />
-      </Routes>
+      <Suspense fallback={<p style={{ padding: 24 }}>Loading...</p>}>
+        <AppRoutes />
+      </Suspense>
     </BrowserRouter>
   );
 }

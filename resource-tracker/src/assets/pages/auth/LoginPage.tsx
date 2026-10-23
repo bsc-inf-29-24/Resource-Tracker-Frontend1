@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
 import { mockUsers } from "../../data/mock-data"; //Providing sample user acounts for testing login functionality without a backend server.
+import { Eye, EyeOff } from "lucide-react";
 
 /*defining the dashboard routes for each user role, 
  which will be used to navigate to the appropriate dashboard after a successful login.*/
@@ -81,7 +82,7 @@ function LoginPage() {
         Enter your credentials to get started.
       </p>
 
-      <h2 className="login">Login in</h2>
+      <h2 className="login">Login</h2>
     
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="auth-field">
@@ -110,12 +111,13 @@ function LoginPage() {
               required
             />
             <button
-              className="auth-text-button"
+              className="eye-button"
               type="button"
-              onClick={() => setShowPassword((previous) => !previous)}
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? <EyeOff/> : <Eye/>}
             </button>
+            
           </div>
         </div>
 

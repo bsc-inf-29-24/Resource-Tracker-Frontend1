@@ -88,8 +88,9 @@
 }
 
 .auth-card h1 {
-  font-size: clamp(32px, 4vw, 48px);
+  font-size: 40px;
   margin: 0 0 8px;
+  font-weight: bold;
 }
 
 .auth-description {
@@ -145,13 +146,50 @@
 .auth-password-wrapper {
   display: flex;
   gap: 8px;
+  width: 100%;
+  position: relative;
   align-items: center;
   border-radius: 12px;
 }
 
+.auth-password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.auth-password-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 45px;
+}
+
+.eye-button {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  background: transparent;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.eye-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+
 .auth-password-wrapper input {
   flex: 1;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .auth-text-button {
@@ -210,6 +248,12 @@
   cursor: not-allowed;
 }
 
+.eye-button{
+  background-color: white;
+  color: #151515;
+  border: #176747;
+  cursor: pointer;
+}
 /* 
    Error and success mesages css on the authentication pages
  */
@@ -251,6 +295,7 @@
 .login{
   color: #053126;
   font-weight: bold;
+  font-size: 40px;
 }
 
 

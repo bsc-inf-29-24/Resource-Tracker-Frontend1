@@ -64,7 +64,7 @@ function ResetPasswordPage() {
               required
             />
             <button
-              className="auth-text-button"
+              className="eye-button"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >

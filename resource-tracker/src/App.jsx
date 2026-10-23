@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
@@ -93,3 +94,6 @@ function App() {
 
 export default App;
 >>>>>>> origin/main
+=======
+
+>>>>>>> 2912391072590763639469bc693b94f4e6be6250

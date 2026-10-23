@@ -1,3 +1,9 @@
+import ResourceRequest from "./assets/pages/team-lead/ResourceRequest";
+function App(){
+  return <ResourceRequest/>;
+}
+
+export default App;
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "./assets/components/layout/DashboardLayout";

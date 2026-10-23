@@ -1,0 +1,243 @@
+.resource-request {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 32px;
+  color: #171717;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.resource-request .page-title {
+  margin: 0 0 24px;
+  font-size: 34px;
+  font-weight: 700;
+  color: #151515;
+}
+
+.resource-request .request-card {
+  margin-bottom: 18px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e1e6e2;
+  border-bottom: 2px solid #b5cbbd;
+}
+
+.resource-request .request-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: #176747;
+}
+
+.resource-request .request-section-heading h2 {
+  margin: 0 0 5px;
+  font-size: 22px;
+}
+
+.resource-request .request-section-heading p {
+  margin: 0;
+  color: #777777;
+  font-size: 13px;
+}
+
+.resource-request .request-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 36px;
+}
+
+.resource-request .request-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resource-request .request-field label {
+  margin-bottom: 7px;
+  color: #176747;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.resource-request .request-field label span {
+  color: #777777;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.resource-request .request-field input,
+.resource-request .request-field select,
+.resource-request .request-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #b5b5b5;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #333333;
+  font-size: 14px;
+  outline: none;
+}
+
+.resource-request .request-field input,
+.resource-request .request-field select {
+  height: 42px;
+}
+
+.resource-request .request-field input:focus,
+.resource-request .request-field select:focus,
+.resource-request .request-field textarea:focus {
+  border-color: #087347;
+  box-shadow: 0 0 0 2px rgb(8 115 71 / 12%);
+}
+
+.resource-request .justification-field {
+  margin-top: 36px;
+}
+
+.resource-request .request-field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.resource-request .character-count {
+  margin-top: 5px;
+  text-align: right;
+  color: #777777;
+  font-size: 12px;
+}
+
+.resource-request .request-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.resource-request .reset-button,
+.resource-request .review-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 11px 22px;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.resource-request .reset-button {
+  min-width: 150px;
+  background: #ffffff;
+  border: 1px solid #999999;
+  color: #222222;
+}
+
+.resource-request .review-button {
+  min-width: 220px;
+  background: #086441;
+  border: 1px solid #086441;
+  color: #ffffff;
+}
+
+.resource-request .review-button:hover {
+  background: #064b31;
+}
+
+.resource-request .reset-button:hover {
+  background: #f4f6f4;
+}
+
+/* Review modal */
+
+.resource-request .review-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 20px;
+  background: rgb(0 0 0 / 50%);
+}
+
+.resource-request .review-modal {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.resource-request .review-modal h2 {
+  margin: 0 35px 10px 0;
+  color: #086441;
+}
+
+.resource-request .review-modal > p {
+  color: #666666;
+}
+
+.resource-request .close-review {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.resource-request .review-information {
+  margin: 20px 0;
+}
+
+.resource-request .review-information p {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeeeee;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+  .resource-request {
+    padding: 20px 14px;
+  }
+
+  .resource-request .page-title {
+    font-size: 27px;
+  }
+
+  .resource-request .request-card {
+    padding: 18px 14px;
+  }
+
+  .resource-request .request-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .resource-request .request-section-heading h2 {
+    font-size: 19px;
+  }
+
+  .resource-request .justification-field {
+    margin-top: 25px;
+  }
+
+  .resource-request .request-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .resource-request .reset-button,
+  .resource-request .review-button {
+    width: 100%;
+    min-width: 0;
+  }
+}

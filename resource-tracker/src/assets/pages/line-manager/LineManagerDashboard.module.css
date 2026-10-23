@@ -1,0 +1,112 @@
+.page {
+  padding: 24px;
+}
+
+.heading {
+  margin: 0 0 24px;
+  font-size: 1.5rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.card {
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.cardLabel {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.cardValue {
+  margin: 4px 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.cardNote {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+}
+
+.muted {
+  color: #64748b;
+}
+
+.attentionList {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.attentionItem {
+  margin-bottom: 6px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.filter input,
+.filter select {
+  padding: 6px 8px;
+  font: inherit;
+  font-weight: 400;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+.reset {
+  padding: 7px 14px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+  color: #64748b;
+  font-size: 0.8125rem;
+}

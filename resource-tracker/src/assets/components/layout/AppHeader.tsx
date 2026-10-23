@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UserRound, CircleUserRound } from "lucide-react";
 //AppHeader component
 interface AppHeaderProps {
   userName: string;
@@ -26,7 +27,7 @@ function AppHeader({ userName, onLogout }: AppHeaderProps) {
           aria-expanded={menuOpen}
         >
        
-          <span aria-hidden="true"></span>
+          <span aria-hidden="true"><UserRound size={20} strokeWidth={2} aria-hidden = "true"/></span>
           <span>{userName}</span>
           
         </button>

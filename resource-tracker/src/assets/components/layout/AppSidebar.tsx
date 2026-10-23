@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { navigationConfig, type UserRole } from "../../config/navigation";
+import { Icon } from "lucide-react";
 
 // AppSidebar component definition
 interface AppSidebarProps {

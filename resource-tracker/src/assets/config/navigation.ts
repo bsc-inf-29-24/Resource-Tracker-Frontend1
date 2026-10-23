@@ -1,3 +1,17 @@
+import type {   LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  FilePlus,
+  History,
+  UsersRound,
+  ClipboardCheck,
+  ClipboardList,
+  ChartNoAxesCombined,
+  Package,
+  Users,
+  UserPlus,
+} from "lucide-react";
+
 //Defining system user roles 
 export type UserRole =
   | "TEAM_LEAD"
@@ -15,7 +29,7 @@ export type UserRole =
 export const navigationConfig: Record<UserRole, NavigationItem[]> = {
  // Navigation items for each user role: TEAM_LEAD
   TEAM_LEAD: [
-    { label: "Dashboard", path: "/team-lead/dashboard" },
+    {label: "Dashboard", path: "/team-lead/dashboard"},
     { label: "New Request", path: "/team-lead/requests/new" },
     { label: "Request History", path: "/team-lead/requests" },
     { label: "My Project Team", path: "/team-lead/project-team" },

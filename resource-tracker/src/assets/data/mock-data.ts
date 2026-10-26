@@ -16,30 +16,31 @@ export interface DemoUser {
 export const mockUsers: DemoUser[] = [
   {
     id: 1,
-    name: "Team Lead",
-    email: "teamlead@resourcetracker.test",
-    password: "Demo1234!",
+    name: "Hezekiah Tokoma",
+    email: "teamlead@gmail.com",
+    password: "Password1234",
     role: "TEAM_LEAD",
   },
   {
     id: 2,
-    name: "Line Manager",
-    email: "linemanager@resourcetracker.test",
-    password: "Demo1234!",
+    name: "Wanangwa Nyirenda",
+    email: "linemanager@gmail.com",
+    password: "Password1234",
     role: "LINE_MANAGER",
   },
   {
     id: 3,
-    name: "Department Manager",
-    email: "deptmanager@resourcetracker.test",
-    password: "Demo1234!",
+    name: "Grace Chima",
+    email: "deptmanager@gmail.com",
+    password: "Password1234",
     role: "DEPARTMENT_MANAGER",
   },
   {
     id: 4,
-    name: "System Admin",
-    email: "admin@resourcetracker.test",
-    password: "Demo1234!",
+    name: "Benjamin Kanyemba",
+    email: "admin@gmail.com",
+    password: "Password1234",
     role: "SYSTEM_ADMIN",
   },
+
 ];

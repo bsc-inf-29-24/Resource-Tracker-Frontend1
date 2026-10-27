@@ -1,0 +1,178 @@
+/* APPLICATION HEADER */
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.app-header {
+  height: 68px;
+  flex-shrink: 0;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  background: #022a0b;
+  color: #ffffff;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.brand-icon {
+  padding: 8px;
+  border-radius: 8px;
+  background: #f1f0f0;
+  color: #032017;
+}
+
+/*PROFILE SECTION */
+
+.profile-section {
+  position: relative;
+  margin-left: auto;
+}
+
+.profile-button {
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  padding: 5px;
+  color: #ffffff;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #283f5c;
+  font-weight: bold;
+}
+
+/* PROFILE DROPDOWN MENU */
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  padding: 5px;
+  margin-top: 5px;
+  background: #035a24;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px #40404015;
+  z-index: 1000;
+}
+
+.profile-menu span {
+  font-size: 12px;
+}
+
+.profile-menu button {
+  display: block;
+  width: 100%;
+  padding: 5px;
+  text-align: center;
+  border: none;
+  font-size: 90%;
+  border-radius: 5px;
+  background: #086d30;
+  color: #e9eaeb;
+  cursor: pointer;
+}
+
+.profile-menu button:hover {
+  background: #0a7d45;
+  color: #e2dbd9;
+  font-weight: 500;
+}
+
+/* DASHBOARD LAYOUT*/
+
+.dashboard-body {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - 68px);
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  overflow-x: auto;
+  letter-spacing: 1px;
+}
+
+/* SIDEBAR */
+
+.app-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  padding: 24px 16px;
+  background: #023521;
+  border-right: 1px solid #e5e7eb;
+  text-align: left;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-label {
+  margin: 0 0 16px;
+  padding-left: 12px;
+  color: #ffffff;
+  border-bottom: 2px solid #475569;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.app-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-link {
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  color: #c5c1c1;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background: #0e272e;
+  color: #7b8593;
+}
+
+.sidebar-link.active {
+  color: #08ee9d;
+  font-weight: 500;
+}
+
+/* RESPONSIVE DASHBOARD */
+
+@media (max-width: 640px) {
+  .app-header {
+    padding: 0 12px;
+  }
+
+  .app-sidebar {
+    width: 150px;
+    padding: 16px 8px;
+  }
+
+  .main-content {
+    padding: 0;
+  }
+
+  .profile-button {
+    gap: 5px;
+  }
+}

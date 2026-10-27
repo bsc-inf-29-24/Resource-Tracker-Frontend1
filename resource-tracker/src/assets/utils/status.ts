@@ -1,5 +1,4 @@
 import type { RequestStatus, ResourceRequest } from "../types/resource-request"
-import type { RequestStatus, ResourceRequest } from 
 
 export const All_STATUSES: RequestStatus[]= [
     "Submitted",
@@ -55,4 +54,4 @@ export function getRequestsAwaitingAction(
         (request) => request.status === "Pending" || hasTeamLeadReplied(request)
     );
 }
-];
+

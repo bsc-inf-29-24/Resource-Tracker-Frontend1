@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
 import { navigationConfig, type UserRole } from "../../config/navigation";
+import { Icon } from "lucide-react";
 
 // AppSidebar component definition
 interface AppSidebarProps {
   role: UserRole;
 }
-// AppSidebar component that renders the sidebar navigation based on the user's role
+// AppSidebar: display the corect links according to the logged-in user's role
 function AppSidebar({ role }: AppSidebarProps) {
   const navigationItems = navigationConfig[role];
 
@@ -15,6 +16,7 @@ function AppSidebar({ role }: AppSidebarProps) {
 
       <nav aria-label="Main navigation">
         {navigationItems.map((item) => (
+
           <NavLink
             key={item.path}
             to={item.path}

@@ -1,56 +1,43 @@
-import { useId } from "react";
-import ErrorMessage from "../feedback/ErrorMessage";
-import { SearchIcon } from "../icons";
+import { useId } from 'react';
+import { ChevronDownIcon } from '../icons/Icons';
 
-/** Label + control + hint + error wrapper. `children` is a render function receiving aria props. */
-export function FormField({ label, hint, error, required, optional, children }) {
+/** Label + control + error wrapper used by every field. `children` receives the props the control needs. */
+export function FormField({ label, optional = false, error, hint, fullWidth = false, children }) {
   const id = useId();
-  const hintId = hint ? `${id}-hint` : undefined;
   const errId = error ? `${id}-err` : undefined;
-  const aria = {
-    id,
-    "aria-invalid": error ? true : undefined,
-    "aria-describedby": [hintId, errId].filter(Boolean).join(" ") || undefined,
-    "aria-required": required || undefined,
-  };
   return (
-    <div className={`rt-root rt-field ${error ? "rt-field--invalid" : ""}`}>
-      <label htmlFor={id} className="rt-field__label">
-        {label}
-        {required && <span className="rt-field__required" aria-hidden="true"> *</span>}
-        {optional && <span className="rt-field__optional"> (Optional)</span>}
-      </label>
-      {children(aria)}
-      {hint && !error && <span id={hintId} className="rt-field__hint">{hint}</span>}
-      <ErrorMessage id={errId} variant="inline" message={error} />
+    <div className={`rt-field${fullWidth ? ' is-full' : ''}`}>
+      {label && (
+        <label className="rt-field__label" htmlFor={id}>
+          {label}{optional && <span className="rt-field__optional"> (Optional)</span>}
+        </label>
+      )}
+      {children({ id, 'aria-invalid': error ? true : undefined, 'aria-describedby': errId })}
+      {hint && !error && <span className="rt-field__counter">{hint}</span>}
+      {error && <p id={errId} className="rt-field__error">{error}</p>}
     </div>
   );
 }
 
-/** <TextField label="Item Name" placeholder="e.g. Laptop, Projector" value onChange error /> */
-export function TextField({ label, hint, error, required, optional, icon, className = "", ...input }) {
+export function TextInput({ label, optional, error, hint, fullWidth, ...rest }) {
   return (
-    <FormField {...{ label, hint, error, required, optional }}>
-      {(aria) => (
-        <span className="rt-input-wrap">
-          {icon}
-          <input className={`rt-input ${icon ? "rt-input--icon" : ""} ${className}`} {...aria} {...input} />
-        </span>
-      )}
+    <FormField label={label} optional={optional} error={error} hint={hint} fullWidth={fullWidth}>
+      {(a11y) => <input className="rt-control" {...a11y} {...rest} />}
     </FormField>
   );
 }
 
-/** options: [{ value, label }] or plain strings */
-export function SelectField({ label, hint, error, required, optional, options = [], placeholder = "Select...", ...select }) {
+/** options: ['Finance', 'ICT'] or [{ value, label }] */
+export function SelectInput({ label, optional, error, fullWidth, options = [], placeholder = 'Select…', ...rest }) {
   return (
-    <FormField {...{ label, hint, error, required, optional }}>
-      {(aria) => (
-        <select className="rt-select" {...aria} {...select}>
+    <FormField label={label} optional={optional} error={error} fullWidth={fullWidth}>
+      {(a11y) => (
+        <select className="rt-control" {...a11y} {...rest}>
           <option value="">{placeholder}</option>
           {options.map((o) => {
-            const opt = typeof o === "string" ? { value: o, label: o } : o;
-            return <option key={opt.value} value={opt.value}>{opt.label}</option>;
+            const v = typeof o === 'object' ? o.value : o;
+            const l = typeof o === 'object' ? o.label : o;
+            return <option key={v} value={v}>{l}</option>;
           })}
         </select>
       )}
@@ -58,18 +45,90 @@ export function SelectField({ label, hint, error, required, optional, options = 
   );
 }
 
-/** Textarea with a live character counter (0/300) like the Purpose / Justification field */
-export function TextAreaField({ label, hint, error, required, optional, maxLength = 300, value = "", ...area }) {
+/** Text area with a live "0/300" counter. */
+export function TextArea({ label, optional, error, maxLength = 300, value = '', fullWidth = true, ...rest }) {
   return (
-    <FormField {...{ label, hint, error, required, optional }}>
-      {(aria) => (
-        <>
-          <textarea className="rt-textarea" maxLength={maxLength} value={value} {...aria} {...area} />
-          <span className="rt-counter" aria-live="polite">{String(value).length}/{maxLength}</span>
-        </>
-      )}
+    <FormField label={label} optional={optional} error={error} hint={`${value.length}/${maxLength}`} fullWidth={fullWidth}>
+      {(a11y) => <textarea className="rt-control" maxLength={maxLength} value={value} {...a11y} {...rest} />}
     </FormField>
   );
 }
 
-export { SearchIcon };
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/** Day / Month / Year dropdown row. value: { day, month, year } (month is 1-12). */
+export function DateSelect({ label = 'Date', value, onChange, error, years = 5 }) {
+  const thisYear = new Date().getFullYear();
+  const set = (k) => (e) => onChange({ ...value, [k]: e.target.value });
+  const cell = (name, opts, text) => (
+    <div>
+      <select className="rt-control" aria-label={`${label} ${name}`} value={value[name] ?? ''} onChange={set(name)}>
+        {opts}
+      </select>
+      <small>{text}</small>
+    </div>
+  );
+  return (
+    <div className="rt-field">
+      <span className="rt-field__label">{label}</span>
+      <div className="rt-date-row" role="group" aria-label={label}>
+        {cell('day', Array.from({ length: 31 }, (_, i) => <option key={i} value={i + 1}>{String(i + 1).padStart(2, '0')}</option>), 'Day')}
+        {cell('month', MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>), 'Month')}
+        {cell('year', Array.from({ length: years }, (_, i) => <option key={i} value={thisYear + i}>{thisYear + i}</option>), 'Year')}
+      </div>
+      {error && <p className="rt-field__error">{error}</p>}
+    </div>
+  );
+}
+
+/** White card that groups related fields: icon + title + one-line hint, then a two-column grid. */
+export function FormSection({ icon, title, hint, children }) {
+  return (
+    <section className="rt-form-section">
+      <div className="rt-form-section__head">
+        {icon}
+        <div>
+          <h2 className="rt-form-section__title">{title}</h2>
+          {hint && <p className="rt-form-section__hint">{hint}</p>}
+        </div>
+      </div>
+      <div className="rt-form-grid">{children}</div>
+    </section>
+  );
+}
+
+/** Bottom row: Reset on the left, main action on the right. */
+export function FormActions({ children }) {
+  return <div className="rt-form-actions">{children}</div>;
+}
+
+/**
+ * Green pill selector, e.g. Urgency: Low / Medium / High.
+ * Drop it inside <FormField label="Urgency">{(a11y) => <SegmentedControl {...a11y} ... />}</FormField>
+ * options: ['Low', 'Medium'] or [{ value, label }]
+ */
+export function SegmentedControl({ options = [], value, onChange, label, ...rest }) {
+  return (
+    <div className="rt-segment" role="radiogroup" aria-label={label} {...rest}>
+      {options.map((o) => {
+        const v = typeof o === 'object' ? o.value : o;
+        const l = typeof o === 'object' ? o.label : o;
+        const active = value === v;
+        return (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            className={`rt-segment__btn${active ? ' is-active' : ''}`}
+            onClick={() => onChange?.(v)}
+          >
+            {l}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export { ChevronDownIcon };

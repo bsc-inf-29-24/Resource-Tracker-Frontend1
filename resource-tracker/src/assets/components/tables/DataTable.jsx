@@ -1,74 +1,76 @@
-import StatusLabel from "../status/StatusLabel";
-import LoadingState from "../feedback/LoadingState";
-import EmptyState from "../feedback/EmptyState";
-import ErrorMessage from "../feedback/ErrorMessage";
+import Pagination from './Pagination';
+import { Skeleton, EmptyState, ErrorMessage } from '../feedback/Feedback';
+import StatusTag from '../status/StatusTag';
 
 /**
- * Reusable table with built-in loading, error, empty and pagination states.
+ * Reusable table.
  *
- *  columns: [{ key: "status", header: "Status", render?: (row) => node }]
- *  Use `statusColumn("status")` for a column that renders <StatusLabel />.
- *  Pagination is server-driven: pass page, pageSize, total, onPageChange.
+ * columns: [{ key, header, render?(row), width? }]
+ *   - use  render: (row) => <StatusTag status={row.status} />  for custom cells
+ *   - or   type: 'status'  as a shortcut for the status tag
+ * data:    array of row objects
+ * rowKey:  field that is unique per row (default "id")
+ * loading / error / onRetry: show skeleton rows or an error block
+ * emptyTitle / emptyMessage: shown when data is empty
+ * pagination: { page, pageSize, total, onPageChange, itemLabel }
+ * onRowClick(row): makes rows clickable
  */
-export const statusColumn = (key = "status", header = "Status") => ({
-  key, header, render: (row) => <StatusLabel status={row[key]} />,
-});
-
 export default function DataTable({
-  title, columns, rows = [], rowKey = "id", onRowClick,
-  loading = false, error, onRetry,
-  emptyTitle = "No records found", emptyDescription, emptyActionLabel, onEmptyAction,
-  page = 1, pageSize = 5, total, onPageChange, itemLabel = "request",
+  columns,
+  data = [],
+  rowKey = 'id',
+  loading = false,
+  error,
+  onRetry,
+  emptyTitle = 'No records found',
+  emptyMessage = 'There is nothing to show here yet.',
+  pagination,
+  onRowClick,
+  caption,
 }) {
-  const count = total ?? rows.length;
-  const pages = Math.max(1, Math.ceil(count / pageSize));
+  if (error) return <ErrorMessage title="Could not load data" message={typeof error === 'string' ? error : undefined} onRetry={onRetry} />;
 
-  let body;
-  if (loading) body = <LoadingState.Skeleton rows={pageSize} />;
-  else if (error) body = <ErrorMessage message={error} title="Could not load data" onRetry={onRetry} />;
-  else if (!rows.length) body = <EmptyState title={emptyTitle} description={emptyDescription} actionLabel={emptyActionLabel} onAction={onEmptyAction} />;
-  else body = (
-    <div className="rt-table-wrap">
-      <table className="rt-table">
-        <thead>
-          <tr>{columns.map((c) => <th key={c.key} scope="col">{c.header}</th>)}</tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row[rowKey]}
-              {...(onRowClick && {
-                tabIndex: 0,
-                onClick: () => onRowClick(row),
-                onKeyDown: (e) => e.key === "Enter" && onRowClick(row),
-              })}
-            >
-              {columns.map((c) => <td key={c.key}>{c.render ? c.render(row) : row[c.key]}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  const empty = !loading && data.length === 0;
+  if (empty) return <EmptyState title={emptyTitle} message={emptyMessage} />;
 
   return (
-    <section className="rt-root rt-card">
-      {title && <h2 className="rt-card__title">{title}</h2>}
-      {body}
-      {!loading && !error && rows.length > 0 && (
-        <div className="rt-table__footer">
-          <span>Showing {rows.length} of {count} {itemLabel}{count === 1 ? "" : "s"}</span>
-          {onPageChange && pages > 1 && (
-            <nav className="rt-pagination" aria-label="Pagination">
-              <button className="rt-page-btn" aria-label="Previous page" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>‹</button>
-              {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
-                <button key={n} className="rt-page-btn" aria-current={n === page ? "page" : undefined} onClick={() => onPageChange(n)}>{n}</button>
+    <div>
+      <div className="rt-table-wrap">
+        <table className="rt-table" aria-busy={loading}>
+          {caption && <caption className="rt-sr-only">{caption}</caption>}
+          <thead>
+            <tr>
+              {columns.map((c) => (
+                <th key={c.key} scope="col" style={c.width ? { width: c.width } : undefined}>{c.header}</th>
               ))}
-              <button className="rt-page-btn" aria-label="Next page" disabled={page >= pages} onClick={() => onPageChange(page + 1)}>›</button>
-            </nav>
-          )}
-        </div>
-      )}
-    </section>
+            </tr>
+          </thead>
+          <tbody>
+            {loading
+              ? Array.from({ length: pagination?.pageSize ?? 5 }, (_, i) => (
+                  <tr key={i}>
+                    {columns.map((c) => (<td key={c.key}><Skeleton /></td>))}
+                  </tr>
+                ))
+              : data.map((row) => (
+                  <tr
+                    key={row[rowKey]}
+                    className={onRowClick ? 'is-clickable' : undefined}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    onKeyDown={onRowClick ? (e) => e.key === 'Enter' && onRowClick(row) : undefined}
+                    tabIndex={onRowClick ? 0 : undefined}
+                  >
+                    {columns.map((c) => (
+                      <td key={c.key}>
+                        {c.render ? c.render(row) : c.type === 'status' ? <StatusTag status={row[c.key]} /> : row[c.key]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+          </tbody>
+        </table>
+      </div>
+      {pagination && !loading && <Pagination {...pagination} />}
+    </div>
   );
 }

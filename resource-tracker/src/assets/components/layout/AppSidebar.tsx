@@ -16,6 +16,7 @@ function AppSidebar({ role }: AppSidebarProps) {
 
       <nav aria-label="Main navigation">
         {navigationItems.map((item) => (
+
           <NavLink
             key={item.path}
             to={item.path}

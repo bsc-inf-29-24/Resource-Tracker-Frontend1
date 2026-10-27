@@ -1,245 +1,323 @@
-import { useState } from 'react';
-import './ComponentShowcase.css';
-import * as RT from './assets/components';
+import { useEffect, useMemo, useState } from 'react';
+import './App.css';
+import {
+  // layout
+  Button, PageHeader, Breadcrumb,
+  // display
+  StatusCard, StatusTag, DataTable, FilterToolbar,
+  // dialogs + feedback
+  ConfirmModal, EmptyState, LoadingState, ErrorMessage, InlineError,
+  // forms
+  FormSection, FormActions, TextInput, SelectInput, TextArea, DateSelect,
+  // icons
+  DashboardIcon, RequestIcon, TeamIcon, ReportIcon, ProfileIcon, SettingsIcon, LogoutIcon,
+  BellIcon, ChevronDownIcon, PlusIcon, ResetIcon, FileClockIcon, FileSearchIcon, FileCheckIcon,
+} from './assets/components';
 
-const {
-  Button, PageHeader, Breadcrumb, StatusTag, StatusCard, DataTable, Pagination, FilterToolbar,
-  ConfirmModal, Spinner, LoadingState, Skeleton, EmptyState, ErrorMessage, InlineError,
-  FormSection, FormActions, FormField, TextInput, SelectInput, TextArea, DateSelect,
-  RequestIcon, TeamIcon, ReportIcon, DashboardIcon, ResetIcon, PlusIcon,
-} = RT;
-
-const STATUSES = ['Submitted', 'Pending', 'Queried', 'Approved', 'Rejected'];
-
-const ROWS = [
+/* ------------------------------------------------------------------ */
+/* Sample data (replace with calls to your NestJS API)                 */
+/* ------------------------------------------------------------------ */
+const REQUESTS = [
   { id: 'RT-0401', resource: 'Laptop', project: 'Uni App', date: '2025-10-09', status: 'Pending' },
-  { id: 'RT-0456', resource: 'Pens', project: 'Lab tech', date: '2025-10-05', status: 'Approved' },
+  { id: 'RT-0456', resource: 'Pens', project: 'Lab tech', date: '2025-10-05', status: 'Pending' },
   { id: 'RT-9901', resource: 'Office chairs', project: 'ICT labs', date: '2025-10-05', status: 'Queried' },
+  { id: 'RT-0402', resource: 'Printer', project: 'S.C office', date: '2025-10-01', status: 'Approved' },
+  { id: 'RT-0471', resource: 'Markers', project: 'Lab tech', date: '2025-09-19', status: 'Pending' },
   { id: 'RT-0201', resource: 'Projector', project: 'Lab tech', date: '2025-09-07', status: 'Rejected' },
+  { id: 'RT-0188', resource: 'Router', project: 'ICT labs', date: '2025-09-02', status: 'Approved' },
+  { id: 'RT-0170', resource: 'Whiteboard', project: 'Uni App', date: '2025-08-28', status: 'Submitted' },
 ];
 
-const COLUMNS = [
-  { key: 'id', header: 'Request ID' },
-  { key: 'resource', header: 'Resource' },
-  { key: 'project', header: 'Project' },
-  { key: 'date', header: 'Date' },
-  { key: 'status', header: 'Status', type: 'status' },
+const ACTIVITY = [
+  { text: 'Your request RT-0401 is now on pending review', time: '2 hours ago' },
+  { text: 'Your RT-0456 was approved', time: '2 days ago' },
+  { text: 'Manager added query to RT-0456', time: '5 days ago' },
+  { text: 'You submitted request RT-0456', time: '1 week ago' },
+  { text: 'Request RT-9087 was rejected', time: '2 weeks ago' },
 ];
 
-/* Wrapper that gives every demo a title, a short description and a white stage. */
-function Demo({ id, title, note, children }) {
+const PAGE_SIZE = 5;
+
+/* ------------------------------------------------------------------ */
+/* Shell: sidebar + top bar                                            */
+/* ------------------------------------------------------------------ */
+const NAV = [
+  { key: 'dashboard', label: 'Dashboard', icon: DashboardIcon },
+  { key: 'request', label: 'Request', icon: RequestIcon },
+  { key: 'team', label: 'Team members', icon: TeamIcon },
+  { key: 'report', label: 'Report', icon: ReportIcon },
+  { key: 'profile', label: 'Profile', icon: ProfileIcon },
+  { key: 'settings', label: 'Settings', icon: SettingsIcon },
+];
+
+function Sidebar({ current, onNavigate }) {
   return (
-    <section id={id} className="sc-demo">
-      <h2>{title}</h2>
-      {note && <p className="sc-note">{note}</p>}
-      <div className="sc-stage">{children}</div>
-    </section>
+    <aside className="app-sidebar">
+      <div className="app-logo" aria-label="Resource Tracker">
+        <span className="app-logo__mark">RT</span>
+        <span className="app-logo__text">Resource<br />Tracker</span>
+      </div>
+      <nav aria-label="Main">
+        {NAV.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            className={`app-nav${current === key ? ' is-active' : ''}`}
+            aria-current={current === key ? 'page' : undefined}
+            onClick={() => onNavigate(key)}
+          >
+            <Icon size={25} /> {label}
+          </button>
+        ))}
+        <button className="app-nav"><LogoutIcon size={22} /> Logout</button>
+      </nav>
+      <p className="app-tagline">Smarter resources<br />Better Decisions.</p>
+    </aside>
   );
 }
 
-function Label({ children }) {
-  return <h3 className="sc-label">{children}</h3>;
+function TopBar({ crumb }) {
+  return (
+    <div className="app-topbar">
+      <Breadcrumb crumbs={[{ label: crumb }]} />
+      <div className="app-user">
+        <BellIcon size={25} />
+        <span className="app-avatar">WN</span>
+        <span>Wanangwa Nyirenda</span>
+        <ChevronDownIcon size={14} />
+      </div>
+    </div>
+  );
 }
 
-export default function ComponentShowcase() {
-  // table + pagination
+/* ------------------------------------------------------------------ */
+/* Dashboard page                                                      */
+/* ------------------------------------------------------------------ */
+function DashboardPage({ onCreate }) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [page, setPage] = useState(1);
-  const [clicked, setClicked] = useState('');
-
-  // filter toolbar
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [toDelete, setToDelete] = useState(null);
 
-  // form controls
-  const [form, setForm] = useState({ item: '', price: '', dept: '', why: '' });
-  const [date, setDate] = useState({ day: 1, month: 8, year: new Date().getFullYear() });
+  // fake API delay so you can see the loading state
+  useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 1200);
+    return () => clearTimeout(t);
+  }, [error]);
 
-  // dialogs
-  const [dialog, setDialog] = useState(null); // 'confirm' | 'danger' | null
-  const [busy, setBusy] = useState(false);
+  const filtered = useMemo(
+    () => REQUESTS.filter((r) =>
+      (!status || r.status === status) &&
+      (!search || `${r.id} ${r.resource} ${r.project}`.toLowerCase().includes(search.toLowerCase()))),
+    [search, status],
+  );
+  const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const iconNames = Object.keys(RT).filter((k) => k.endsWith('Icon')).sort();
-
-  const sections = [
-    ['buttons', 'Buttons'], ['header', 'Page header'], ['status', 'Status tags'], ['cards', 'Status cards'],
-    ['tables', 'Data table'], ['filters', 'Filter toolbar'], ['forms', 'Form controls'],
-    ['dialogs', 'Dialogs'], ['feedback', 'Feedback states'], ['icons', 'Icons'],
+  const columns = [
+    { key: 'id', header: 'Request ID' },
+    { key: 'resource', header: 'Resource' },
+    { key: 'project', header: 'Project' },
+    { key: 'date', header: 'Date' },
+    { key: 'status', header: 'Status', render: (r) => <StatusTag status={r.status} /> },
+    { key: 'actions', header: '', render: (r) => (
+      <Button variant="secondary" onClick={(e) => { e.stopPropagation(); setToDelete(r); }}>Delete</Button>
+    ) },
   ];
 
   return (
-    <div className="sc-page">
-      <header className="sc-top">
-        <h1>Resource Tracker components</h1>
-        <p>Every reusable component, with its variants and states.</p>
-        <nav aria-label="Sections">
-          {sections.map(([id, label]) => (<a key={id} href={`#${id}`}>{label}</a>))}
-        </nav>
-      </header>
+    <>
+      <PageHeader
+        title="Hello, Wanangwa"
+        description="Manage your resource request and track their progress"
+        actions={<Button size="lg" icon={<PlusIcon size={20} />} onClick={onCreate}>Create Resource Request</Button>}
+      />
 
-      {/* ---------------- Buttons ---------------- */}
-      <Demo id="buttons" title="Button" note="variant: primary | secondary | danger. size: md | lg. Also block, icon, disabled.">
-        <div className="sc-row">
-          <Button>Primary</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="danger">Danger</Button>
-          <Button disabled>Disabled</Button>
-          <Button icon={<PlusIcon size={18} />}>With icon</Button>
-          <Button variant="secondary" icon={<ResetIcon size={18} />}>Reset</Button>
-          <Button size="lg">Large</Button>
-        </div>
-        <Label>Block</Label>
-        <Button block>Full-width button</Button>
-      </Demo>
+      {/* Status cards */}
+      <div className="rt-card-grid app-cards">
+        <StatusCard title="Total Request" count={32} icon={<RequestIcon />} />
+        <StatusCard title="Pending" count={12} tone="pending" icon={<FileClockIcon />} />
+        <StatusCard title="Queried" count={14} tone="queried" icon={<FileSearchIcon />} />
+        <StatusCard title="Approved" count={7} tone="approved" icon={<FileCheckIcon />} />
+      </div>
 
-      {/* ---------------- Page header ---------------- */}
-      <Demo id="header" title="PageHeader and Breadcrumb">
-        <div className="sc-bleed"><Breadcrumb crumbs={[{ label: 'Request', href: '#header' }, { label: 'Create' }]} /></div>
-        <PageHeader
-          title="Hello, Wanangwa"
-          description="Manage your resource request and track their progress"
-          actions={<Button size="lg" icon={<PlusIcon size={20} />}>Create Resource Request</Button>}
+      <div className="app-grid">
+        <section className="rt-panel">
+          <h2 className="rt-panel__title">My Request</h2>
+
+          <FilterToolbar
+            search={search}
+            onSearchChange={(v) => { setSearch(v); setPage(1); }}
+            searchPlaceholder="Search by ID, resource or project"
+            filters={[{ name: 'status', label: 'Status', options: ['Submitted', 'Pending', 'Queried', 'Approved', 'Rejected'], value: status }]}
+            onFilterChange={(_, v) => { setStatus(v); setPage(1); }}
+            onReset={() => { setSearch(''); setStatus(''); setPage(1); }}
+          />
+
+          <DataTable
+            caption="My resource requests"
+            columns={columns}
+            data={rows}
+            loading={loading}
+            error={error ? 'The server did not respond. Check your connection and try again.' : undefined}
+            onRetry={() => setError(false)}
+            emptyTitle="No requests match your filters"
+            emptyMessage="Try a different search or reset the filters."
+            pagination={{ page, pageSize: PAGE_SIZE, total: filtered.length, onPageChange: setPage }}
+          />
+
+          {/* Review helpers – remove once you are happy with the components */}
+          <div className="app-review">
+            <Button variant="secondary" onClick={() => setError(true)}>Simulate error</Button>
+            <Button variant="secondary" onClick={() => { setError(false); setLoading(true); setTimeout(() => setLoading(false), 1200); }}>
+              Simulate loading
+            </Button>
+          </div>
+        </section>
+
+        <section className="rt-panel">
+          <h2 className="rt-panel__title">Recent Activity</h2>
+          {loading ? <LoadingState message="Loading activity…" /> : (
+            <ul className="app-activity">
+              {ACTIVITY.map((a) => (
+                <li key={a.text}><strong>{a.text}</strong><span>{a.time}</span></li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <ConfirmModal
+        open={Boolean(toDelete)}
+        variant="danger"
+        title="Delete this request?"
+        message={toDelete ? `${toDelete.id} (${toDelete.resource}) will be permanently removed. This cannot be undone.` : ''}
+        confirmLabel="Delete request"
+        onConfirm={() => setToDelete(null)}
+        onCancel={() => setToDelete(null)}
+      />
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Create Resource Request page                                        */
+/* ------------------------------------------------------------------ */
+const EMPTY_FORM = {
+  item: '', quantity: '', price: '', supplier: '',
+  department: '', team: '', project: '', purpose: '',
+  date: { day: 1, month: 8, year: new Date().getFullYear() },
+};
+
+function RequestPage() {
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [errors, setErrors] = useState({});
+  const [confirm, setConfirm] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+
+  const validate = () => {
+    const e = {};
+    if (!form.item.trim()) e.item = 'Enter the item name.';
+    if (!form.quantity || Number(form.quantity) < 1) e.quantity = 'Enter a quantity of 1 or more.';
+    if (!form.price || Number(form.price) <= 0) e.price = 'Enter the estimated price.';
+    if (!form.department) e.department = 'Select a department.';
+    if (!form.purpose.trim()) e.purpose = 'Explain why this resource is needed.';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const submit = () => {
+    setSaving(true);
+    setSubmitError('');
+    setTimeout(() => { setSaving(false); setConfirm(false); setForm(EMPTY_FORM); }, 900); // replace with API call
+  };
+
+  return (
+    <>
+      <PageHeader title="Create Resource request" />
+
+      <FormSection icon={<RequestIcon />} title="Resource Details" hint="Enter the resource item details">
+        <TextInput label="Item Name" placeholder="e.g Laptop, Projector" value={form.item} onChange={set('item')} error={errors.item} />
+        <TextInput label="Quantity" type="number" placeholder="e.g 2" value={form.quantity} onChange={set('quantity')} error={errors.quantity} />
+        <TextInput label="Estimated Price" type="number" placeholder="e.g 150000" value={form.price} onChange={set('price')} error={errors.price} />
+        <TextInput label="Supplier" optional placeholder="e.g Xyzozell tm company" value={form.supplier} onChange={set('supplier')} />
+      </FormSection>
+
+      <FormSection icon={<TeamIcon />} title="Request Information" hint="Select the relevant department, project and team">
+        <SelectInput label="Department" placeholder="Select department" options={['ICT', 'Finance', 'Administration']}
+          value={form.department} onChange={set('department')} error={errors.department} />
+        <SelectInput label="Project" placeholder="Select project" options={['Uni App', 'Lab tech', 'ICT labs']}
+          value={form.project} onChange={set('project')} />
+        <SelectInput label="Requesting Team" placeholder="Select team" options={['Development', 'Support', 'Operations']}
+          value={form.team} onChange={set('team')} />
+        <DateSelect value={form.date} onChange={(date) => setForm({ ...form, date })} />
+        <TextArea label="Purpose / Justification" placeholder="Explaining why this resource is needed…"
+          value={form.purpose} onChange={set('purpose')} error={errors.purpose} />
+      </FormSection>
+
+      <InlineError>{submitError}</InlineError>
+
+      <FormActions>
+        <Button variant="secondary" icon={<ResetIcon size={20} />} onClick={() => { setForm(EMPTY_FORM); setErrors({}); }}>Reset</Button>
+        <Button onClick={() => validate() && setConfirm(true)}>Review Request</Button>
+      </FormActions>
+
+      <ConfirmModal
+        open={confirm}
+        title="Submit this request?"
+        message="Your manager will be notified and you can track progress from the dashboard."
+        confirmLabel="Submit request"
+        loading={saving}
+        onConfirm={submit}
+        onCancel={() => setConfirm(false)}
+      />
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Team members page (empty state until the API is ready)              */
+/* ------------------------------------------------------------------ */
+function TeamPage() {
+  return (
+    <>
+      <PageHeader title="Team members" description="View all team allocated members" />
+      <section className="rt-panel">
+        <EmptyState
+          icon={<TeamIcon size={56} />}
+          title="No team members yet"
+          message="Members allocated to your team will show up here."
         />
-        <PageHeader title="Team members" description="View all team allocated members" />
-      </Demo>
+      </section>
+    </>
+  );
+}
 
-      {/* ---------------- Status tag ---------------- */}
-      <Demo id="status" title="StatusTag" note="Any status text from the API maps to one look. 'Declined' is shown as Rejected.">
-        <div className="sc-row">
-          {STATUSES.map((s) => <StatusTag key={s} status={s} />)}
-          <StatusTag status="Declined" />
-        </div>
-      </Demo>
+/* ------------------------------------------------------------------ */
+/* App                                                                 */
+/* ------------------------------------------------------------------ */
+export default function App() {
+  const [page, setPage] = useState('dashboard');
+  const label = NAV.find((n) => n.key === page)?.label ?? 'Dashboard';
 
-      {/* ---------------- Status card ---------------- */}
-      <Demo id="cards" title="StatusCard" note="Static, clickable (onClick) or a link (href).">
-        <div className="sc-row">
-          <StatusCard title="Total Request" count={32} icon={<RequestIcon size={48} />} />
-          <StatusCard title="Pending" count={12} icon={<ReportIcon size={48} />} onClick={() => setClicked('Pending card clicked')} />
-          <StatusCard title="Queried" count={14} icon={<TeamIcon size={48} />} href="#cards" />
-          <StatusCard title="Approved" count={7} icon={<DashboardIcon size={48} />} />
-        </div>
-        {clicked && <p className="sc-note" role="status">{clicked}</p>}
-      </Demo>
-
-      {/* ---------------- Data table ---------------- */}
-      <Demo id="tables" title="DataTable and Pagination">
-        <Label>Default, with pagination and clickable rows</Label>
-        <DataTable
-          columns={COLUMNS}
-          data={ROWS}
-          caption="Example requests"
-          onRowClick={(r) => setClicked(`Opened ${r.id}`)}
-          pagination={{ page, pageSize: 4, total: 15, onPageChange: setPage }}
-        />
-        <Label>Loading</Label>
-        <DataTable columns={COLUMNS} data={[]} loading pagination={{ page: 1, pageSize: 3, total: 0, onPageChange() {} }} />
-        <Label>Empty</Label>
-        <DataTable columns={COLUMNS} data={[]} emptyTitle="No requests yet" emptyMessage="Requests you create will appear here." />
-        <Label>Error</Label>
-        <DataTable columns={COLUMNS} data={[]} error="The server did not respond. Check your connection and try again." onRetry={() => setClicked('Retry clicked')} />
-        <Label>Pagination on its own</Label>
-        <Pagination page={2} pageSize={5} total={15} onPageChange={() => {}} />
-      </Demo>
-
-      {/* ---------------- Filter toolbar ---------------- */}
-      <Demo id="filters" title="FilterToolbar" note="Search, dropdown filters, optional date range (add onDateChange) and Reset.">
-        <FilterToolbar
-          search={search}
-          onSearchChange={setSearch}
-          searchPlaceholder="Search by ID, resource or project"
-          filters={[{ name: 'status', label: 'Status', options: STATUSES, value: status }]}
-          onFilterChange={(_, v) => setStatus(v)}
-          dateFrom={from}
-          dateTo={to}
-          onDateChange={(f, v) => (f === 'from' ? setFrom(v) : setTo(v))}
-          onReset={() => { setSearch(''); setStatus(''); setFrom(''); setTo(''); }}
-        />
-        <p className="sc-note">Current values: search "{search}", status "{status || 'All'}", from "{from || '-'}", to "{to || '-'}"</p>
-      </Demo>
-
-      {/* ---------------- Forms ---------------- */}
-      <Demo id="forms" title="Form controls">
-        <FormSection icon={<RequestIcon />} title="Resource Details" hint="Enter the resource item details">
-          <TextInput label="Item Name" placeholder="e.g Laptop, Projector" value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} />
-          <TextInput label="Supplier" optional placeholder="e.g Xyzozell tm company" />
-          <TextInput label="Estimated Price" type="number" placeholder="e.g 150000" value={form.price}
-            onChange={(e) => setForm({ ...form, price: e.target.value })}
-            error={form.price && Number(form.price) < 1 ? 'Enter a price above 0.' : undefined} />
-          <SelectInput label="Department" placeholder="Select department" options={['ICT', 'Finance', 'Administration']}
-            value={form.dept} onChange={(e) => setForm({ ...form, dept: e.target.value })} />
-          <TextInput label="Field with error" defaultValue="abc" error="This is how a validation message looks." />
-          <DateSelect value={date} onChange={setDate} />
-          <TextArea label="Purpose / Justification" placeholder="Explaining why this resource is needed…" value={form.why}
-            onChange={(e) => setForm({ ...form, why: e.target.value })} />
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" icon={<ResetIcon size={20} />} onClick={() => setForm({ item: '', price: '', dept: '', why: '' })}>Reset</Button>
-          <Button>Review Request</Button>
-        </FormActions>
-        <Label>FormField (wrap any custom control)</Label>
-        <FormField label="Custom control">
-          {(a11y) => <input className="rt-control" type="color" {...a11y} />}
-        </FormField>
-      </Demo>
-
-      {/* ---------------- Dialogs ---------------- */}
-      <Demo id="dialogs" title="ConfirmModal" note="Press Escape or click the dark backdrop to close.">
-        <div className="sc-row">
-          <Button onClick={() => setDialog('confirm')}>Open confirmation</Button>
-          <Button variant="danger" onClick={() => setDialog('danger')}>Open danger dialog</Button>
-        </div>
-        <ConfirmModal
-          open={dialog === 'confirm'}
-          title="Approve this request?"
-          message="The requester will be notified straight away."
-          confirmLabel="Approve request"
-          loading={busy}
-          onConfirm={() => { setBusy(true); setTimeout(() => { setBusy(false); setDialog(null); }, 900); }}
-          onCancel={() => setDialog(null)}
-        />
-        <ConfirmModal
-          open={dialog === 'danger'}
-          variant="danger"
-          title="Delete this request?"
-          message="RT-0401 (Laptop) will be permanently removed. This cannot be undone."
-          confirmLabel="Delete request"
-          onConfirm={() => setDialog(null)}
-          onCancel={() => setDialog(null)}
-        />
-      </Demo>
-
-      {/* ---------------- Feedback ---------------- */}
-      <Demo id="feedback" title="Loading, empty and error states">
-        <Label>Spinner</Label>
-        <div className="sc-row"><Spinner /></div>
-        <Label>LoadingState</Label>
-        <LoadingState message="Loading your requests…" />
-        <Label>Skeleton</Label>
-        <div className="sc-stack"><Skeleton width="60%" /><Skeleton /><Skeleton width="80%" height={24} /></div>
-        <Label>EmptyState</Label>
-        <EmptyState title="No requests yet" message="Create your first resource request to get started." actionLabel="Create Resource Request" onAction={() => {}} />
-        <Label>ErrorMessage</Label>
-        <ErrorMessage message="We could not load this section." onRetry={() => {}} />
-        <Label>InlineError</Label>
-        <InlineError>Your request could not be saved. Try again.</InlineError>
-      </Demo>
-
-      {/* ---------------- Icons ---------------- */}
-      <Demo id="icons" title="Icons" note="Every icon exported from icons/Icons.jsx. They inherit the text colour and accept size.">
-        <ul className="sc-icons">
-          {iconNames.map((name) => {
-            const Icon = RT[name];
-            return (
-              <li key={name}>
-                <Icon size={32} />
-                <span>{name}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </Demo>
+  return (
+    <div className="app-shell">
+      <Sidebar current={page} onNavigate={setPage} />
+      <div className="app-main">
+        <TopBar crumb={label} />
+        <main className="app-content">
+          {page === 'dashboard' && <DashboardPage onCreate={() => setPage('request')} />}
+          {page === 'request' && <RequestPage />}
+          {page === 'team' && <TeamPage />}
+          {['report', 'profile', 'settings'].includes(page) && (
+            <EmptyState title={`${label} is coming soon`} message="This page has not been built yet." />
+          )}
+        </main>
+      </div>
     </div>
   );
 }

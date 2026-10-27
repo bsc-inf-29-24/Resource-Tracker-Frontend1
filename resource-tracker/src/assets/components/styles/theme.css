@@ -35,6 +35,11 @@
   --rt-space-6: 32px;
 }
 
-html, body { font-family: var(--rt-font); color: var(--rt-text); background: var(--rt-bg); margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { font-family: var(--rt-font); color: var(--rt-text); background: var(--rt-bg); margin: 0; min-height: 100%; }
+/* Undo the Vite starter template (centred, narrow #root) so the app fills the whole window */
+html body { display: block; width: 100%; min-width: 320px; place-items: initial; }
+html body #root { width: 100%; max-width: none; margin: 0; padding: 0; text-align: left; }
+input, select, textarea, progress { accent-color: var(--rt-green-700); }
 button, input, select, textarea { font-family: inherit; }
 *:focus-visible { outline: 3px solid var(--rt-green-600); outline-offset: 2px; }

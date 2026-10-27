@@ -102,4 +102,33 @@ export function FormActions({ children }) {
   return <div className="rt-form-actions">{children}</div>;
 }
 
+/**
+ * Green pill selector, e.g. Urgency: Low / Medium / High.
+ * Drop it inside <FormField label="Urgency">{(a11y) => <SegmentedControl {...a11y} ... />}</FormField>
+ * options: ['Low', 'Medium'] or [{ value, label }]
+ */
+export function SegmentedControl({ options = [], value, onChange, label, ...rest }) {
+  return (
+    <div className="rt-segment" role="radiogroup" aria-label={label} {...rest}>
+      {options.map((o) => {
+        const v = typeof o === 'object' ? o.value : o;
+        const l = typeof o === 'object' ? o.label : o;
+        const active = value === v;
+        return (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            className={`rt-segment__btn${active ? ' is-active' : ''}`}
+            onClick={() => onChange?.(v)}
+          >
+            {l}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export { ChevronDownIcon };

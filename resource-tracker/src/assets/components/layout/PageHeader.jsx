@@ -7,12 +7,12 @@ import { HomeIcon, ChevronRightIcon } from '../icons/Icons';
 export function Breadcrumb({ crumbs = [], homeHref = '/' }) {
   return (
     <nav className="rt-breadcrumb" aria-label="Breadcrumb">
-      <a href={homeHref} aria-label="Home"><HomeIcon size={22} /></a>
+      <a href={homeHref} aria-label="Home"><HomeIcon size={25} /></a>
       {crumbs.map((c, i) => {
         const last = i === crumbs.length - 1;
         return (
           <span key={c.label} style={{ display: 'contents' }}>
-            <ChevronRightIcon size={16} />
+            <ChevronRightIcon size={18} />
             {last || !c.href
               ? <span aria-current={last ? 'page' : undefined}>{c.label}</span>
               : <a href={c.href}>{c.label}</a>}

@@ -1,0 +1,31 @@
+/* Layout for the component gallery only; the components bring their own styles. */
+.sc-page { width: 100%; min-height: 100vh; padding: clamp(16px, 3vw, 40px); }
+
+.sc-top { margin-bottom: var(--rt-space-5); }
+.sc-top h1 { margin: 0; font-size: 32px; font-weight: 700; color: var(--rt-green-700); }
+.sc-top p { margin: var(--rt-space-1) 0 var(--rt-space-4); color: var(--rt-muted); font-weight: 500; }
+.sc-top nav { display: flex; flex-wrap: wrap; gap: var(--rt-space-2); }
+.sc-top nav a {
+  padding: 6px 14px; border: 1px solid var(--rt-green-700); border-radius: 999px;
+  color: var(--rt-green-700); font-size: 13px; font-weight: 600; text-decoration: none; background: #fff;
+}
+.sc-top nav a:hover { background: var(--rt-green-700); color: #fff; }
+
+.sc-demo { margin-bottom: var(--rt-space-6); scroll-margin-top: var(--rt-space-4); }
+.sc-demo h2 { margin: 0 0 var(--rt-space-1); font-size: 22px; font-weight: 700; color: var(--rt-green-950); }
+.sc-note { margin: 0 0 var(--rt-space-3); font-size: 13px; color: var(--rt-muted); font-weight: 500; }
+.sc-stage { background: #fff; padding: clamp(16px, 2vw, 28px); box-shadow: var(--rt-shadow); border-radius: var(--rt-radius); overflow: hidden; }
+.sc-bleed { margin: calc(clamp(16px, 2vw, 28px) * -1) calc(clamp(16px, 2vw, 28px) * -1) var(--rt-space-4); }
+
+.sc-label { margin: var(--rt-space-5) 0 var(--rt-space-2); font-size: 14px; font-weight: 700; color: var(--rt-green-700); }
+.sc-label:first-child { margin-top: 0; }
+.sc-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--rt-space-3); }
+.sc-stack { display: flex; flex-direction: column; gap: var(--rt-space-2); max-width: 420px; }
+
+.sc-icons { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--rt-space-3); }
+.sc-icons li {
+  display: flex; flex-direction: column; align-items: center; gap: var(--rt-space-2);
+  padding: var(--rt-space-3); border: 1px solid var(--rt-border); border-radius: var(--rt-radius);
+  color: var(--rt-green-700);
+}
+.sc-icons span { font-size: 11px; font-weight: 600; color: var(--rt-text); word-break: break-all; text-align: center; }

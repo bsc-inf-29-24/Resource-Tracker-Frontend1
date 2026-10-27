@@ -67,3 +67,18 @@ export const AlertIcon = (p) => (
 export const EmptyBoxIcon = (p) => (
   <Svg {...p}><path d="M3.5 13 6 5.5h12L20.5 13" /><path d="M3.5 13v6h17v-6h-5l-1.5 2.5h-4L8.5 13z" /></Svg>
 );
+
+/* ---- File icons used on status cards (document + a status mark) ---- */
+const FILE = 'M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z';
+const FOLD = 'M14 3v4.5h4.5';
+export const FileCheckIcon = (p) => (<Svg {...p}><path d={FILE} /><path d={FOLD} /><path d="m9 14.5 2.2 2.2 4-4.4" /></Svg>);
+export const FileClockIcon = (p) => (<Svg {...p}><path d={FILE} /><path d={FOLD} /><circle cx="12" cy="14.5" r="3.2" /><path d="M12 12.8v1.8l1.2.8" /></Svg>);
+export const FileSearchIcon = (p) => (<Svg {...p}><path d={FILE} /><path d={FOLD} /><circle cx="11.2" cy="13.5" r="2.4" /><path d="m13 15.3 2.2 2.2" /></Svg>);
+export const FileCrossIcon = (p) => (<Svg {...p}><path d={FILE} /><path d={FOLD} /><path d="m9.5 12.5 5 5M14.5 12.5l-5 5" /></Svg>);
+
+/* ---- Small status icons used inside StatusTag ---- */
+export const SendIcon = (p) => (<Svg {...p}><path d="M20.5 3.5 10 14" /><path d="M20.5 3.5 14 20.5l-4-6.5-6.5-4z" /></Svg>);
+export const ClockIcon = (p) => (<Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3 2" /></Svg>);
+export const QuestionIcon = (p) => (<Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M9.7 9.5a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1.1.9-1.1 1.6" /><path d="M12 16.8v.01" /></Svg>);
+export const CheckCircleIcon = (p) => (<Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="m8 12.5 2.8 2.8 5.4-5.8" /></Svg>);
+export const CrossCircleIcon = (p) => (<Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="m9 9 6 6M15 9l-6 6" /></Svg>);

@@ -20,3 +20,5 @@ import { DataTable, StatusTag, StatusCard, ConfirmModal, PageHeader } from '../a
 | FormSection, TextInput, SelectInput, TextArea, DateSelect, FormActions | forms/ |
 | FilterToolbar | filters/ |
 | LoadingState, Skeleton, Spinner, EmptyState, ErrorMessage, InlineError | feedback/ |
+
+**New:** `StatusCard tone="pending|queried|approved|rejected"`, `SegmentedControl` (forms/), file+status icons (`FileCheckIcon`, `FileClockIcon`, `FileSearchIcon`, `FileCrossIcon`) and a `.rt-card-grid` class for responsive card rows.

@@ -9,7 +9,7 @@ export default function Pagination({ page, pageSize, total, onPageChange, itemLa
       <span>Showing {shown} of {total} {itemLabel}</span>
       <nav className="rt-pagination" aria-label="Pagination">
         <button className="rt-page-btn" disabled={page <= 1} onClick={() => onPageChange(page - 1)} aria-label="Previous page">
-          <ChevronLeftIcon size={16} />
+          <ChevronLeftIcon size={18} />
         </button>
         {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
           <button
@@ -22,7 +22,7 @@ export default function Pagination({ page, pageSize, total, onPageChange, itemLa
           </button>
         ))}
         <button className="rt-page-btn" disabled={page >= pages} onClick={() => onPageChange(page + 1)} aria-label="Next page">
-          <ChevronRightIcon size={16} />
+          <ChevronRightIcon size={18} />
         </button>
       </nav>
     </div>

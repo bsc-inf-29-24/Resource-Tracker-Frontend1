@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
-import { mockUsers } from "../../data/mock-data"; //Providing sample user acounts for testing login functionality without a backend server.
+import { mockUsers } from "../../data/mock-data"; 
 import { Eye, EyeOff } from "lucide-react";
 
 /*defining the dashboard routes for each user role, 
@@ -11,7 +11,7 @@ const dashboardRoutes: Record<string, string> = {
   TEAM_LEAD: "/team-lead/dashboard",
   LINE_MANAGER: "/line-manager/dashboard",
   DEPARTMENT_MANAGER: "/department-manager/dashboard",
-  SYSTEM_ADMIN: "/system-admin/dashboard",
+  SYSTEM_ADMIN: "/admin/dashboard",
 };
 
 //LoginPage component handles user login functionality
@@ -39,7 +39,8 @@ function LoginPage() {
     }
 
     //Checking if the email format is valid using a regular expression. (Regex checks for a valid email format)
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[[a-zA-Z]{2,}$/;
+    if (!normalizedEmail.match(emailRegex)) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -79,7 +80,7 @@ function LoginPage() {
     <AuthLayout>
       <h1>Welcome back</h1>
       <p className="auth-description">
-        Enter your credentials to get started.
+        Login to start your session.
       </p>
 
       <h2 className="login">Login</h2>

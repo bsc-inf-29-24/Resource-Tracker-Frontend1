@@ -47,7 +47,7 @@ function ResetPasswordPage() {
 
       <h1>Create new password</h1>
       <p className="auth-description">
-        Your new password must contain at least 8 characters.
+        Both passwords must match containing at least 8 characters.
       </p>
 
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -71,9 +71,7 @@ function ResetPasswordPage() {
               {showPassword ? <EyeOff/> : <Eye/>}
             </button>
           </div>
-          <span className="auth-hint">
-            Must be at least 8 characters.
-          </span>
+         
         </div>
 
         <div className="auth-field">
@@ -100,9 +98,7 @@ function ResetPasswordPage() {
               {showPassword ? <EyeOff/> : <Eye/>}
             </button>
           </div>
-          <span className="auth-hint">
-            Both passwords must match.
-          </span>
+
         </div>
 
         {error && (
@@ -113,7 +109,7 @@ function ResetPasswordPage() {
 
         {success && (
           <div className="auth-success" role="status">
-            Password validation passed. In this demo, no actual
+            Password validation passed. In this System Version, no actual
             password has been changed.
             <p>
               <button

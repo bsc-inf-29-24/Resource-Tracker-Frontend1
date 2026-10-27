@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
-//This lets three pages (Login, Register and Forgot Password) share the same layout and styling, 
-// while still allowing each page to have its own unique content.
-
+// Login, Register and Forgot Password pages share the same layout and styling,
 interface AuthLayoutProps {
   children: ReactNode;
 }
 
 function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    //Main content of the page, divided into two sections: the brand panel and the form panel. The brand panel contains the application logo, subtitle, description, and benefits. 
+    //Main content of the page, divided into two sections: the brand panel and the form panel.
+    // The brand panel contains the application logo, subtitle, description and System benefits.
+
     // The form panel contains the authentication form passed as children.
     <main className="auth-page">
       <section className="auth-brand-panel">
@@ -18,8 +18,8 @@ function AuthLayout({ children }: AuthLayoutProps) {
             Real-time Resource Tracking System
           </p>
           <p className="auth-brand-description">
-            Manage resource requests, review decisions and track
-            resource allocation in one place.
+            Manage resource requests, review decisions and track resource
+            allocation in one place.
           </p>
 
           <div className="auth-benefits">

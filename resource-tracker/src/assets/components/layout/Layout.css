@@ -1,8 +1,12 @@
-
 /* APPLICATION HEADER */
-
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 .app-header {
   height: 68px;
+  flex-shrink: 0;
   padding: 0 20px;
   display: flex;
   align-items: center;
@@ -62,7 +66,7 @@
   right: 0;
   padding: 5px;
   margin-top: 5px;
-  background: #08431f;
+  background: #035a24;
   border-radius: 8px;
   box-shadow: 0 6px 20px #40404015;
   z-index: 1000;
@@ -80,20 +84,22 @@
   border: none;
   font-size: 90%;
   border-radius: 5px;
-  background: #313d47;
+  background: #086d30;
   color: #e9eaeb;
   cursor: pointer;
 }
 
 .profile-menu button:hover {
-  background: #051113;
-  color: #de3e0d;
+  background: #0a7d45;
+  color: #e2dbd9;
+  font-weight: 500;
 }
 
 /* DASHBOARD LAYOUT*/
 
 .dashboard-body {
   display: flex;
+  flex: 1;
   min-height: calc(100vh - 68px);
 }
 
@@ -101,6 +107,8 @@
   flex: 1;
   min-width: 0;
   padding: 12px;
+  overflow-x: auto;
+  letter-spacing: 1px;
 }
 
 /* SIDEBAR */
@@ -112,6 +120,7 @@
   background: #023521;
   border-right: 1px solid #e5e7eb;
   text-align: left;
+  letter-spacing: 0.5px;
 }
 
 .sidebar-label {

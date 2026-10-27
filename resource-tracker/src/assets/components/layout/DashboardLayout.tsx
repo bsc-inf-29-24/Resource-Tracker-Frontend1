@@ -1,5 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
 import type { UserRole } from "../../config/navigation";
 import AppHeader from "./AppHeader";
@@ -66,7 +65,7 @@ function DashboardLayout() {
   }
 
   if (!user) {
-    return navigate("/login", { replace: true });
+    return <Navigate to = "/login" replace/>;
   }
 
   return (

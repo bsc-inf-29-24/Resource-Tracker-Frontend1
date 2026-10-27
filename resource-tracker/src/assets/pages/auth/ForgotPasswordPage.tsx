@@ -16,13 +16,14 @@ function ForgotPasswordPage() {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    //Checking if the netered email is valid email
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    //Checking if the email format is valid using a regular expression. (Regex checks for a valid email format)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[[a-zA-Z]{2,}$/;
+    if (!normalizedEmail.match(emailRegex)) {
       setError("Please enter a valid email address.");
       return;
     }
 
-    // Demo only: no email is actually sent.
+    // Just Example: no email is actually sent.
     // Use a generic message to avoid revealing registered accounts.
     const accountExists = mockUsers.some(
       (user) => user.email.toLowerCase() === normalizedEmail
@@ -37,14 +38,11 @@ function ForgotPasswordPage() {
 
   return (
     <AuthLayout>
-      <Link className="auth-back-link" to="/login">
-        ← Back to login
-      </Link>
 
       <h1>Reset Password</h1>
       <p className="auth-description">
-        Enter your email address and we'll show a simulated
-        password-reset confirmation.
+        Enter your email and we'll show you a 
+        password reset confirmation.
       </p>
 
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -69,12 +67,12 @@ function ForgotPasswordPage() {
 
         {success && (
           <div className="auth-success" role="status">
-            If this email belongs to a demo account, a reset
+            This email belongs to a demo account, a reset
             request would be processed. No email was sent because
-            this version does not have a backend.
+            this system version does not have a backend.
             <p>
               <Link to="/reset-password">
-                Continue to the demo reset page
+                Continue to reset Password page
               </Link>
             </p>
           </div>

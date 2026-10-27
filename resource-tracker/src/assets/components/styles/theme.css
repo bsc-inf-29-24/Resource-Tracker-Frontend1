@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+:root {
+  /* Colour tokens sampled from the Resource Tracker design */
+  --rt-green-950: #03271a;   /* sidebar */
+  --rt-green-900: #063d27;
+  --rt-green-700: #14663c;   /* primary buttons, headings */
+  --rt-green-600: #1a7a47;
+  --rt-green-200: #c4d6c8;
+  --rt-green-100: #dfe8e0;   /* activity cards, table header */
+  --rt-green-50:  #eef4ef;
+  --rt-bg: #f3f3f3;
+  --rt-surface: #ffffff;
+  --rt-text: #111111;
+  --rt-muted: #6f7a73;
+  --rt-border: #d5dbd6;
+  --rt-danger: #a32323;
+  --rt-danger-bg: #fbe4e4;
+  --rt-warning: #7d5200;
+  --rt-warning-bg: #fbefd0;
+  --rt-info: #1f4f86;
+  --rt-info-bg: #e2ecf8;
+
+  --rt-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --rt-radius-sm: 4px;
+  --rt-radius: 6px;
+  --rt-radius-lg: 10px;
+  --rt-shadow: 0 1px 3px rgba(3, 39, 26, .18);
+
+  --rt-space-1: 4px;
+  --rt-space-2: 8px;
+  --rt-space-3: 12px;
+  --rt-space-4: 16px;
+  --rt-space-5: 24px;
+  --rt-space-6: 32px;
+}
+
+html, body { font-family: var(--rt-font); color: var(--rt-text); background: var(--rt-bg); margin: 0; }
+button, input, select, textarea { font-family: inherit; }
+*:focus-visible { outline: 3px solid var(--rt-green-600); outline-offset: 2px; }

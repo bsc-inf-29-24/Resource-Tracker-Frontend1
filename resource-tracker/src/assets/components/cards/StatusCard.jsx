@@ -1,25 +1,18 @@
-import LoadingState from "../feedback/LoadingState";
-
 /**
- * Summary tile: icon + label + big number (Total Request 32, Pending 12 ...).
- * Pass onClick to make it a button (e.g. filter the table by that status).
+ * Summary card: icon + title + count (e.g. "Total Request 32").
+ * Pass `onClick` or `href` to make it navigate; otherwise it is a static card.
  */
-export default function StatusCard({ label, value, icon, onClick, loading = false }) {
-  const Tag = onClick ? "button" : "div";
-  return (
-    <Tag
-      className={`rt-root rt-statcard ${onClick ? "rt-statcard--clickable" : ""}`}
-      {...(onClick ? { type: "button", onClick } : {})}
-    >
-      {icon && <span className="rt-statcard__icon">{icon}</span>}
+export default function StatusCard({ title, count, icon, onClick, href }) {
+  const body = (
+    <>
+      {icon && <span className="rt-status-card__icon">{icon}</span>}
       <span>
-        <span className="rt-statcard__label">{label}</span>
-        <span className="rt-statcard__value" aria-live="polite">
-          {loading ? <LoadingState.Spinner size={22} label={`Loading ${label}`} /> : value}
-        </span>
+        <span className="rt-status-card__title">{title}</span>
+        <span className="rt-status-card__count">{count}</span>
       </span>
-    </Tag>
+    </>
   );
+  if (href) return <a className="rt-status-card" href={href}>{body}</a>;
+  if (onClick) return <button type="button" className="rt-status-card" onClick={onClick}>{body}</button>;
+  return <div className="rt-status-card">{body}</div>;
 }
-
-export const StatusCardGrid = ({ children }) => <div className="rt-root rt-statcards">{children}</div>;

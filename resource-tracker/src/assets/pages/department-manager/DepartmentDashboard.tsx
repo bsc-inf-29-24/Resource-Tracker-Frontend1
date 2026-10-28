@@ -74,7 +74,7 @@ export default function DepartmentDashboard() {
       label: "Status",
       type: "select",
       value: status,
-      onChange: setStatus,
+      onChange: (value: any) => setStatus(value),
       options: [
         { value: "All", label: "All statuses" },
         ...(["Submitted", "Pending", "Queried", "Approved", "Rejected"] as RequestStatus[]).map(

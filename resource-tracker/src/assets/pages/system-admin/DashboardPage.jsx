@@ -39,9 +39,7 @@ export default function DashboardPage() {
         }
       />
 
-      <p className={styles.previewNotice} role="note">
-        Preview data is stored in this browser. Account status and role changes do not enforce access or create secure sign-in accounts.
-      </p>
+      
       {persistenceWarning && (
         <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
       )}

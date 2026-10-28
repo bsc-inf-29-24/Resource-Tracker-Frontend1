@@ -1,3 +1,6 @@
+import type {   LucideIcon } from "lucide-react";
+
+//Defining system user roles 
 export type UserRole =
   | "TEAM_LEAD"
   | "LINE_MANAGER"
@@ -7,6 +10,7 @@ export type UserRole =
 export interface NavigationItem {
   label: string;
   path: string;
+  icon?: LucideIcon;
 }
 
 export const navigationConfig: Record<UserRole, NavigationItem[]> = {

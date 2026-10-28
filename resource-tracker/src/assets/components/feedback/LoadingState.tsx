@@ -2,6 +2,7 @@ interface LoadingStateProps {
   message?: string;
   label?: string;
 }
+<<<<<<< HEAD
 
 function Spinner({
   size = 32,
@@ -28,6 +29,16 @@ function Skeleton({ rows = 5 }: { rows?: number }) {
         <div key={index} className="rt-skeleton" />
       ))}
       <span className="rt-sr-only">Loading</span>
+=======
+//display a loading message and spinner while information is being retrieved. it will allow input of a dispaly message to show which operation is being awaited for
+function LoadingState({
+  message = "Loading, Please wait...",
+}: LoadingStateProps) {
+  return (
+    <div className="feedback-state loading-state" role="status">
+        <div className="loading-spinner"></div>
+        <p>{message}</p>
+>>>>>>> 63854794c0b67b7236447ffaaa01104b8a53fe85
     </div>
   );
 }

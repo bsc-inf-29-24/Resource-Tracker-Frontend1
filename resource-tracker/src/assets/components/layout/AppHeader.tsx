@@ -8,6 +8,10 @@ import {
 import UserProfileMenu from "./UserProfileMenu";
 import styles from "./AppHeader.module.css";
 
+import { useState } from "react";
+import { UserRound, CircleUserRound } from "lucide-react";
+
+//AppHeader component
 interface AppHeaderProps {
   userName?: string | null;
   role?: UserRole | null;

@@ -1,139 +1,134 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import ErrorMessage from "../../components/feedback/ErrorMessage";
-import styles from "./AuthPage.module.css";
 
-const minimumPasswordLength = 8;
+import { useState} from "react";
+import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "./AuthLayout";
+import { Eye, EyeOff } from "lucide-react";
 
-export default function ResetPasswordPage() {
-  const [searchParams] = useSearchParams();
-  const hasResetToken = Boolean(searchParams.get("token")?.trim());
+function ResetPasswordPage() {
+  const navigate = useNavigate();
+
   const [password, setPassword] = useState("");
-  const [confirmation, setConfirmation] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  const passwordError =
-    submitted && !password
-      ? "Enter a new password."
-      : submitted && password.length < minimumPasswordLength
-        ? `Use at least ${minimumPasswordLength} characters.`
-        : "";
-  const confirmationError =
-    submitted && !confirmation
-      ? "Confirm your new password."
-      : submitted && password !== confirmation
-        ? "The passwords do not match."
-        : "";
-  const hasValidationErrors =
-    !password ||
-    password.length < minimumPasswordLength ||
-    !confirmation ||
-    password !== confirmation;
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setSuccess(false);
+
+    if (!password || !confirmPassword) {
+      setError("Please complete both password fields.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Your password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Both passwords must match.");
+      return;
+    }
+
+    // Demo only: no real account password is changed.
+    setSuccess(true);
   }
 
   return (
-    <section className={`rt-root ${styles.card}`} aria-labelledby="reset-title">
-      <p className={styles.eyebrow}>Account access</p>
-      <h1 className={styles.title} id="reset-title">
-        Reset password
-      </h1>
-      <p className={styles.description}>
-        Choose a new password for your account.
+    <AuthLayout>
+      <Link className="auth-back-link" to="/login">
+        ← Back to login
+      </Link>
+
+      <h1>Create new password</h1>
+      <p className="auth-description">
+        Both passwords must match containing at least 8 characters.
       </p>
-      <p className={styles.policy}>
-        Use at least {minimumPasswordLength} characters. Passwords must match.
-      </p>
-      {!hasResetToken && (
-        <p className={styles.notice} role="status">
-          No reset token was provided. A valid token must be issued and
-          verified by the password recovery service.
-        </p>
-      )}
-      {submitted && !hasValidationErrors && (
-        <ErrorMessage
-          title="Password not changed"
-          message={
-            hasResetToken
-              ? "A secure password reset service is not connected. Your password was not changed."
-              : "A valid reset token and secure password reset service are required. Your password was not changed."
-          }
-        />
-      )}
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <div className={styles.field}>
-          <label htmlFor="new-password">New password</label>
-          <div className={styles.passwordControl}>
+
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <div className="auth-field">
+          <label htmlFor="new-password">Password</label>
+          <div className="auth-password-wrapper">
             <input
               id="new-password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
+              placeholder="Enter a new password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              aria-invalid={Boolean(passwordError)}
-              aria-describedby={passwordError ? "new-password-error" : undefined}
               required
             />
             <button
+              className="eye-button"
               type="button"
-              aria-label={showPassword ? "Hide new password" : "Show new password"}
-              aria-pressed={showPassword}
-              onClick={() => setShowPassword((visible) => !visible)}
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? <EyeOff/> : <Eye/>}
             </button>
           </div>
-          {passwordError && (
-            <p className={styles.fieldError} id="new-password-error" role="alert">
-              {passwordError}
-            </p>
-          )}
+         
         </div>
-        <div className={styles.field}>
-          <label htmlFor="confirm-password">Confirm new password</label>
-          <div className={styles.passwordControl}>
+
+        <div className="auth-field">
+          <label htmlFor="confirm-password">Confirm Password</label>
+          <div className="auth-password-wrapper">
             <input
               id="confirm-password"
-              type={showConfirmation ? "text" : "password"}
+              type={showConfirmPassword ? "text" : "password"}
               autoComplete="new-password"
-              value={confirmation}
-              onChange={(event) => setConfirmation(event.target.value)}
-              aria-invalid={Boolean(confirmationError)}
-              aria-describedby={confirmationError ? "confirm-password-error" : undefined}
+              placeholder="Confirm your new password"
+              value={confirmPassword}
+              onChange={(event) =>
+                setConfirmPassword(event.target.value)
+              }
               required
             />
             <button
+              className="eye-button"
               type="button"
-              aria-label={
-                showConfirmation
-                  ? "Hide password confirmation"
-                  : "Show password confirmation"
+              onClick={() =>
+                setShowConfirmPassword(!showConfirmPassword)
               }
-              aria-pressed={showConfirmation}
-              onClick={() => setShowConfirmation((visible) => !visible)}
             >
-              {showConfirmation ? "Hide" : "Show"}
+              {showPassword ? <EyeOff/> : <Eye/>}
             </button>
           </div>
-          {confirmationError && (
-            <p className={styles.fieldError} id="confirm-password-error" role="alert">
-              {confirmationError}
-            </p>
-          )}
+
         </div>
-        <button className={styles.submit} type="submit">
-          Reset password
+
+        {error && (
+          <p className="auth-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        {success && (
+          <div className="auth-success" role="status">
+            Password validation passed. In this System Version, no actual
+            password has been changed.
+            <p>
+              <button
+                type="button"
+                className="auth-text-button"
+                onClick={() => navigate("/login")}
+              >
+                Return to login
+              </button>
+            </p>
+          </div>
+        )}
+
+        <button className="auth-submit" type="submit">
+          Reset Password
         </button>
       </form>
-      <div className={styles.links}>
-        <Link to="/login">Back to sign in</Link>
-      </div>
-    </section>
+    </AuthLayout>
   );
 }
+
+export default ResetPasswordPage;

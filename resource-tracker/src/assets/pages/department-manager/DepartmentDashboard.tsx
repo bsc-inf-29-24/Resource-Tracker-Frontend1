@@ -8,7 +8,7 @@ function DepartmentDashboard() {
   return (
     <section>
       <PageHeader
-        title="Line Manager Dashboard"
+        title="Department Manager Dashboard"
         description="Welcome back! Here's an overview of your resource requests"
       />
 

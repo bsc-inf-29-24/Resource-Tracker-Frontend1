@@ -117,7 +117,7 @@ function DashboardIcon({ type, size = 22 }) {
   return <svg {...common}>{icons[type] || icons.dashboard}</svg>;
 }
 
-export default function DashboardPage() {
+function DashboardPage() {
   return (
     <div className="admin-dashboard">
       <aside className="admin-sidebar">
@@ -256,3 +256,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default DashboardPage;

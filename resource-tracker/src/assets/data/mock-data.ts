@@ -2,10 +2,10 @@ import { ResourceRequest } from "../types/resource-request";
 import { user } from "../types/user";
 
 export const mockUsers: user[] = [
-    {id: "u1", name: "Chikondi Banda", email: "chikondi@example.com", role: "team-lead", department: "Data Science", team: "ML platform", isActive: true},
-    {id: "u2", name: "Tamandani Longwe", email: "tamandani@example.com", role: "line-manager", department: "Data Science", isActive: true},
-    {id: "u3", name: "Grace Phiri", email: "grace@example.com", role: "department-manager", department: "Data Science", isActive: true},
-    {id: "u4", name: "Admin User", email: "admin@example.com", role: "system-admin", department: "IT", isActive: true},
+    {id: "u1", name: "Chikondi Banda", email: "chikondi@gmail.com",  password: "password", role: "TEAM_LEAD", department: "Data Science", team: "ML platform", isActive: true},
+    {id: "u2", name: "Tamandani Longwe", email: "tamandani@gmail.com",password: "password", role: "LINE_MANAGER", department: "Data Science", isActive: true},
+    {id: "u3", name: "Grace Phiri", email: "grace@gmail.com",password: "password", role: "DEPARTMENT_MANAGER", department: "Data Science", isActive: true},
+    {id: "u4", name: "Admin User", email: "admin@gmail.com",password: "password", role: "SYSTEM_ADMIN", department: "IT", isActive: true},
 ];
 
 export const mockRequests: ResourceRequest[] = [

@@ -32,10 +32,10 @@ export default function EditUserPage() {
         <input name="email" value={form.email} onChange={handleChange} required className="w-full border p-2 rounded"/>
         <input name="department" value={form.department} onChange={handleChange} required className="w-full border p-2 rounded"/>
         <select name="role" value={form.role} onChange={handleChange} className="w-full border p-2 rounded">
-          <option value="system-admin">System Admin</option>
-          <option value="department-manager">Department Manager</option>
-          <option value="line-manager">Line Manager</option>
-          <option value="team-lead">Team Lead</option>
+          <option value="SYSTEM_ADMIN">System Admin</option>
+          <option value="DEPARTMENT_MANAGER">Department Manager</option>
+          <option value="LINE_MANAGER">Line Manager</option>
+          <option value="TEAM_LEAD">Team Lead</option>
         </select>
         <div className="flex gap-3">
           <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded">Save Changes</button>

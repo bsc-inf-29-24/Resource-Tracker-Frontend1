@@ -1,0 +1,163 @@
+.page {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page > * {
+  min-width: 0;
+}
+
+.previewNotice,
+.success {
+  margin: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--rt-green-200);
+  border-radius: var(--rt-radius-sm);
+  color: var(--rt-green-900);
+  background: var(--rt-green-50);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.success a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.sectionHeading {
+  margin-bottom: 20px;
+}
+
+.sectionHeading h2 {
+  margin: 0 0 5px;
+  color: var(--color-text);
+  font-size: 1.1rem;
+}
+
+.sectionHeading p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 22px;
+}
+
+.field {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 6px;
+}
+
+.field label {
+  color: var(--color-text);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.field label span {
+  color: var(--color-danger);
+}
+
+.field label span:not([aria-hidden]) {
+  color: var(--color-text-secondary);
+  font-size: 0.77rem;
+  font-weight: 500;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.field input[readonly] {
+  color: var(--color-text-secondary);
+  background: var(--rt-green-50);
+}
+
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 1px;
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.fieldError {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actions button:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fullWidth {
+    grid-column: auto;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

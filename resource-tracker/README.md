@@ -1,4 +1,19 @@
-# React + Vite
+# Resource Tracker Frontend
+
+## Demo sign-in
+
+The sign-in and registration screens use browser-local demonstration data; they are not a production authentication service. Seeded mock accounts use the password `Demo123!`:
+
+| Role | Email |
+| --- | --- |
+| Team Lead | `chikondi@example.com` |
+| Line Manager | `tamandani@example.com` |
+| Department Manager | `grace@example.com` |
+| System Administrator | `admin@example.com` |
+
+Use **Create a test account** on the sign-in page to add a browser-local account. Registered account records and password hashes are stored in this browser only. Do not use real credentials or sensitive information. Clearing this browser's site data removes registered demo accounts.
+
+## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

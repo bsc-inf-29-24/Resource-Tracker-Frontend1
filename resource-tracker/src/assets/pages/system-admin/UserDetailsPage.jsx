@@ -1,29 +1,70 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { mockUsers } from "../../data/users";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import ErrorMessage from "../../components/feedback/ErrorMessage";
+import PageHeader from "../../components/layout/PageHeader";
+import StatusLabel from "../../components/status/StatusLabel";
+import { useUsers } from "../../data/user-store";
+import styles from "./SystemAdminPage.module.css";
+
+const roleLabels = {
+  "team-lead": "Team Lead",
+  "line-manager": "Line Manager",
+  "department-manager": "Department Manager",
+  "system-admin": "System Administrator",
+};
 
 export default function UserDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const user = mockUsers.find(u => u.id === id);
+  const { users, persistenceWarning } = useUsers();
+  const user = users.find((item) => item.id === id);
 
-  if(!user) return <div className="p-6">User not found</div>;
+  if (!user) {
+    return (
+      <div className={`rt-root ${styles.page}`}>
+        <PageHeader title="User account details" />
+        {persistenceWarning && (
+          <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+        )}
+        <ErrorMessage
+          title="User not found"
+          message="The selected account is not available in the current browser data."
+        />
+        <Link to="/system-admin/users">Return to user management</Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <button onClick={() => navigate(-1)} className="mb-4 text-blue-600">← Back</button>
-      <div className="bg-white p-6 rounded shadow">
-        <h1 className="text-2xl font-bold mb-4">{user.name}</h1>
-        <div className="space-y-3">
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>Role:</strong> <span className="capitalize bg-blue-100 px-2 py-1 rounded">{user.role}</span></p>
-          <p><strong>Department:</strong> {user.department}</p>
-          <p><strong>Status:</strong> {user.status || "Active"}</p>
-          <p><strong>Joined:</strong> {user.createdAt || "2024-01-01"}</p>
+    <div className={`rt-root ${styles.page}`}>
+      <button
+        type="button"
+        onClick={() => navigate("/system-admin/users")}
+        className="rt-root rt-btn rt-btn--outline"
+      >
+        Back to users
+      </button>
+      <section className={styles.details}>
+        <PageHeader title={user.name} description="User account details." />
+        {persistenceWarning && (
+          <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+        )}
+        <dl className={styles.detailList}>
+          <div><dt>Email</dt><dd>{user.email}</dd></div>
+          <div><dt>Role</dt><dd>{roleLabels[user.role] ?? user.role}</dd></div>
+          <div><dt>Department</dt><dd>{user.department || "Not assigned"}</dd></div>
+          <div><dt>Account status</dt><dd><StatusLabel status={user.status} /></dd></div>
+          <div><dt>Created</dt><dd>{user.createdAt || "Not available"}</dd></div>
+        </dl>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            onClick={() => navigate(`/system-admin/users/${user.id}/edit`)}
+            className="rt-root rt-btn rt-btn--primary"
+          >
+            Edit user
+          </button>
         </div>
-        <div className="mt-6 flex gap-3">
-          <button onClick={() => navigate(`/system-admin/users/${user.id}/edit`)} className="bg-blue-600 text-white px-4 py-2 rounded">Edit User</button>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

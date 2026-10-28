@@ -1,15 +1,30 @@
+import type { ReactNode } from "react";
+import styles from "./PageHeader.module.css";
+
 interface PageHeaderProps {
   title: string;
   description?: string;
-}
-//Reusable apHeader
-function PageHeader({ title, description }: PageHeaderProps) {
-  return (
-    <div className="page-header">
-      <h1>{title}</h1>
-      {description && <p>{description}</p>}
-    </div>
-  );
+  supplementary?: ReactNode;
 }
 
-export default PageHeader;
+export default function PageHeader({
+  title,
+  description,
+  supplementary,
+}: PageHeaderProps) {
+  const cleanDescription = description?.trim();
+
+  return (
+    <header className={styles.header}>
+      <div className={styles.text}>
+        <h1 className={styles.title}>{title}</h1>
+        {cleanDescription && (
+          <p className={styles.description}>{cleanDescription}</p>
+        )}
+      </div>
+      {supplementary && (
+        <div className={styles.supplementary}>{supplementary}</div>
+      )}
+    </header>
+  );
+}

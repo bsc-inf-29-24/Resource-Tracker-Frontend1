@@ -27,7 +27,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
-  color: #176747;
+  color: var(--color-primary);
 }
 
 .resource-request .request-section-heading h2 {
@@ -55,7 +55,7 @@
 
 .resource-request .request-field label {
   margin-bottom: 7px;
-  color: #176747;
+  color: var(--color-primary);
   font-size: 16px;
   font-weight: 700;
 }
@@ -88,7 +88,7 @@
 .resource-request .request-field input:focus,
 .resource-request .request-field select:focus,
 .resource-request .request-field textarea:focus {
-  border-color: #087347;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgb(8 115 71 / 12%);
 }
 
@@ -139,13 +139,13 @@
 
 .resource-request .review-button {
   min-width: 220px;
-  background: #086441;
-  border: 1px solid #086441;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
   color: #ffffff;
 }
 
 .resource-request .review-button:hover {
-  background: #064b31;
+  background: var(--color-primary-dark);
 }
 
 .resource-request .reset-button:hover {

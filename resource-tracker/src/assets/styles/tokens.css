@@ -2,33 +2,45 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
 
 :root {
-  /* Greens (sidebar, buttons, headings) */
-  --rt-green-950: #012b16;
-  --rt-green-900: #03361c;
-  --rt-green-800: #0a4a2c;
-  --rt-green-700: #16623c;
-  --rt-green-600: #1f7a4a;
-  --rt-green-200: #c9d8cd;
-  --rt-green-100: #dde6de;
-  --rt-green-50: #e8efe9;
+  --rt-green-950: #0b3525;
+  --rt-green-900: #104b34;
+  --rt-green-800: #145a3c;
+  --rt-green-700: #176b45;
+  --rt-green-600: #21865a;
+  --rt-green-200: #b8d2c1;
+  --rt-green-100: #dce9e0;
+  --rt-green-50: #eff5f0;
 
-  /* Neutrals */
-  --rt-bg: #f3f3f3;
+  --rt-bg: #f5f6f5;
   --rt-surface: #ffffff;
-  --rt-text: #111a14;
-  --rt-text-muted: #55625a;
-  --rt-border: #d3dad5;
+  --rt-text: #111111;
+  --rt-text-muted: #6b7280;
+  --rt-border: #e0e5e1;
 
-  /* Status tones (text on background all >= 4.5:1) */
-  --rt-approved-bg: #ddf0e3;  --rt-approved-fg: #0a4a2c;
-  --rt-pending-bg:  #fff1cc;  --rt-pending-fg:  #7a4b00;
-  --rt-queried-bg:  #dcebfa;  --rt-queried-fg:  #124a7a;
-  --rt-declined-bg: #fbe0de;  --rt-declined-fg: #8e1f1a;
-  --rt-error: #b3261e;
+  --rt-approved-bg: #dce9e0;
+  --rt-approved-fg: #104b34;
+  --rt-pending-bg: #e9f0eb;
+  --rt-pending-fg: #34443a;
+  --rt-queried-bg: #eef2ef;
+  --rt-queried-fg: #34443a;
+  --rt-declined-bg: #fce8e7;
+  --rt-declined-fg: #b4232c;
+  --rt-error: #b4232c;
+
+  --color-primary: #176b45;
+  --color-primary-dark: #104b34;
+  --color-primary-light: #dce9e0;
+  --color-background: #f5f6f5;
+  --color-surface: #ffffff;
+  --color-text: #111111;
+  --color-text-secondary: #6b7280;
+  --color-border: #e0e5e1;
+  --color-danger: #b4232c;
 
   --rt-font: "Montserrat", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --rt-radius-sm: 6px;
   --rt-radius-md: 10px;
   --rt-radius-pill: 999px;
-  --rt-shadow: 0 1px 3px rgba(1, 43, 22, 0.14);
+  --rt-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-card: var(--rt-shadow);
 }

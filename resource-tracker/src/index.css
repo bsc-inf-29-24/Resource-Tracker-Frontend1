@@ -1,5 +1,9 @@
 
 
+@import "./assets/styles/tokens.css";
+@import "./assets/styles/global.css";
+@import "./assets/styles/components.css";
+
 html,
 body,
 #root {
@@ -10,7 +14,9 @@ body,
 
 body {
   min-width: 320px;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: var(--rt-font);
+  color: var(--rt-text);
+  background: var(--rt-bg);
 }
 
 button,

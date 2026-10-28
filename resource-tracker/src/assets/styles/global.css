@@ -291,3 +291,153 @@ h1 {
   border: 0;
 }
 
+body {
+  color: var(--rt-text);
+  background: var(--rt-bg);
+  font-family: var(--rt-font);
+}
+
+.app-header {
+  display: flex;
+  height: 68px;
+  background: var(--rt-surface);
+  color: var(--rt-text);
+  border-bottom: 1px solid var(--rt-border);
+}
+
+.brand-icon {
+  background: var(--rt-green-100);
+  color: var(--rt-green-900);
+}
+
+.profile-button {
+  color: var(--rt-text);
+}
+
+.profile-button:focus-visible,
+.profile-menu button:focus-visible,
+.sidebar-link:focus-visible,
+.retry-button:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
+}
+
+.profile-menu {
+  display: block;
+  min-width: 180px;
+  padding: 12px;
+  background: var(--rt-surface);
+  border: 1px solid var(--rt-border);
+  box-shadow: var(--rt-shadow);
+}
+
+.profile-menu button {
+  height: auto;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--rt-green-700);
+  color: #fff;
+}
+
+.profile-menu button:hover {
+  background: var(--rt-green-900);
+  color: #fff;
+}
+
+.dashboard-body {
+  min-height: calc(100vh - 68px);
+}
+
+.app-sidebar {
+  width: 240px;
+  background: var(--rt-surface);
+  border-right: 1px solid var(--rt-border);
+}
+
+.sidebar-label {
+  color: var(--rt-text-muted);
+  border-color: var(--rt-border);
+}
+
+.sidebar-link {
+  color: var(--rt-text-muted);
+}
+
+.sidebar-link:hover {
+  background: var(--rt-green-50);
+  color: var(--rt-green-900);
+}
+
+.sidebar-link.active {
+  background: var(--rt-green-100);
+  color: var(--rt-green-900);
+}
+
+.main-content {
+  padding: 24px;
+}
+
+.page-header {
+  background: transparent;
+  text-align: left;
+  border-radius: 0;
+  padding: 0;
+}
+
+.page-header h1 {
+  color: var(--rt-text);
+}
+
+.feedback-state {
+  background: var(--rt-surface);
+  border-color: var(--rt-border);
+}
+
+.feedback-state h3 {
+  color: var(--rt-text);
+}
+
+.loading-spinner {
+  border-color: var(--rt-green-100);
+  border-top-color: var(--rt-green-700);
+}
+
+.retry-button {
+  background: var(--rt-green-700);
+  color: #fff;
+}
+
+.retry-button:hover {
+  background: var(--rt-green-900);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .dashboard-body {
+    display: block;
+  }
+
+  .app-sidebar {
+    width: 100%;
+    padding: 8px 12px;
+  }
+
+  .app-sidebar nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .sidebar-label {
+    display: none;
+  }
+
+  .sidebar-link {
+    flex: 0 0 auto;
+    padding: 10px;
+    font-size: 0.875rem;
+  }
+
+  .main-content {
+    padding: 16px 12px;
+  }
+}

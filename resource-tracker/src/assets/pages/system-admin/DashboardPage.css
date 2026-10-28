@@ -2,14 +2,14 @@
 /* Resource Tracker - System Administrator Dashboard */
 
 :root {
-  --admin-green: #087650;
-  --admin-green-dark: #043526;
-  --admin-green-hover: #0b684b;
-  --admin-text: #102a25;
-  --admin-muted: #65788d;
-  --admin-background: #f1f7f5;
-  --admin-border: #dfebe7;
-  --admin-white: #ffffff;
+  --admin-green: var(--color-primary);
+  --admin-green-dark: var(--color-primary-dark);
+  --admin-green-hover: var(--rt-green-800);
+  --admin-text: var(--color-text);
+  --admin-muted: var(--color-text-secondary);
+  --admin-background: var(--color-background);
+  --admin-border: var(--color-border);
+  --admin-white: var(--color-surface);
 }
 
 * {
@@ -22,7 +22,13 @@
   width: 100%;
   color: var(--admin-text);
   background: var(--admin-background);
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: var(--rt-font);
+}
+
+.admin-dashboard-content {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
 /* Sidebar */
@@ -151,7 +157,7 @@
 }
 
 .breadcrumb-chevron {
-  color: #71849a;
+  color: var(--admin-muted);
   font-size: 27px;
   font-weight: 400;
 }
@@ -160,7 +166,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #33465e;
+  color: var(--admin-text);
   font-size: 14px;
   white-space: nowrap;
 }
@@ -184,7 +190,7 @@
 
 .dashboard-heading h1 {
   margin: 0 0 9px;
-  color: #102b2c;
+  color: var(--admin-text);
   font-size: clamp(25px, 2.5vw, 37px);
   font-weight: 750;
   letter-spacing: -0.8px;
@@ -239,8 +245,8 @@
 }
 
 .stat-icon.orange {
-  color: #c47a13;
-  background: #fff2dd;
+  color: var(--rt-green-900);
+  background: var(--rt-green-100);
 }
 
 .stat-content {
@@ -249,7 +255,7 @@
 
 .stat-content p {
   margin: 0 0 13px;
-  color: #43566f;
+  color: var(--admin-muted);
   font-size: 15px;
   font-weight: 600;
 }
@@ -285,7 +291,7 @@
 .panel-heading h2 {
   flex: 1;
   margin: 0;
-  color: #104b39;
+  color: var(--admin-green-dark);
   font-size: 21px;
   font-weight: 750;
 }
@@ -319,7 +325,7 @@
 
 .quick-access-text h3 {
   margin: 0 0 7px;
-  color: #162d43;
+  color: var(--admin-text);
   font-size: 17px;
   font-weight: 700;
 }
@@ -367,7 +373,7 @@
 }
 
 .department-table th {
-  color: #63768a;
+  color: var(--admin-muted);
   background: #f9fbfa;
   font-size: 12px;
   font-weight: 700;
@@ -376,11 +382,11 @@
 }
 
 .department-table td {
-  color: #53677b;
+  color: var(--admin-text);
 }
 
 .department-table .department-name {
-  color: #173c31;
+  color: var(--admin-green-dark);
   font-weight: 650;
 }
 

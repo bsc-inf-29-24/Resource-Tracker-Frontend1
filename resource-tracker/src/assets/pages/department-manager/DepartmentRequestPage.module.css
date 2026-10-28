@@ -1,0 +1,28 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+  min-height: 100%;
+}
+
+.warning {
+  margin: 0;
+  color: var(--color-danger);
+}
+
+.tableSection {
+  display: grid;
+  gap: 1rem;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--rt-radius-sm);
+  background: var(--rt-green-700);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}

@@ -1,0 +1,79 @@
+.form {
+  display: grid;
+  max-width: 720px;
+  gap: 18px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  color: var(--color-text);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 1px;
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.fieldError {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.8rem;
+}
+
+.accountNote,
+.success {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--rt-green-200);
+  border-radius: var(--rt-radius-sm);
+  color: var(--rt-green-900);
+  background: var(--rt-green-50);
+  font-size: 0.83rem;
+  line-height: 1.5;
+}
+
+.success a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.actions button:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
+}

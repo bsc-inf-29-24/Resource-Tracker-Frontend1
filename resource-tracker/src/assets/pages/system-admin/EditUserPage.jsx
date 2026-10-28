@@ -1,47 +1,47 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { mockUsers } from "../../data/users";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import ErrorMessage from "../../components/feedback/ErrorMessage";
+import PageHeader from "../../components/layout/PageHeader";
+import { updateUser, useUsers } from "../../data/user-store";
+import AdminUserForm from "./AdminUserForm";
+import styles from "./SystemAdminPage.module.css";
 
 export default function EditUserPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState(null);
+  const { users, persistenceWarning } = useUsers();
+  const user = users.find((item) => item.id === id);
 
-  useEffect(() => {
-    const user = mockUsers.find(u => u.id === id);
-    if(user) setForm(user);
-  }, [id]);
-
-  if(!form) return <div className="p-6">Loading user...</div>;
-
-  const handleChange = (e) => setForm({...form, [e.target.name]: e.target.value});
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: PUT /api/users/:id
-    console.log("Updating user:", form);
-    alert("User updated!");
-    navigate("/system-admin/users");
-  };
+  if (!user) {
+    return (
+      <div className={`rt-root ${styles.page}`}>
+        <PageHeader title="Edit user account" />
+        {persistenceWarning && (
+          <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+        )}
+        <ErrorMessage
+          title="User not found"
+          message="The selected account is not available in the current browser data."
+        />
+        <Link to="/system-admin/users">Return to user management</Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Edit User - {form.name}</h1>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow space-y-4">
-        <input name="name" value={form.name} onChange={handleChange} required className="w-full border p-2 rounded"/>
-        <input name="email" value={form.email} onChange={handleChange} required className="w-full border p-2 rounded"/>
-        <input name="department" value={form.department} onChange={handleChange} required className="w-full border p-2 rounded"/>
-        <select name="role" value={form.role} onChange={handleChange} className="w-full border p-2 rounded">
-          <option value="system-admin">System Admin</option>
-          <option value="department-manager">Department Manager</option>
-          <option value="line-manager">Line Manager</option>
-          <option value="team-lead">Team Lead</option>
-        </select>
-        <div className="flex gap-3">
-          <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded">Save Changes</button>
-          <button type="button" onClick={() => navigate(-1)} className="bg-gray-200 px-6 py-2 rounded">Cancel</button>
-        </div>
-      </form>
+    <div className={`rt-root ${styles.page}`}>
+      <PageHeader
+        title={`Edit ${user.name}`}
+        description="Update this account record. Account status is managed separately."
+      />
+      {persistenceWarning && (
+        <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+      )}
+      <AdminUserForm
+        user={user}
+        submitLabel="Save changes"
+        onSave={(draft) => updateUser(user.id, draft)}
+        onCancel={() => navigate("/system-admin/users")}
+      />
     </div>
   );
 }

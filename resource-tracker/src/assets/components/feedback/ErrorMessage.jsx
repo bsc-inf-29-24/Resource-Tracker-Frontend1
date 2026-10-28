@@ -1,10 +1,6 @@
 import { AlertCircleIcon } from "../icons";
 import Button from "../forms/Button";
 
-/**
- * variant="inline": small red text under a form field (pass id so inputs can aria-describedby it)
- * variant="block":  larger banner with optional Retry button, for failed page/table loads
- */
 export default function ErrorMessage({ message, title = "Something went wrong", variant = "block", onRetry, id }) {
   if (!message) return null;
   if (variant === "inline") {

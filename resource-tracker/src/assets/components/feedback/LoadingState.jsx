@@ -19,11 +19,12 @@ function Skeleton({ rows = 5 }) {
 }
 
 /** Full-area loading message: <LoadingState label="Loading requests..." /> */
-export default function LoadingState({ label = "Loading..." }) {
+export default function LoadingState({ label, message }) {
+  const loadingMessage = message ?? label ?? "Loading...";
   return (
     <div className="rt-root rt-state" role="status">
       <span className="rt-spinner" />
-      <p className="rt-state__text">{label}</p>
+      <p className="rt-state__text">{loadingMessage}</p>
     </div>
   );
 }

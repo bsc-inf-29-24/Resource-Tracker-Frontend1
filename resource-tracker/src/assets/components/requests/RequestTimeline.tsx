@@ -1,6 +1,5 @@
 import type { ResourceRequest } from "../../types/resource-request";
-import { formatDate } from "../../utils/format";
-import styles from "./RequestDetails.module.css";
+import styles from "./RequestTimeline.module.css";
 
 interface RequestTimelineProps {
     request: ResourceRequest;
@@ -43,6 +42,18 @@ function buildEntries(
   );
 }
 
+function formatTimestamp(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date not available";
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function RequestTimeline({
   request,
   getUserName = (id) => id,
@@ -63,7 +74,7 @@ export default function RequestTimeline({
           }`}
         >
           <time className={styles.date} dateTime={entry.date}>
-            {formatDate(entry.date)}
+            {formatTimestamp(entry.date)}
           </time>
           <p className={styles.title}>{entry.title}</p>
           {entry.detail && <p className={styles.detail}>{entry.detail}</p>}

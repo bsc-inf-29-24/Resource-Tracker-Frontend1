@@ -45,12 +45,13 @@
 
 /* ---------- Status card ---------- */
 .rt-statcard { display: flex; align-items: center; gap: 14px; min-width: 170px; padding: 16px 20px; background: var(--rt-surface);
-  border: 0; border-radius: var(--rt-radius-sm); box-shadow: var(--rt-shadow); text-align: left; color: inherit; }
+  border: 1px solid var(--rt-border); border-radius: var(--rt-radius-md); box-shadow: var(--rt-shadow); text-align: left; color: inherit; }
 .rt-statcard--clickable { cursor: pointer; }
 .rt-statcard--clickable:hover { background: var(--rt-green-50); }
 .rt-statcard__icon { width: 44px; height: 44px; flex: none; color: var(--rt-text); }
 .rt-statcard__label { display: block; font-size: .9rem; font-weight: 700; color: var(--rt-green-700); }
 .rt-statcard__value { display: block; font-size: 2rem; font-weight: 800; line-height: 1.1; color: var(--rt-green-800); }
+.rt-statcard__note { display: block; margin-top: 4px; color: var(--rt-text-muted); font-size: .75rem; line-height: 1.4; }
 .rt-statcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
 
 /* ---------- Data table ---------- */

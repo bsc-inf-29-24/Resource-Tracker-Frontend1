@@ -1,11 +1,6 @@
-import ResourceRequest from "./assets/pages/team-lead/ResourceRequest";
-function App(){
-  return <ResourceRequest/>;
-}
-
-export default App;
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import AuthLayout from "./assets/components/layout/AuthLayout";
 import DashboardLayout from "./assets/components/layout/DashboardLayout";
 
 // Shown when a page file is empty (no default export yet).
@@ -21,6 +16,7 @@ function page(loader) {
 
 // Auth
 const LoginPage = page(() => import("./assets/pages/auth/LoginPage"));
+const RegisterPage = page(() => import("./assets/pages/auth/RegisterPage"));
 const ForgotPasswordPage = page(() => import("./assets/pages/auth/ForgotPasswordPage"));
 const ResetPasswordPage = page(() => import("./assets/pages/auth/ResetPasswordPage"));
 
@@ -39,6 +35,7 @@ const DecisionHistoryPage = page(() => import("./assets/pages/line-manager/Decis
 // Department Manager
 const DepartmentDashboard = page(() => import("./assets/pages/department-manager/DepartmentDashboard"));
 const DepartmentRequestPage = page(() => import("./assets/pages/department-manager/DepartmentRequestPage"));
+const DepartmentRequestDetailsPage = page(() => import("./assets/pages/department-manager/DepartmentRequestDetailsPage"));
 const SpendingReportsPage = page(() => import("./assets/pages/department-manager/SpendingReportsPage"));
 const ResourceAllocationPage = page(() => import("./assets/pages/department-manager/ResourceAllocationPage"));
 
@@ -54,20 +51,21 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<p style={{ padding: 24 }}>Loading...</p>}>
         <Routes>
-          {/* Pages without the sidebar and header */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Route>
 
-          {/* System admin pages (they bring their own layout for now) */}
-          <Route path="/system-admin/dashboard" element={<SystemAdminDashboard />} />
-          <Route path="/system-admin/users" element={<UserManagementPage />} />
-          <Route path="/system-admin/users/new" element={<CreateUserPage />} />
-          <Route path="/system-admin/users/:id" element={<UserDetailsPage />} />
-          <Route path="/system-admin/users/:id/edit" element={<EditUserPage />} />
-
-          {/* Pages inside the dashboard layout */}
           <Route element={<DashboardLayout />}>
+            {/* System Admin */}
+            <Route path="/system-admin/dashboard" element={<SystemAdminDashboard />} />
+            <Route path="/system-admin/users" element={<UserManagementPage />} />
+            <Route path="/system-admin/users/new" element={<CreateUserPage />} />
+            <Route path="/system-admin/users/:id" element={<UserDetailsPage />} />
+            <Route path="/system-admin/users/:id/edit" element={<EditUserPage />} />
+
             {/* Team Lead */}
             <Route path="/team-lead/dashboard" element={<TeamLeadDashboard />} />
             <Route path="/team-lead/requests/new" element={<NewRequestPage />} />
@@ -83,12 +81,13 @@ function App() {
             {/* Department Manager */}
             <Route path="/department-manager/dashboard" element={<DepartmentDashboard />} />
             <Route path="/department-manager/requests" element={<DepartmentRequestPage />} />
+            <Route path="/department-manager/requests/:id" element={<DepartmentRequestDetailsPage />} />
             <Route path="/department-manager/spending" element={<SpendingReportsPage />} />
             <Route path="/department-manager/allocation" element={<ResourceAllocationPage />} />
           </Route>
 
-          {/* Default page and unknown URLs */}
-          <Route path="*" element={<Navigate to="/system-admin/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

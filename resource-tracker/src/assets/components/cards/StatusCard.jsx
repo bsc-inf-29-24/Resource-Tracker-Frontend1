@@ -4,7 +4,7 @@ import LoadingState from "../feedback/LoadingState";
  * Summary tile: icon + label + big number (Total Request 32, Pending 12 ...).
  * Pass onClick to make it a button (e.g. filter the table by that status).
  */
-export default function StatusCard({ label, value, icon, onClick, loading = false }) {
+export default function StatusCard({ label, value, icon, note, onClick, loading = false }) {
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
@@ -17,6 +17,7 @@ export default function StatusCard({ label, value, icon, onClick, loading = fals
         <span className="rt-statcard__value" aria-live="polite">
           {loading ? <LoadingState.Spinner size={22} label={`Loading ${label}`} /> : value}
         </span>
+        {note && <span className="rt-statcard__note">{note}</span>}
       </span>
     </Tag>
   );

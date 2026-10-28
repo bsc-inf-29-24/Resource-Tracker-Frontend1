@@ -4,8 +4,11 @@ import ForgotPasswordPage from "./assets/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./assets/pages/auth/ResetPasswordPage";
 
 import DashboardLayout from "./assets/components/layout/DashboardLayout";
+
+import ResourceRequest from "./assets/pages/team-lead/ResourceRequest";
 import DepartmentDashboard from "./assets/pages/department-manager/DepartmentDashboard";
 import LineManagerDashboard from "./assets/pages/line-manager/LineManagerDashboard";
+import DashboardPage from "./assets/pages/system-admin/DashboardPage";
 import RequireRole from "./assets/components/layout/RequireRole";
 
 function App() {
@@ -19,6 +22,10 @@ function App() {
 
         <Route element={<DashboardLayout />}>
           <Route element={<RequireRole allowedRoles={["TEAM_LEAD"]} />}>
+           <Route
+              path="/team-lead/dashboard"
+              element={<ResourceRequest />}
+            />
           </Route>
 
           <Route
@@ -34,6 +41,13 @@ function App() {
             <Route
               path="/line-manager/dashboard"
               element={<LineManagerDashboard />}
+            />
+          </Route>
+
+           <Route element={<RequireRole allowedRoles={["SYSTEM_ADMIN"]} />}>
+            <Route
+              path="/admin/dashboard"
+              element={<DashboardPage />}
             />
           </Route>
 

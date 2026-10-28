@@ -49,7 +49,8 @@ function LoginPage() {
     const user = mockUsers.find(
       (item) =>
         item.email.toLowerCase() === normalizedEmail &&
-        item.password === password
+        item.password === password &&
+        item.isActive
     );
 
     //If no matching user is found, an error message is displayed.

@@ -30,4 +30,4 @@ export default function StatusCard({ label, value, icon, note, onClick, loading 
   );
 }
 
-export const StatusCardGrid = ({ children }) => <div className="rt-root rt-statcards">{children}</div>;
+export const StatusCardGrid = ({ children }:{ children: any}) => <div className="rt-root rt-statcards">{children}</div>;

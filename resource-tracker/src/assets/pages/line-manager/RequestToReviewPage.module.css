@@ -1,0 +1,22 @@
+.page {
+  display: grid;
+  gap: 18px;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 4px;
+}
+
+.page > div:first-child a {
+  color: var(--rt-green-800);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.warning {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #e6b9b7;
+  border-radius: var(--rt-radius-sm);
+  color: #6f1d1b;
+  background: #fce8e7;
+}

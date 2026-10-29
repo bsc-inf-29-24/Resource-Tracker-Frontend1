@@ -1,23 +1,36 @@
+import type { ReactNode } from "react";
+import { InboxIcon } from "../icons";
+import Button from "../forms/Button";
+
 interface EmptyStateProps {
   title?: string;
   message?: string;
+  description?: string;
+  icon?: ReactNode;
+  actionLabel?: string;
+  onAction?: () => void;
 }
-//Creatin Empty state component. Useful when team lead has not submitted any request
+
 function EmptyState({
-  title = "No available data",
-  message = "There is nothing to display here for now.",
+  title = "Nothing here yet",
+  message,
+  description,
+  icon,
+  actionLabel,
+  onAction,
 }: EmptyStateProps) {
-
-//replace 0: with an empty file icon
+  const emptyDescription =
+    description ?? message ?? "There is nothing to display here for now.";
   return (
-    <div className="feedback-state empty-state">
-      <div className="empty-state-icon" aria-hidden="true">
-        0
-      </div>
-
-      <h3>{title}</h3>
-
-      <p>{message}</p>
+    <div className="rt-root rt-state">
+      <span className="rt-state__icon">
+        {icon ?? <InboxIcon width="56" height="56" />}
+      </span>
+      <h3 className="rt-state__title">{title}</h3>
+      <p className="rt-state__text">{emptyDescription}</p>
+      {actionLabel && onAction && (
+        <Button onClick={onAction}>{actionLabel}</Button>
+      )}
     </div>
   );
 }

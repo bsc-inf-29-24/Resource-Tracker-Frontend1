@@ -1,94 +1,77 @@
-
-import { useState} from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
-import AuthLayout from "./AuthLayout";
-import { mockUsers } from "../../data/mock-data";
+import ErrorMessage from "../../components/feedback/ErrorMessage";
+import styles from "./AuthPage.module.css";
 
-function ForgotPasswordPage() {
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  const emailError = submitted
+    ? !email.trim()
+      ? "Enter your email address."
+      : !emailPattern.test(email.trim())
+        ? "Enter a valid email address."
+        : ""
+    : "";
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
-    setSuccess(false);
-
-    const normalizedEmail = email.trim().toLowerCase();
-
-    //Checking if the email format is valid using a regular expression. (Regex checks for a valid email format)
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[[a-zA-Z]{2,}$/;
-    if (!normalizedEmail.match(emailRegex)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    // Just Example: no email is actually sent.
-    // Use a generic message to avoid revealing registered accounts.
-    const accountExists = mockUsers.some(
-      (user) => user.email.toLowerCase() === normalizedEmail
-    );
-
-    if (accountExists) {
-      sessionStorage.setItem("demoResetEmail", normalizedEmail);
-    }
-
-    setSuccess(true);
+    setSubmitted(true);
   }
 
   return (
-    <AuthLayout>
-
-      <h1>Reset Password</h1>
-      <p className="auth-description">
-        Enter your email and we'll show you a 
-        password reset confirmation.
+    <section
+      className={`rt-root ${styles.card}`}
+      aria-labelledby="forgot-title"
+    >
+      <p className={styles.eyebrow}>Account Recovery</p>
+      {/* <h1 className={styles.title} id="forgot-title">
+        Forgot password
+      </h1> */}
+      <p className={styles.description}>
+        Enter your account email to request a password reset.
       </p>
 
-      <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        <div className="auth-field">
-          <label htmlFor="reset-email">Email</label>
+      <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <div className={styles.field}>
+          <label htmlFor="recovery-email">Email</label>
           <input
-            id="reset-email"
+            id="recovery-email"
             type="email"
             autoComplete="email"
-            placeholder="Enter your email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(emailError)}
+            aria-describedby={emailError ? "recovery-email-error" : undefined}
             required
           />
-        </div>
-
-        {error && (
-          <p className="auth-error" role="alert">
-            {error}
-          </p>
-        )}
-
-        {success && (
-          <div className="auth-success" role="status">
-            This email belongs to a demo account, a reset
-            request would be processed. No email was sent because
-            this system version does not have a backend.
-            <p>
-              <Link to="/reset-password">
-                Continue to reset Password page
-              </Link>
+          {emailError && (
+            <p
+              className={styles.fieldError}
+              id="recovery-email-error"
+              role="alert"
+            >
+              {emailError}
             </p>
+          )}
+        </div>
+        {submitted && !emailError && (
+          <div className={styles.notice} role="status">
+            <p>Continue to create a new password.</p>
+            <Link to="/reset-password">Reset password</Link>
           </div>
         )}
-
-        <button className="auth-submit" type="submit">
-          Send reset link →
+        <button className={styles.submit} type="submit">
+          Request password reset
         </button>
       </form>
-
-      <div className="auth-footer">
-        Remembered your password?{" "}
-        <Link to="/login">Back to login</Link>
+      <div className={styles.links}>
+        <Link to="/login">Back to sign in</Link>
       </div>
-    </AuthLayout>
+    </section>
   );
 }
-
-export default ForgotPasswordPage;

@@ -1,8 +1,9 @@
 
-import { useState} from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AuthLayout from "./AuthLayout";
 import { Eye, EyeOff } from "lucide-react";
+import styles from "./AuthPage.module.css";
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setSuccess(false);
@@ -40,20 +41,22 @@ function ResetPasswordPage() {
   }
 
   return (
-    <AuthLayout>
-      <Link className="auth-back-link" to="/login">
-        ← Back to login
+    <section className={`rt-root ${styles.card}`} aria-labelledby="reset-title">
+      <Link className={styles.backLink} to="/login">
+        ← Back to Sign in
       </Link>
 
-      <h1>Create new password</h1>
-      <p className="auth-description">
+      <h1 className={styles.title} id="reset-title">
+        Create new password
+      </h1>
+      <p className={styles.description}>
         Both passwords must match containing at least 8 characters.
       </p>
 
-      <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        <div className="auth-field">
+      <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <div className={styles.field}>
           <label htmlFor="new-password">Password</label>
-          <div className="auth-password-wrapper">
+          <div className={styles.passwordControl}>
             <input
               id="new-password"
               type={showPassword ? "text" : "password"}
@@ -64,8 +67,9 @@ function ResetPasswordPage() {
               required
             />
             <button
-              className="eye-button"
               type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff/> : <Eye/>}
@@ -74,9 +78,9 @@ function ResetPasswordPage() {
          
         </div>
 
-        <div className="auth-field">
+        <div className={styles.field}>
           <label htmlFor="confirm-password">Confirm Password</label>
-          <div className="auth-password-wrapper">
+          <div className={styles.passwordControl}>
             <input
               id="confirm-password"
               type={showConfirmPassword ? "text" : "password"}
@@ -89,8 +93,11 @@ function ResetPasswordPage() {
               required
             />
             <button
-              className="eye-button"
               type="button"
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
+              aria-pressed={showConfirmPassword}
               onClick={() =>
                 setShowConfirmPassword(!showConfirmPassword)
               }
@@ -102,19 +109,19 @@ function ResetPasswordPage() {
         </div>
 
         {error && (
-          <p className="auth-error" role="alert">
+          <p className={styles.fieldError} role="alert">
             {error}
           </p>
         )}
 
         {success && (
-          <div className="auth-success" role="status">
+          <div className={styles.success} role="status">
             Password validation passed. In this System Version, no actual
             password has been changed.
             <p>
               <button
                 type="button"
-                className="auth-text-button"
+                className={styles.textButton}
                 onClick={() => navigate("/login")}
               >
                 Return to login
@@ -123,11 +130,11 @@ function ResetPasswordPage() {
           </div>
         )}
 
-        <button className="auth-submit" type="submit">
+        <button className={styles.submit} type="submit">
           Reset Password
         </button>
       </form>
-    </AuthLayout>
+    </section>
   );
 }
 

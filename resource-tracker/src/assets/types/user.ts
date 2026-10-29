@@ -4,6 +4,7 @@ export type Role =
         "DEPARTMENT_MANAGER"|
         "SYSTEM_ADMIN";
 
+export type AccountStatus = "Active" | "Inactive";
 
 export interface user {
     id: string;
@@ -13,5 +14,12 @@ export interface user {
     role: Role;
     department: string;
     team?: string;
-    isActive: boolean; 
+    isActive?: boolean;
+    status?: AccountStatus;
+    createdAt?: string;
 }
+
+export type UserAccount = user & {
+    isActive: boolean;
+    status: AccountStatus;
+};

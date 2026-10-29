@@ -1,30 +1,41 @@
-//Display error message and optionally a button to retry an operation to retry an operation
+import { AlertCircleIcon } from "../icons";
+import Button from "../forms/Button";
+
 interface ErrorStateProps {
   title?: string;
   message?: string;
   onRetry?: () => void;
+  variant?: "inline" | "block";
+  id?: string;
 }
 
 function ErrorMessage({
   title = "Something went wrong",
-  message = "We couldn't load the information. Please try again.",
+  message,
   onRetry,
+  variant = "block",
+  id,
 }: ErrorStateProps) {
-  //replace !: with a right icon
-
+  if (!message) return null;
+  if (variant === "inline") {
+    return (
+      <p id={id} className="rt-root rt-error-inline" role="alert">
+        <AlertCircleIcon /> {message}
+      </p>
+    );
+  }
   return (
-    <div className="feedback-state error-state" role="alert">
-      <div className="error-state-icon" aria-hidden="true">
-        !
+    <div className="rt-root rt-error-block" role="alert">
+      <AlertCircleIcon />
+      <div>
+        <p className="rt-error-block__title">{title}</p>
+        <p className="rt-error-block__text">{message}</p>
+        {onRetry && (
+          <Button variant="outline" onClick={onRetry}>
+            Try again
+          </Button>
+        )}
       </div>
-      <h3>{title}</h3>
-      <p>{message}</p>
-
-      {onRetry && (
-        <button type="button" className="retry-button" onClick={onRetry}>
-          Try again
-        </button>
-      )}
     </div>
   );
 }

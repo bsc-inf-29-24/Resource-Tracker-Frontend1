@@ -1,0 +1,102 @@
+.header {
+  position: relative;
+  z-index: 32;
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 24px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--rt-radius-sm);
+  color: var(--rt-green-900);
+  background: var(--rt-green-100);
+  font-size: 0.95rem;
+}
+
+.menuToggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.menuToggle:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
+}
+
+.pageContext {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .header {
+    min-height: 60px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .brand {
+    gap: 6px;
+    font-size: 0.85rem;
+  }
+
+  .brandMark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .menuToggle {
+    display: grid;
+  }
+
+  .pageContext {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand > span:last-child {
+    display: none;
+  }
+}

@@ -1,0 +1,125 @@
+.layout {
+  width: 100%;
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(420px, 1fr) minmax(560px, 1.05fr);
+  gap: 0;
+ 
+  background: #f3f6f5;
+}
+
+.brandPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 24px);
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(135deg, #0a2c20, #00583d);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #c5c0c0;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: block;
+  margin-bottom: 20px;
+  color: #dfdddd;
+  font-size: clamp(5rem, 9vw, 7rem);
+  font-weight: 900;
+  line-height: 0.9;
+}
+
+.brandContent {
+  max-width: 460px;
+}
+
+.brandContent h1 {
+  margin: 0 0 8px;
+  color: #dfdddd;
+  font-weight: bolder;
+  letter-spacing: 0.2px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.brandContent p {
+  margin: 0;
+  color: #dfdddd;
+   letter-spacing: 0.2px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.brandTags {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  letter-spacing: 0.2px;
+  margin-top: 48px;
+  flex-wrap: wrap;
+  color: #dfdddd;
+}
+
+.brandTags span {
+  padding: 16px 24px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 12px;
+  background: rgb(0 63 44 / 55%);
+  font-weight: 800;
+}
+
+.formPanel {
+  display: flex;
+  min-width: 0;
+  min-height: calc(100vh - 24px);
+  align-items: center;
+  justify-content: flex-start;
+  padding: 56px clamp(48px, 7vw, 100px);
+  background: #fff;
+}
+
+.formPanel > * {
+  width: min(100%, 510px);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .brandPanel {
+    min-height: 260px;
+    padding: 32px 24px;
+  }
+
+  .brandMark {
+    margin-bottom: 14px;
+    font-size: 4.5rem;
+  }
+
+  .brandContent h1 {
+    font-size: 1.45rem;
+  }
+
+  .brandTags {
+    margin-top: 24px;
+  }
+
+  .brandTags span {
+    padding: 10px 16px;
+  }
+
+  .formPanel {
+    min-height: calc(100vh - 260px);
+    padding: 40px 24px;
+  }
+}

@@ -1,0 +1,21 @@
+.container {
+  min-width: 0;
+}
+
+.tableWrap {
+  max-width: 100%;
+}
+
+.footer {
+  min-width: 0;
+}
+
+.footer > span {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .footer {
+    align-items: flex-start;
+  }
+}

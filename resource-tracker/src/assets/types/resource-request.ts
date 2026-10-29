@@ -26,6 +26,7 @@ export interface ResourceRequest {
     id: string;
     itemDescription: string;
     manufacturer?: string;
+    requiredByDate?: string;
     vendor?: string;
     batchNumber?: string;
     quantity: number;

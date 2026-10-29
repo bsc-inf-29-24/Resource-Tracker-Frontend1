@@ -28,6 +28,8 @@ function isRequest(value: unknown): value is ResourceRequest {
   return (
     typeof request.id === "string" &&
     typeof request.itemDescription === "string" &&
+    (request.requiredByDate === undefined ||
+      typeof request.requiredByDate === "string") &&
     typeof request.quantity === "number" &&
     typeof request.estimatedPrice === "number" &&
     typeof request.department === "string" &&
@@ -136,9 +138,16 @@ function createId() {
   return id;
 }
 
+function isValidDateOnly(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 export interface NewResourceRequest {
   itemDescription: string;
   manufacturer?: string;
+  requiredByDate?: string;
   quantity: number;
   estimatedPrice: number;
   department: string;
@@ -152,6 +161,9 @@ export function createResourceRequest(
 ): ResourceRequest {
   const itemDescription = input.itemDescription.trim();
   const summary = input.summary.trim();
+  if (input.requiredByDate && !isValidDateOnly(input.requiredByDate)) {
+    throw new Error("Enter a valid required-by date.");
+  }
   if (!itemDescription) throw new Error("Enter an item description.");
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
     throw new Error("Quantity must be a positive whole number.");
@@ -170,6 +182,9 @@ export function createResourceRequest(
     itemDescription,
     ...(input.manufacturer?.trim()
       ? { manufacturer: input.manufacturer.trim() }
+      : {}),
+    ...(input.requiredByDate
+      ? { requiredByDate: input.requiredByDate }
       : {}),
     quantity: input.quantity,
     estimatedPrice: input.estimatedPrice,

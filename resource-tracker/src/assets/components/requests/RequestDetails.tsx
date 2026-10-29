@@ -38,6 +38,9 @@ export default function RequestDetails({ request, actions }: RequestDetailsProps
                 <Field label="Manufacturer">{request.manufacturer || "Not provided"}</Field>
                 <Field label="Required quantity">{request.quantity}</Field>
                 <Field label="Estimated price">{formatCurrency(request.estimatedPrice)}</Field>
+                {request.requiredByDate && (
+                    <Field label="Required by date">{formatDate(request.requiredByDate)}</Field>
+                )}
                 <Field label="Submitted on">{formatDate(request.submittedAt)}</Field>
                 <Field label="Department">{request.department || "Not provided"}</Field>
                 <Field label="Vendor">{request.vendor || "Not provided"}</Field>

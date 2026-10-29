@@ -191,6 +191,7 @@ export default function RequestReviewDetailsPage() {
           <textarea
             id="request-action-text"
             rows={5}
+            placeholder={actionMode === "query" ? "Enter the information requested" : "Enter reason for rejection"}
             value={actionText}
             onChange={(event) => {
               setActionText(event.target.value);

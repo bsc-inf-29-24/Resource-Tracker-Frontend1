@@ -314,6 +314,7 @@ export default function NewRequestPage() {
               <input
                 id="itemDescription"
                 name="itemDescription"
+                placeholder="Describe the requested item"
                 value={form.itemDescription}
                 onChange={handleChange}
                 aria-invalid={Boolean(errors.itemDescription)}
@@ -328,6 +329,7 @@ export default function NewRequestPage() {
               <input
                 id="manufacturer"
                 name="manufacturer"
+                placeholder="Enter manufacturer name"
                 value={form.manufacturer}
                 onChange={handleChange}
                 autoComplete="off"
@@ -342,6 +344,7 @@ export default function NewRequestPage() {
                 min="1"
                 step="1"
                 inputMode="numeric"
+                placeholder="Enter quantity"
                 value={form.quantity}
                 onChange={handleChange}
                 aria-invalid={Boolean(errors.quantity)}
@@ -359,6 +362,7 @@ export default function NewRequestPage() {
                 min="0.01"
                 step="0.01"
                 inputMode="decimal"
+                placeholder="Enter estimated price"
                 value={form.estimatedPrice}
                 onChange={handleChange}
                 aria-invalid={Boolean(errors.estimatedPrice)}
@@ -458,6 +462,7 @@ export default function NewRequestPage() {
                 id="summary"
                 name="summary"
                 rows={5}
+                placeholder="Provide a brief summary"
                 value={form.summary}
                 onChange={handleChange}
                 aria-invalid={Boolean(errors.summary)}

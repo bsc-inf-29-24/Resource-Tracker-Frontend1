@@ -105,6 +105,7 @@ export default function RegisterPage() {
           <input
             id="register-name"
             autoComplete="name"
+            placeholder="Enter your full name"
             value={form.name}
             onChange={(event) => updateField("name", event.target.value)}
             aria-invalid={Boolean(errors.name)}
@@ -120,6 +121,7 @@ export default function RegisterPage() {
             id="register-email"
             type="email"
             autoComplete="email"
+            placeholder="Enter your email address"
             value={form.email}
             onChange={(event) => updateField("email", event.target.value)}
             aria-invalid={Boolean(errors.email)}
@@ -169,6 +171,7 @@ export default function RegisterPage() {
             <label htmlFor="register-team">Team (optional)</label>
             <input
               id="register-team"
+              placeholder="Enter team name"
               value={form.team ?? ""}
               onChange={(event) => updateField("team", event.target.value)}
             />
@@ -182,6 +185,7 @@ export default function RegisterPage() {
               id="register-password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
+              placeholder="Enter your password"
               value={password}
               onChange={(event) => {
                 setPassword(event.target.value);
@@ -209,6 +213,7 @@ export default function RegisterPage() {
             id="register-confirm-password"
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
+            placeholder="Confirm your password"
             value={confirmPassword}
             onChange={(event) => {
               setConfirmPassword(event.target.value);

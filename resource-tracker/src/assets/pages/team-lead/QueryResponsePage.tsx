@@ -88,6 +88,7 @@ export default function QueryResponsePage() {
                 <label htmlFor="query-response">Additional information <span aria-hidden="true">*</span></label>
                 <textarea
                   id="query-response"
+                  placeholder="Enter your response..."
                   value={message}
                   onChange={(event) => {
                     setMessage(event.target.value);

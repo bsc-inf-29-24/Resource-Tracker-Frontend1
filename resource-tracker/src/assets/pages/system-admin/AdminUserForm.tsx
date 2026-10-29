@@ -126,6 +126,7 @@ export default function AdminUserForm({
           <input
             id="admin-user-name"
             autoComplete="name"
+            placeholder="Enter your full name"
             value={form.name}
             onChange={(event) => updateField("name", event.target.value)}
             aria-invalid={Boolean(errors.name)}
@@ -141,6 +142,7 @@ export default function AdminUserForm({
             id="admin-user-email"
             type="email"
             autoComplete="email"
+            placeholder="Enter your email address"
             value={form.email}
             onChange={(event) => updateField("email", event.target.value)}
             aria-invalid={Boolean(errors.email)}

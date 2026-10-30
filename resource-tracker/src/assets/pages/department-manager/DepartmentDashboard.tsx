@@ -176,9 +176,7 @@ export default function DepartmentDashboard() {
         }
       />
 
-      <p className={styles.demoNotice}>
-        Demo workspace: the application has no connected authorization service or backend.
-      </p>
+      
       {persistenceWarning && (
         <p className={styles.warning} role="alert">
           {persistenceWarning}

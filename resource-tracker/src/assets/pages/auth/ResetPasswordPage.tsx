@@ -26,8 +26,8 @@ function ResetPasswordPage() {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Your password must be at least 8 characters.");
+    if (password.length < 6) {
+      setError("Your password must be at least 6 characters.");
       return;
     }
 
@@ -50,7 +50,7 @@ function ResetPasswordPage() {
         Create new password
       </h1>
       <p className={styles.description}>
-        Both passwords must match containing at least 8 characters.
+        Both passwords must match containing at least 6 characters.
       </p>
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>

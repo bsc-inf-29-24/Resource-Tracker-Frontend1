@@ -72,7 +72,7 @@ export default function TeamLeadDashboard() {
         <PageHeader title="Team Lead Dashboard" />
         <ErrorMessage
           title="Preview account unavailable"
-          message="The demo Team Lead account is missing. Request data cannot be safely associated with a user."
+          message="The Team Lead account is missing. Request data cannot be safely associated with a user."
         />
       </section>
     );
@@ -90,10 +90,10 @@ export default function TeamLeadDashboard() {
         }
       />
 
-      <p className={styles.previewNotice} role="note">
+      {/* <p className={styles.previewNotice} role="note">
         This demonstration filters browser-local request data by the seeded Team Lead account.
         It is not server-side authentication or authorization.
-      </p>
+      </p> */}
 
       {persistenceWarning && (
         <ErrorMessage

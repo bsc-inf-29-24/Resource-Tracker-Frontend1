@@ -189,9 +189,9 @@ export default function AdminUserForm({
           {errors.role && <p className={styles.fieldError} id="admin-user-role-error" role="alert">{errors.role}</p>}
         </div>
 
-        <p className={styles.accountNote}>
+        {/* <p className={styles.accountNote}>
           Account records are demonstration data stored in this browser. There is no authentication or invitation service.
-        </p>
+        </p> */}
         <div className={styles.actions}>
           <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => {
             if (isDirty) setConfirmCancel(true);

@@ -222,10 +222,10 @@ export default function NewRequestPage() {
         description="Provide the resource details and explain the need."
         supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
-      <p className={styles.previewNotice} role="note">
+      {/* <p className={styles.previewNotice} role="note">
         Preview mode: choose a department, requesting team, and project for your request.
         New requests are saved only in this browser.
-      </p>
+      </p> */}
 
       {submitError && (
         <ErrorMessage

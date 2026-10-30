@@ -133,9 +133,9 @@ export default function UserManagementPage() {
           </button>
         }
       />
-      <p className={styles.previewNotice} role="note">
+      {/* <p className={styles.previewNotice} role="note">
         Preview account records are stored in this browser. Activation does not grant secure login access; authentication is not connected.
-      </p>
+      </p> */}
       {persistenceWarning && (
         <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
       )}

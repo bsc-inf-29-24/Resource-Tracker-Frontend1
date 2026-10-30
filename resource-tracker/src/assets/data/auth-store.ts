@@ -25,7 +25,7 @@ function readCredentials(): DemoCredential[] {
     parsed = JSON.parse(saved);
   } catch {
     throw new Error(
-      "Saved demo sign-in data could not be read. Clear this browser's demo data and register again."
+      "Saved sign-in data could not be read. Clear this browser's demo data and register again."
     );
   }
   if (
@@ -41,7 +41,7 @@ function readCredentials(): DemoCredential[] {
     )
   ) {
     throw new Error(
-      "Saved demo sign-in data is invalid. Clear this browser's demo data and register again."
+      "Saved sign-in data is invalid. Clear this browser's demo data and register again."
     );
   }
   return parsed;
@@ -65,7 +65,7 @@ function saveCredentials(credentials: DemoCredential[]) {
     window.localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
   } catch {
     throw new Error(
-      "Demo sign-in details could not be saved in this browser. Check available storage and try again."
+      "sign-in details could not be saved in this browser. Check available storage and try again."
     );
   }
 }
@@ -75,7 +75,7 @@ function saveSession(user: UserAccount) {
     window.sessionStorage.setItem(SESSION_KEY, user.id);
   } catch {
     throw new Error(
-      "The demo session could not be started in this browser. Check browser storage and try again."
+      "The session could not be started in this browser. Check browser storage and try again."
     );
   }
 }

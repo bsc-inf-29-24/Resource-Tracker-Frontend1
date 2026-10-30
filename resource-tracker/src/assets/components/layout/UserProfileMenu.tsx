@@ -59,19 +59,21 @@ export default function UserProfileMenu({
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
+        {/* Initial leters on the user profile in a circle */}
         <span className={styles.avatar} aria-hidden="true">
           {getInitials(userName)}
         </span>
         <span className={styles.triggerText}>
-          <strong>{displayName}</strong>
-          <span>{roleLabel ? `${roleLabel} preview` : "Not signed in"}</span>
+          {/* {User Name on the app heafer} */}
+         <strong>{displayName}</strong>
+          {/* <span>{roleLabel ? `${roleLabel}` : "Not signed in"}</span> */}
         </span>
       </button>
       {open && (
         <div className={styles.menu} role="menu" aria-label="Profile menu">
           <p className={styles.menuName}>{displayName}</p>
           <p className={styles.menuRole}>
-            {roleLabel ? `${roleLabel} preview` : "No authenticated account"}
+            {roleLabel ? `${roleLabel}` : "No authenticated account"}
           </p>
           <button
             type="button"

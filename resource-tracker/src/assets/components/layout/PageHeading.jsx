@@ -2,7 +2,12 @@
  * Page title block, e.g. "Hello, Wanangwa" + subtitle + "Create Resource Request" button.
  * breadcrumbs: [{ label, href? }]   actions: React node(s) shown on the right
  */
-export default function PageHeading({ title, subtitle, breadcrumbs = [], actions }) {
+export default function PageHeading({
+  title,
+  subtitle,
+  breadcrumbs = [],
+  actions,
+}) {
   return (
     <header className="rt-root rt-heading">
       <div>

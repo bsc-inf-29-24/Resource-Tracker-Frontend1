@@ -84,11 +84,11 @@ export default function AppHeader({
         </span>
         <span>Resource Tracker</span>
       </Link>
-      <span className={styles.pageContext} aria-current="page">
+      {/* <span className={styles.pageContext} aria-current="page">
         {getPageContext(pathname, role)}
-      </span>
+      </span> */}
       <UserProfileMenu
-        userName={userName}
+   userName={userName}
         roleLabel={role ? roleDisplayNames[role] : undefined}
         inert={mobileNavigationOpen}
         onSignOut={onSignOut}

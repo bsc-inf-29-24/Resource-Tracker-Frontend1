@@ -27,7 +27,7 @@ export default function AppSidebar({ role, open, onClose }: AppSidebarProps) {
       if (event.key !== "Tab" || !sidebarRef.current) return;
 
       const links = Array.from(
-        sidebarRef.current.querySelectorAll<HTMLAnchorElement>("a")
+        sidebarRef.current.querySelectorAll<HTMLAnchorElement>("a"),
       );
       if (links.length === 0) return;
       const first = links[0];
@@ -89,8 +89,7 @@ export default function AppSidebar({ role, open, onClose }: AppSidebarProps) {
                 pathname.startsWith("/team-lead/requests/new")
               );
             const isActive =
-              isExact ||
-              (isNested && !item.path.endsWith("/dashboard"));
+              isExact || (isNested && !item.path.endsWith("/dashboard"));
 
             return (
               <Link

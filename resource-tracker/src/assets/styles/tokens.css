@@ -37,7 +37,8 @@
   --color-border: #e0e5e1;
   --color-danger: #b4232c;
 
-  --rt-font: "Montserrat", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --rt-font:
+    "Montserrat", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --rt-radius-sm: 6px;
   --rt-radius-md: 10px;
   --rt-radius-pill: 999px;

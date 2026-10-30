@@ -34,6 +34,7 @@ export default function DepartmentDashboard() {
     [departmentName, requests]
   );
 
+  const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("All");
   const [project, setProject] = useState("All");
   const [team, setTeam] = useState("All");
@@ -60,13 +61,24 @@ export default function DepartmentDashboard() {
       }),
     [departmentRequests, fromDate, project, status, team, toDate]
   );
+  const searchedRequests = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return filteredRequests;
 
-  const statusCounts = getStatusCounts(filteredRequests);
-  const requestedTotal = getRequestedAmount(filteredRequests);
-  const approvedTotal = getApprovedAmount(filteredRequests);
-  const comparisonDifference = getSpentDifference(filteredRequests);
-  const recentRequests = getRecentRequests(filteredRequests, 5);
-  const projectTotals = getProjectTotals(filteredRequests);
+    return filteredRequests.filter((request) =>
+      [request.id, request.itemDescription, request.project, request.team]
+        .join(" ")
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [filteredRequests, search]);
+
+  const statusCounts = getStatusCounts(searchedRequests);
+  const requestedTotal = getRequestedAmount(searchedRequests);
+  const approvedTotal = getApprovedAmount(searchedRequests);
+  const comparisonDifference = getSpentDifference(searchedRequests);
+  const recentRequests = getRecentRequests(searchedRequests, 5);
+  const projectTotals = getProjectTotals(searchedRequests);
 
   const filters: ToolbarFilter[] = [
     {
@@ -123,6 +135,7 @@ export default function DepartmentDashboard() {
   ];
 
   function resetFilters() {
+    setSearch("");
     setStatus("All");
     setProject("All");
     setTeam("All");
@@ -184,7 +197,7 @@ export default function DepartmentDashboard() {
       )}
 
       <StatusCardGrid>
-        <StatusCard label="Departmental requests" value={departmentRequests.length} />
+        <StatusCard label="Departmental requests" value={searchedRequests.length} />
         <StatusCard label="Submitted" value={statusCounts.Submitted} />
         <StatusCard label="Pending" value={statusCounts.Pending} />
         <StatusCard label="Queried" value={statusCounts.Queried} />
@@ -236,13 +249,13 @@ export default function DepartmentDashboard() {
         <FilterToolbar
           searchLabel="Search requests"
           searchPlaceholder="ID, team, project or item"
-          searchValue=""
-          onSearchChange={() => undefined}
+          searchValue={search}
+          onSearchChange={setSearch}
           filters={filters}
           onClear={resetFilters}
         />
         <DataTable
-          title={`Recent ${filteredRequests.length} ${filteredRequests.length === 1 ? "request" : "requests"}`}
+          title={`Recent ${searchedRequests.length} ${searchedRequests.length === 1 ? "request" : "requests"}`}
           columns={columns}
           rows={recentRequests}
           pageSize={5}

@@ -24,11 +24,11 @@ export default function TeamLeadDashboard() {
   const teamLead = mockUsers.find((user) => user.id === TEAM_LEAD_ID);
   const ownRequests = useMemo(
     () => requests.filter((request) => request.requestedById === TEAM_LEAD_ID),
-    [requests]
+    [requests],
   );
   const counts = countByStatus(ownRequests);
   const submittedCount = ownRequests.filter((request) =>
-    request.history.some((change) => change.status === "Submitted")
+    request.history.some((change) => change.status === "Submitted"),
   ).length;
   const recentRequests = [...ownRequests]
     .sort((a, b) => {
@@ -50,7 +50,9 @@ export default function TeamLeadDashboard() {
     {
       key: "status",
       header: "Current status",
-      render: (request: ResourceRequest) => <StatusLabel status={request.status} />,
+      render: (request: ResourceRequest) => (
+        <StatusLabel status={request.status} />
+      ),
     },
     {
       key: "action",
@@ -81,13 +83,16 @@ export default function TeamLeadDashboard() {
   return (
     <section className={`rt-root ${styles.page}`}>
       <PageHeader
-        title="Team Lead Dashboard"
-        description={`Requests associated with ${teamLead.name} · Preview mode`}
-        supplementary={
-          <Link className="rt-root rt-btn rt-btn--primary" to="/team-lead/requests/new">
-            Submit a request
-          </Link>
-        }
+        title="Team Lead "
+        description={`Requests associated with ${teamLead.name}`}
+        // supplementary={
+        //   <Link
+        //     className="rt-root rt-btn rt-btn--primary"
+        //     to="/team-lead/requests/new"
+        //   >
+        //     Submit a request
+        //   </Link>
+        // }
       />
 
       {/* <p className={styles.previewNotice} role="note">
@@ -150,7 +155,7 @@ export default function TeamLeadDashboard() {
         </div>
       ) : (
         <DataTable
-          title="Your five most recent requests"
+          // title="Your five most recent requests"
           columns={columns}
           rows={recentRequests}
           emptyTitle="No recent requests"

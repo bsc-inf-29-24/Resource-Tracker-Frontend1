@@ -1,11 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { DEMO_PASSWORD, signInDemoUser } from "../../data/auth-store";
-import ErrorMessage from "../../components/feedback/ErrorMessage";
+import { signInDemoUser } from "../../data/auth-store";
 import styles from "./AuthPage.module.css";
-import AuthLayout from "./AuthLayout";
-import { mockUsers } from "../../data/mock-data"; 
 import { Eye, EyeOff } from "lucide-react";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -49,7 +46,7 @@ export default function LoginPage() {
       setError(
         signInError instanceof Error
           ? signInError.message
-          : "Sign-in failed. Please try again."
+          : "Sign-in failed. Please try again.",
       );
     } finally {
       setBusy(false);
@@ -58,11 +55,11 @@ export default function LoginPage() {
 
   return (
     <section className={`rt-root ${styles.card}`} aria-labelledby="login-title">
-      <p className={styles.eyebrow}>Welcome Back</p>
+      <p className={styles.eyebrow}>Welcome Back!</p>
       <h1 id="login-title" className={styles.title}>
         Sign in
       </h1>
-      
+
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className={styles.field}>
           <label htmlFor="login-email">Email</label>
@@ -70,7 +67,7 @@ export default function LoginPage() {
             id="login-email"
             type="email"
             autoComplete="username"
-            placeholder="Enter your email address"
+            placeholder="Enter your email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={Boolean(emailError)}
@@ -78,7 +75,11 @@ export default function LoginPage() {
             required
           />
           {emailError && (
-            <p className={styles.fieldError} id="login-email-error" role="alert">
+            <p
+              className={styles.fieldError}
+              id="login-email-error"
+              role="alert"
+            >
               {emailError}
             </p>
           )}
@@ -94,25 +95,27 @@ export default function LoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={Boolean(passwordError)}
-              aria-describedby={passwordError ? "login-password-error" : undefined}
+              aria-describedby={
+                passwordError ? "login-password-error" : undefined
+              }
               required
             />
-      
+
             <button
               type="button"
-              aria-label={
-                showPassword ? "Hide password" : "Show password"
-              }
-             aria-pressed={showPassword}
-              onClick={() =>
-                setShowPassword((visible) => !visible)
-              }
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((visible) => !visible)}
             >
-              {showPassword ? <EyeOff/> : <Eye/>}
+              {showPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
           {passwordError && (
-            <p className={styles.fieldError} id="login-password-error" role="alert">
+            <p
+              className={styles.fieldError}
+              id="login-password-error"
+              role="alert"
+            >
               {passwordError}
             </p>
           )}
@@ -122,19 +125,13 @@ export default function LoginPage() {
         </button>
       </form>
 
-  
       <div className={styles.links}>
-         <Link to="/register">Sign up</Link>
+        <Link to="/register">Sign up</Link>
         <Link to="/forgot-password">Forgot your password?</Link>
-        
       </div>
-
-      
     </section>
   );
 }
-
-
 
 /*defining the dashboard routes for each user role, 
  which will be used to navigate to the appropriate dashboard after a successful login.*/

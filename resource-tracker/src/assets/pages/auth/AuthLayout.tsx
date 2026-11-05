@@ -18,8 +18,8 @@ function AuthLayout({ children }: AuthLayoutProps) {
             Real-time Resource Tracking System
           </p>
           <p className="auth-brand-description">
-            Manage resource requests, review decisions and track resource
-            allocation in one place.
+            Manage resource requests, Monitor allocation and make smarter decisions - 
+            all in one place.
           </p>
 
           <div className="auth-benefits">

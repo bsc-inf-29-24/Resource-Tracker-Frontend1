@@ -23,13 +23,11 @@ export default function DecisionHistoryPage() {
     <div className={styles.page}>
       <div className={styles.headerLinks}>
         <div>
-          <Link to="/line-manager/dashboard">Dashboard</Link>
           <PageHeader
             title={requestId ? `History for ${requestId}` : "Decision history"}
-            description="Queries, comments, decisions, and recorded status changes."
+            description="Queries, comments, decisions and recorded status changes."
           />
         </div>
-        <Link to="/line-manager/requests">Requests to review</Link>
       </div>
 
       {persistenceWarning && (

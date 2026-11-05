@@ -7,7 +7,10 @@ import StatusLabel from "../../components/status/StatusLabel";
 import DataTable from "../../components/tables/DataTable";
 import { mockUsers } from "../../data/mock-data";
 import { TEAM_LEAD_ID, useResourceRequests } from "../../data/request-store";
-import type { RequestStatus, ResourceRequest } from "../../types/resource-request";
+import type {
+  RequestStatus,
+  ResourceRequest,
+} from "../../types/resource-request";
 import { All_STATUSES } from "../../utils/status";
 import { formatDate } from "../../utils/format";
 import styles from "./RequestHistoryPage.module.css";
@@ -22,14 +25,15 @@ export default function RequestHistoryPage() {
     : null;
   const ownRequests = useMemo(
     () => requests.filter((request) => request.requestedById === TEAM_LEAD_ID),
-    [requests]
+    [requests],
   );
   const selectedRequest = requestedId
     ? ownRequests.find((request) => request.id === requestedId)
     : undefined;
   const visibleRequests = useMemo(() => {
     let rows = ownRequests;
-    if (requestedId) rows = rows.filter((request) => request.id === requestedId);
+    if (requestedId)
+      rows = rows.filter((request) => request.id === requestedId);
     if (selectedStatus) {
       rows = rows.filter((request) => request.status === selectedStatus);
     }
@@ -55,22 +59,29 @@ export default function RequestHistoryPage() {
     {
       key: "status",
       header: "Current status",
-      render: (request: ResourceRequest) => <StatusLabel status={request.status} />,
+      render: (request: ResourceRequest) => (
+        <StatusLabel status={request.status} />
+      ),
     },
     {
       key: "action",
       header: "Available action",
-      render: (request: ResourceRequest) => (
+      render: (request: ResourceRequest) =>
         request.status === "Queried" ? (
-          <Link className={styles.link} to={`/team-lead/requests/${encodeURIComponent(request.id)}/respond`}>
+          <Link
+            className={styles.link}
+            to={`/team-lead/requests/${encodeURIComponent(request.id)}/respond`}
+          >
             View query
           </Link>
         ) : (
-          <Link className={styles.link} to={`/team-lead/requests?requestId=${encodeURIComponent(request.id)}`}>
+          <Link
+            className={styles.link}
+            to={`/team-lead/requests?requestId=${encodeURIComponent(request.id)}`}
+          >
             View history
           </Link>
-        )
-      ),
+        ),
     },
   ];
 
@@ -83,10 +94,13 @@ export default function RequestHistoryPage() {
       <PageHeader
         title="Request history"
         description="Review the current status and recorded timeline for your requests."
-        supplementary={<Link to="/team-lead/dashboard">Back to dashboard</Link>}
+        // supplementary={<Link to="/team-lead/dashboard">Back to dashboard</Link>}
       />
       {persistenceWarning && (
-        <ErrorMessage title="Using demo request data" message={persistenceWarning} />
+        <ErrorMessage
+          title="Using demo request data"
+          message={persistenceWarning}
+        />
       )}
 
       <div className={styles.filters}>
@@ -103,10 +117,18 @@ export default function RequestHistoryPage() {
           }}
         >
           <option value="">All statuses</option>
-          {All_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+          {All_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
         </select>
         {(requestedId || selectedStatus) && (
-          <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={clearFilters}>
+          <button
+            type="button"
+            className="rt-root rt-btn rt-btn--outline"
+            onClick={clearFilters}
+          >
             Clear filters
           </button>
         )}
@@ -120,7 +142,7 @@ export default function RequestHistoryPage() {
       )}
 
       <DataTable
-        title={requestedId ? "Selected request" : "All your requests"}
+        title={requestedId ? "Selected request" : "All requests"}
         columns={columns}
         rows={visibleRequests}
         emptyTitle="No requests found"
@@ -129,12 +151,17 @@ export default function RequestHistoryPage() {
             ? `You have no requests with the current status "${selectedStatus}".`
             : "Your submitted requests will appear here."
         }
-        emptyActionLabel={requestedId || selectedStatus ? "Clear filters" : undefined}
+        emptyActionLabel={
+          requestedId || selectedStatus ? "Clear filters" : undefined
+        }
         onEmptyAction={requestedId || selectedStatus ? clearFilters : undefined}
       />
 
       {selectedRequest && (
-        <section className={`rt-root rt-card ${styles.timeline}`} aria-labelledby="selected-request-title">
+        <section
+          className={`rt-root rt-card ${styles.timeline}`}
+          aria-labelledby="selected-request-title"
+        >
           <div className={styles.timelineHeading}>
             <div>
               <h2 id="selected-request-title">{selectedRequest.id} history</h2>

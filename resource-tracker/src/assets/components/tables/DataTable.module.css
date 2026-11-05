@@ -1,5 +1,7 @@
 .container {
   min-width: 0;
+  border: 1.2px solid var(--rt-green-200);
+text-align: left;
 }
 
 .tableWrap {

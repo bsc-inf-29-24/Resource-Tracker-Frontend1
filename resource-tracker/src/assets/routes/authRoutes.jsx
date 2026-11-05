@@ -1,8 +1,12 @@
 import lazyPage from "./lazyPage";
 
 const LoginPage = lazyPage(() => import("../pages/auth/LoginPage"));
-const ForgotPasswordPage = lazyPage(() => import("../pages/auth/ForgotPasswordPage"));
-const ResetPasswordPage = lazyPage(() => import("../pages/auth/ResetPasswordPage"));
+const ForgotPasswordPage = lazyPage(
+  () => import("../pages/auth/ForgotPasswordPage"),
+);
+const ResetPasswordPage = lazyPage(
+  () => import("../pages/auth/ResetPasswordPage"),
+);
 
 // These pages have no sidebar or header.
 const authRoutes = [

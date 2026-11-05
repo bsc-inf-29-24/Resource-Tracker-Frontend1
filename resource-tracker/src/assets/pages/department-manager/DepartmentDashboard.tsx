@@ -180,13 +180,13 @@ export default function DepartmentDashboard() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Department Manager Dashboard"
+        title="Department Manager"
         description={`${departmentName} department overview`}
-        supplementary={
-          <Link className={styles.linkButton} to="/department-manager/requests">
-            Open request list
-          </Link>
-        }
+        // supplementary={
+        //   <Link className={styles.linkButton} to="/department-manager/requests">
+        //     Open request list
+        //   </Link>
+        // }
       />
 
       

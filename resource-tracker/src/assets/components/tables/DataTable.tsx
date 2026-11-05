@@ -26,15 +26,13 @@ function getCellValue<Row extends object>(row: Row, key: string): ReactNode {
 function getRowKey<Row extends object>(
   row: Row,
   rowKey: DataTableProps<Row>["rowKey"],
-  index: number
+  index: number,
 ): Key {
   const value =
     typeof rowKey === "function"
       ? rowKey(row, index)
       : Reflect.get(row, rowKey ?? "id");
-  return typeof value === "string" || typeof value === "number"
-    ? value
-    : index;
+  return typeof value === "string" || typeof value === "number" ? value : index;
 }
 
 function DataTable<Row extends object>({
@@ -60,7 +58,9 @@ function DataTable<Row extends object>({
   const safePageSize =
     Number.isInteger(pageSize) && pageSize > 0 ? pageSize : 8;
   const externallyPaginated = typeof onPageChange === "function";
-  const recordCount = externallyPaginated ? total ?? rows.length : rows.length;
+  const recordCount = externallyPaginated
+    ? (total ?? rows.length)
+    : rows.length;
   const pageCount = Math.max(1, Math.ceil(recordCount / safePageSize));
   const currentPage = externallyPaginated
     ? Math.min(Math.max(page ?? 1, 1), pageCount)
@@ -78,7 +78,7 @@ function DataTable<Row extends object>({
     if (
       target instanceof Element &&
       target.closest(
-        "a, button, input, select, textarea, summary, [role='button'], [contenteditable='true']"
+        "a, button, input, select, textarea, summary, [role='button'], [contenteditable='true']",
       )
     ) {
       return;
@@ -165,9 +165,7 @@ function DataTable<Row extends object>({
       {!loading && !error && rows.length > 0 && (
         <div className={`rt-table__footer ${styles.footer}`}>
           <span>
-            Showing{" "}
-            {(currentPage - 1) * safePageSize + 1}
-            -
+            Showing {(currentPage - 1) * safePageSize + 1}-
             {externallyPaginated
               ? (currentPage - 1) * safePageSize + visibleRows.length
               : Math.min(currentPage * safePageSize, recordCount)}{" "}
@@ -207,14 +205,16 @@ function DataTable<Row extends object>({
 
 export function statusColumn<Row extends object>(
   key = "status",
-  header = "Status"
+  header = "Status",
 ): DataTableColumn<Row> {
   return {
     key,
     header,
     render: (row) => {
       const value = Reflect.get(row, key) as unknown;
-      return <StatusLabel status={typeof value === "string" ? value : undefined} />;
+      return (
+        <StatusLabel status={typeof value === "string" ? value : undefined} />
+      );
     },
   };
 }

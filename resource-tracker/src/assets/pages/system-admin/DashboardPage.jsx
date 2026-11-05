@@ -14,11 +14,16 @@ export default function DashboardPage() {
   const inactiveUsers = users.filter((user) => user.status === "Inactive");
   const departments = availableDepartments.map((department) => ({
     ...department,
-    userCount: users.filter((user) => user.department === department.name).length,
+    userCount: users.filter((user) => user.department === department.name)
+      .length,
   }));
   const departmentColumns = [
     { key: "name", header: "Department" },
-    { key: "code", header: "Code", render: (department) => department.code || "—" },
+    {
+      key: "code",
+      header: "Code",
+      render: (department) => department.code || "—",
+    },
     {
       key: "manager",
       header: "Manager",
@@ -32,34 +37,57 @@ export default function DashboardPage() {
       <PageHeader
         title="System Administrator"
         description="Manage account records and review department membership."
-        supplementary={
-          <Link className="rt-root rt-btn rt-btn--primary" to="/system-admin/users/new">
-            Create user
-          </Link>
-        }
+        // supplementary={
+        //   // <Link
+        //   //   className="rt-root rt-btn rt-btn--primary"
+        //   //   to="/system-admin/users/new"
+        //   // >
+        //   //   Create user
+        //   // </Link>
+        // }
       />
 
-      
       {persistenceWarning && (
-        <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+        <ErrorMessage
+          title="Using demonstration accounts"
+          message={persistenceWarning}
+        />
       )}
 
       <StatusCardGrid>
-        <StatusCard label="Total users" value={users.length} note="Registered account records" />
-        <StatusCard label="Active users" value={activeUsers.length} note="Status marked active" />
-        <StatusCard label="Inactive users" value={inactiveUsers.length} note="Status marked inactive" />
+        <StatusCard
+          label="Total users"
+          value={users.length}
+          note="Registered account records"
+        />
+        <StatusCard
+          label="Active users"
+          value={activeUsers.length}
+          note="Status marked active"
+        />
+        <StatusCard
+          label="Inactive users"
+          value={inactiveUsers.length}
+          note="Status marked inactive"
+        />
       </StatusCardGrid>
 
-      <section className={styles.quickLinks} aria-labelledby="admin-actions-title">
+      <section
+        className={styles.quickLinks}
+        aria-labelledby="admin-actions-title"
+      >
         <h2 id="admin-actions-title">Administration</h2>
         <div className={styles.links}>
           <Link to="/system-admin/users">Manage users</Link>
           <Link to="/system-admin/users/new">Create user account</Link>
         </div>
-        <p>Role management is not available in this application preview.</p>
+        {/* <p>Role management is not available in this application preview.</p> */}
       </section>
 
-      <section className={styles.departmentSection} aria-labelledby="department-title">
+      <section
+        className={styles.departmentSection}
+        aria-labelledby="department-title"
+      >
         <div className={styles.sectionHeading}>
           <div>
             <h2 id="department-title">Department overview</h2>
@@ -75,7 +103,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <DataTable
-            title="Departments"
+            // title="Departments"
             columns={departmentColumns}
             rows={departments}
             rowKey="id"
@@ -94,4 +122,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Users,RotateCcw,ChevronRight,X,} from "lucide-react";
+import { FileText, Users, RotateCcw, ChevronRight, X } from "lucide-react";
 
 import "./ResourceRequest.css";
 
@@ -20,7 +20,6 @@ function ResourceRequest() {
   const [form, setForm] = useState(initialForm);
   const [showReview, setShowReview] = useState(false);
 
-  
   function handleChange(event) {
     const { name, value } = event.target;
 
@@ -30,7 +29,6 @@ function ResourceRequest() {
     }));
   }
 
-  
   function handleReset() {
     setForm({
       ...initialForm,
@@ -40,7 +38,6 @@ function ResourceRequest() {
     setShowReview(false);
   }
 
-  
   function handleReview(event) {
     event.preventDefault();
     setShowReview(true);
@@ -93,9 +90,7 @@ function ResourceRequest() {
             </div>
 
             <div className="request-field">
-              <label htmlFor="estimatedPrice">
-                Estimated Price (MWK)
-              </label>
+              <label htmlFor="estimatedPrice">Estimated Price (MWK)</label>
 
               <input
                 id="estimatedPrice"
@@ -133,9 +128,7 @@ function ResourceRequest() {
 
             <div>
               <h2>Request Information</h2>
-              <p>
-                Select the relevant department, project and team
-              </p>
+              <p>Select the relevant department, project and team</p>
             </div>
           </div>
 
@@ -155,9 +148,7 @@ function ResourceRequest() {
                 <option value="Information Technology">
                   Information Technology
                 </option>
-                <option value="Human Resources">
-                  Human Resources
-                </option>
+                <option value="Human Resources">Human Resources</option>
                 <option value="Operations">Operations</option>
                 <option value="Procurement">Procurement</option>
               </select>
@@ -192,16 +183,10 @@ function ResourceRequest() {
                 required
               >
                 <option value="">Select team</option>
-                <option value="Development Team">
-                  Development Team
-                </option>
+                <option value="Development Team">Development Team</option>
                 <option value="Finance Team">Finance Team</option>
-                <option value="Administration Team">
-                  Administration Team
-                </option>
-                <option value="ICT Support Team">
-                  ICT Support Team
-                </option>
+                <option value="Administration Team">Administration Team</option>
+                <option value="ICT Support Team">ICT Support Team</option>
               </select>
             </div>
 
@@ -229,15 +214,11 @@ function ResourceRequest() {
                 required
               >
                 <option value="">Select project</option>
-                <option value="Website Development">
-                  Website Development
-                </option>
+                <option value="Website Development">Website Development</option>
                 <option value="Infrastructure Upgrade">
                   Infrastructure Upgrade
                 </option>
-                <option value="Office Operations">
-                  Office Operations
-                </option>
+                <option value="Office Operations">Office Operations</option>
                 <option value="Digital Transformation">
                   Digital Transformation
                 </option>
@@ -247,9 +228,7 @@ function ResourceRequest() {
 
           {}
           <div className="request-field justification-field">
-            <label htmlFor="justification">
-              Purpose / Justification
-            </label>
+            <label htmlFor="justification">Purpose / Justification</label>
 
             <textarea
               id="justification"
@@ -317,13 +296,12 @@ function ResourceRequest() {
               </p>
 
               <p>
-                <strong>Estimated Price:</strong>{" "}
-                MWK {Number(form.estimatedPrice).toLocaleString()}
+                <strong>Estimated Price:</strong> MWK{" "}
+                {Number(form.estimatedPrice).toLocaleString()}
               </p>
 
               <p>
-                <strong>Supplier:</strong>{" "}
-                {form.supplier || "Not provided"}
+                <strong>Supplier:</strong> {form.supplier || "Not provided"}
               </p>
 
               <p>

@@ -35,14 +35,18 @@
 .records {
   display: grid;
   gap: 16px;
+  text-align: left;
 }
 
 .record {
   display: grid;
   gap: 18px;
+    text-align: left;
+
 }
 
 .recordHeader {
+  
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -55,11 +59,13 @@
   margin: 0 0 4px;
   color: var(--color-text);
   font-size: 1.05rem;
+  
 }
 
 .recordHeader p {
   margin: 0;
   color: var(--color-text-secondary);
+  
 }
 
 .empty {

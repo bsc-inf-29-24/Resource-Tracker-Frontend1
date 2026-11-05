@@ -128,11 +128,11 @@ export default function SpendingReportsPage() {
       <PageHeader
         title="Spending Reports"
         description={`${departmentName} departmental spending summary`}
-        supplementary={
-          <Link className={styles.linkButton} to="/department-manager/dashboard">
-            Return to dashboard
-          </Link>
-        }
+        // supplementary={
+        //   <Link className={styles.linkButton} to="/department-manager/dashboard">
+        //     Return to dashboard
+        //   </Link>
+        // }
       />
 
       {persistenceWarning && (

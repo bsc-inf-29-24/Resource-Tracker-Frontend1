@@ -48,17 +48,23 @@ const projectsAvailable = [
   "Digital Library",
 ];
 
-const departments = [...new Set([
-  ...mockDepartments.map((department) => department.name),
-  "Data Science",
-])].sort();
+const departments = [
+  ...new Set([
+    ...mockDepartments.map((department) => department.name),
+    "Data Science",
+  ]),
+].sort();
 
 const teamsByDepartment: Record<string, string[]> = {
   "Computer Science": ["Software Development", "Data Engineering", "Research"],
   "Data Science": ["ML platform", "Data Engineering", "Analytics"],
   Finance: ["Accounts", "Budget Planning", "Procurement"],
   HR: ["HR Operations", "Recruitment", "Staff Development"],
-  "Information Systems": ["Systems Administration", "Business Analysis", "Support"],
+  "Information Systems": [
+    "Systems Administration",
+    "Business Analysis",
+    "Support",
+  ],
   IT: ["Infrastructure", "Cybersecurity", "IT Support"],
 };
 
@@ -73,11 +79,14 @@ export default function NewRequestPage() {
   const { requests } = useResourceRequests();
   const teamLead = mockUsers.find((user) => user.id === TEAM_LEAD_ID);
   const projects = useMemo(
-    () => [...new Set([
-      ...projectsAvailable,
-      ...requests.map((request) => request.project.trim()).filter(Boolean),
-    ])].sort(),
-    [requests]
+    () =>
+      [
+        ...new Set([
+          ...projectsAvailable,
+          ...requests.map((request) => request.project.trim()).filter(Boolean),
+        ]),
+      ].sort(),
+    [requests],
   );
   const [form, setForm] = useState(initialForm);
   const availableTeams = teamsByDepartment[form.department] ?? [];
@@ -89,9 +98,15 @@ export default function NewRequestPage() {
   const [isReviewing, setIsReviewing] = useState(false);
   const submittingRef = useRef(false);
 
-  const hasUnsavedInput = Object.values(form).some((value) => value.trim() !== "");
+  const hasUnsavedInput = Object.values(form).some(
+    (value) => value.trim() !== "",
+  );
 
-  function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleChange(
+    event: ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) {
     const { name, value } = event.target;
     const field = name as FieldName;
     setForm((current) => ({ ...current, [field]: value }));
@@ -126,7 +141,8 @@ export default function NewRequestPage() {
       nextErrors.project = "Select an available project.";
     }
     if (!form.summary.trim()) {
-      nextErrors.summary = "Enter a summary explaining why this resource is needed.";
+      nextErrors.summary =
+        "Enter a summary explaining why this resource is needed.";
     }
     return nextErrors;
   }
@@ -176,13 +192,13 @@ export default function NewRequestPage() {
       setErrors({});
       setIsReviewing(false);
       setSuccessMessage(
-        `${request.id} was saved in this browser as a pending request. It was not sent to a server.`
+        `${request.id} was saved in this browser as a pending request. It was not sent to a server.`,
       );
     } catch (error) {
       setSubmitError(
         error instanceof Error
           ? error.message
-          : "The request could not be saved. Your entered values have been preserved."
+          : "The request could not be saved. Your entered values have been preserved.",
       );
     } finally {
       submittingRef.current = false;
@@ -220,7 +236,7 @@ export default function NewRequestPage() {
       <PageHeader
         title="Submit a resource request"
         description="Provide the resource details and explain the need."
-        supplementary={<Link to="/team-lead/requests">Request history</Link>}
+        // supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
       {/* <p className={styles.previewNotice} role="note">
         Preview mode: choose a department, requesting team, and project for your request.
@@ -228,10 +244,7 @@ export default function NewRequestPage() {
       </p> */}
 
       {submitError && (
-        <ErrorMessage
-          title="Request not submitted"
-          message={submitError}
-        />
+        <ErrorMessage title="Request not submitted" message={submitError} />
       )}
       {successMessage && (
         <p className={styles.success} role="status">
@@ -241,7 +254,10 @@ export default function NewRequestPage() {
       )}
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         {isReviewing ? (
-          <section className={styles.card} aria-labelledby="review-request-title">
+          <section
+            className={styles.card}
+            aria-labelledby="review-request-title"
+          >
             <div className={styles.sectionHeading}>
               <h2 id="review-request-title">Review request</h2>
               <p>Check these details before submitting your request.</p>
@@ -253,7 +269,9 @@ export default function NewRequestPage() {
               </div>
               <div className={styles.reviewField}>
                 <dt className={styles.reviewLabel}>Manufacturer</dt>
-                <dd className={styles.reviewValue}>{form.manufacturer || "Not provided"}</dd>
+                <dd className={styles.reviewValue}>
+                  {form.manufacturer || "Not provided"}
+                </dd>
               </div>
               <div className={styles.reviewField}>
                 <dt className={styles.reviewLabel}>Required quantity</dt>
@@ -261,11 +279,15 @@ export default function NewRequestPage() {
               </div>
               <div className={styles.reviewField}>
                 <dt className={styles.reviewLabel}>Total estimated cost</dt>
-                <dd className={styles.reviewValue}>MWK {form.estimatedPrice}</dd>
+                <dd className={styles.reviewValue}>
+                  MWK {form.estimatedPrice}
+                </dd>
               </div>
               <div className={styles.reviewField}>
                 <dt className={styles.reviewLabel}>Required by date</dt>
-                <dd className={styles.reviewValue}>{form.requiredByDate || "Not specified"}</dd>
+                <dd className={styles.reviewValue}>
+                  {form.requiredByDate || "Not specified"}
+                </dd>
               </div>
               <div className={styles.reviewField}>
                 <dt className={styles.reviewLabel}>Department</dt>
@@ -303,189 +325,294 @@ export default function NewRequestPage() {
           </section>
         ) : (
           <>
-        <section className={styles.card} aria-labelledby="resource-details-title">
-          <div className={styles.sectionHeading}>
-            <h2 id="resource-details-title">Resource details</h2>
-            <p>Fields marked required must be completed.</p>
-          </div>
-          <div className={styles.grid}>
-            <div className={styles.field}>
-              <label htmlFor="itemDescription">Item description <span aria-hidden="true">*</span></label>
-              <input
-                id="itemDescription"
-                name="itemDescription"
-                placeholder="Describe the requested item"
-                value={form.itemDescription}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.itemDescription)}
-                aria-describedby={errors.itemDescription ? "itemDescription-error" : undefined}
-                autoComplete="off"
-                required
-              />
-              {errors.itemDescription && <p className={styles.fieldError} id="itemDescription-error" role="alert">{errors.itemDescription}</p>}
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="manufacturer">Manufacturer <span>(optional)</span></label>
-              <input
-                id="manufacturer"
-                name="manufacturer"
-                placeholder="Enter manufacturer name"
-                value={form.manufacturer}
-                onChange={handleChange}
-                autoComplete="off"
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="quantity">Required quantity <span aria-hidden="true">*</span></label>
-              <input
-                id="quantity"
-                name="quantity"
-                type="number"
-                min="1"
-                step="1"
-                inputMode="numeric"
-                placeholder="Enter quantity"
-                value={form.quantity}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.quantity)}
-                aria-describedby={errors.quantity ? "quantity-error" : undefined}
-                required
-              />
-              {errors.quantity && <p className={styles.fieldError} id="quantity-error" role="alert">{errors.quantity}</p>}
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="estimatedPrice">Total estimated cost (MWK) <span aria-hidden="true">*</span></label>
-              <input
-                id="estimatedPrice"
-                name="estimatedPrice"
-                type="number"
-                min="0.01"
-                step="0.01"
-                inputMode="decimal"
-                placeholder="Enter estimated price"
-                value={form.estimatedPrice}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.estimatedPrice)}
-                aria-describedby={errors.estimatedPrice ? "estimatedPrice-error" : undefined}
-                required
-              />
-              {errors.estimatedPrice && <p className={styles.fieldError} id="estimatedPrice-error" role="alert">{errors.estimatedPrice}</p>}
-            </div>
-          </div>
-        </section>
+            <section
+              className={styles.card}
+              aria-labelledby="resource-details-title"
+            >
+              <div className={styles.sectionHeading}>
+                <h2 id="resource-details-title">Resource details</h2>
+                <p>Fields marked required must be completed.</p>
+              </div>
+              <div className={styles.grid}>
+                <div className={styles.field}>
+                  <label htmlFor="itemDescription">
+                    Item description <span aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="itemDescription"
+                    name="itemDescription"
+                    placeholder="Describe the requested item"
+                    value={form.itemDescription}
+                    onChange={handleChange}
+                    aria-invalid={Boolean(errors.itemDescription)}
+                    aria-describedby={
+                      errors.itemDescription
+                        ? "itemDescription-error"
+                        : undefined
+                    }
+                    autoComplete="off"
+                    required
+                  />
+                  {errors.itemDescription && (
+                    <p
+                      className={styles.fieldError}
+                      id="itemDescription-error"
+                      role="alert"
+                    >
+                      {errors.itemDescription}
+                    </p>
+                  )}
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="manufacturer">
+                    Manufacturer <span>(optional)</span>
+                  </label>
+                  <input
+                    id="manufacturer"
+                    name="manufacturer"
+                    placeholder="Enter manufacturer name"
+                    value={form.manufacturer}
+                    onChange={handleChange}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="quantity">
+                    Required quantity <span aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="quantity"
+                    name="quantity"
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputMode="numeric"
+                    placeholder="Enter quantity"
+                    value={form.quantity}
+                    onChange={handleChange}
+                    aria-invalid={Boolean(errors.quantity)}
+                    aria-describedby={
+                      errors.quantity ? "quantity-error" : undefined
+                    }
+                    required
+                  />
+                  {errors.quantity && (
+                    <p
+                      className={styles.fieldError}
+                      id="quantity-error"
+                      role="alert"
+                    >
+                      {errors.quantity}
+                    </p>
+                  )}
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="estimatedPrice">
+                    Total estimated cost (MWK) <span aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="estimatedPrice"
+                    name="estimatedPrice"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="Enter estimated price"
+                    value={form.estimatedPrice}
+                    onChange={handleChange}
+                    aria-invalid={Boolean(errors.estimatedPrice)}
+                    aria-describedby={
+                      errors.estimatedPrice ? "estimatedPrice-error" : undefined
+                    }
+                    required
+                  />
+                  {errors.estimatedPrice && (
+                    <p
+                      className={styles.fieldError}
+                      id="estimatedPrice-error"
+                      role="alert"
+                    >
+                      {errors.estimatedPrice}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
 
-        <section className={styles.card} aria-labelledby="request-date-title">
-          <div className={styles.sectionHeading}>
-            <h2 id="request-date-title">Date</h2>
-            <p>When the resource is needed (optional).</p>
-          </div>
-          <div className={styles.grid}>
-            <div className={styles.field}>
-              <label htmlFor="requiredByDate">Required by date</label>
-              <input
-                id="requiredByDate"
-                name="requiredByDate"
-                type="date"
-                value={form.requiredByDate}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </section>
+            <section
+              className={styles.card}
+              aria-labelledby="request-date-title"
+            >
+              <div className={styles.sectionHeading}>
+                <h2 id="request-date-title">Date</h2>
+                <p>When the resource is needed (optional).</p>
+              </div>
+              <div className={styles.grid}>
+                <div className={styles.field}>
+                  <label htmlFor="requiredByDate">Required by date</label>
+                  <input
+                    id="requiredByDate"
+                    name="requiredByDate"
+                    type="date"
+                    value={form.requiredByDate}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </section>
 
-        <section className={styles.card} aria-labelledby="request-information-title">
-          <div className={styles.sectionHeading}>
-            <h2 id="request-information-title">Request information</h2>
-            <p>Select the department and requesting team for this request.</p>
-          </div>
-          <div className={styles.grid}>
-            <div className={styles.field}>
-              <label htmlFor="department">Department</label>
-              <select
-                id="department"
-                name="department"
-                value={form.department}
-                onChange={(event) => {
-                  handleChange(event);
-                  setForm((current) => ({ ...current, team: "" }));
-                  setErrors((current) => ({ ...current, team: undefined }));
-                }}
-                aria-invalid={Boolean(errors.department)}
-                aria-describedby={errors.department ? "department-error" : undefined}
-                required
-              >
-                <option value="">Select a department</option>
-                {departments.map((department) => (
-                  <option key={department} value={department}>{department}</option>
-                ))}
-              </select>
-              {errors.department && <p className={styles.fieldError} id="department-error" role="alert">{errors.department}</p>}
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="team">Requesting team</label>
-              <select
-                id="team"
-                name="team"
-                value={form.team}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.team)}
-                aria-describedby={errors.team ? "team-error" : undefined}
-                required
-                disabled={!form.department}
-              >
-                <option value="">Select a team</option>
-                {availableTeams.map((team) => (
-                  <option key={team} value={team}>{team}</option>
-                ))}
-              </select>
-              {errors.team && <p className={styles.fieldError} id="team-error" role="alert">{errors.team}</p>}
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="project">Project <span aria-hidden="true">*</span></label>
-              <select
-                id="project"
-                name="project"
-                value={form.project}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.project)}
-                aria-describedby={errors.project ? "project-error" : undefined}
-                required
-              >
-                <option value="">Select a project</option>
-                {projects.map((project) => <option key={project} value={project}>{project}</option>)}
-              </select>
-              {errors.project && <p className={styles.fieldError} id="project-error" role="alert">{errors.project}</p>}
-            </div>
-            <div className={`${styles.field} ${styles.fullWidth}`}>
-              <label htmlFor="summary">Request summary <span aria-hidden="true">*</span></label>
-              <textarea
-                id="summary"
-                name="summary"
-                rows={5}
-                placeholder="Provide a brief summary"
-                value={form.summary}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.summary)}
-                aria-describedby={errors.summary ? "summary-error" : undefined}
-                required
-              />
-              {errors.summary && <p className={styles.fieldError} id="summary-error" role="alert">{errors.summary}</p>}
-            </div>
-          </div>
-        </section>
+            <section
+              className={styles.card}
+              aria-labelledby="request-information-title"
+            >
+              <div className={styles.sectionHeading}>
+                <h2 id="request-information-title">Request information</h2>
+                <p>
+                  Select the department and requesting team for this request.
+                </p>
+              </div>
+              <div className={styles.grid}>
+                <div className={styles.field}>
+                  <label htmlFor="department">Department</label>
+                  <select
+                    id="department"
+                    name="department"
+                    value={form.department}
+                    onChange={(event) => {
+                      handleChange(event);
+                      setForm((current) => ({ ...current, team: "" }));
+                      setErrors((current) => ({ ...current, team: undefined }));
+                    }}
+                    aria-invalid={Boolean(errors.department)}
+                    aria-describedby={
+                      errors.department ? "department-error" : undefined
+                    }
+                    required
+                  >
+                    <option value="">Select a department</option>
+                    {departments.map((department) => (
+                      <option key={department} value={department}>
+                        {department}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.department && (
+                    <p
+                      className={styles.fieldError}
+                      id="department-error"
+                      role="alert"
+                    >
+                      {errors.department}
+                    </p>
+                  )}
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="team">Requesting team</label>
+                  <select
+                    id="team"
+                    name="team"
+                    value={form.team}
+                    onChange={handleChange}
+                    aria-invalid={Boolean(errors.team)}
+                    aria-describedby={errors.team ? "team-error" : undefined}
+                    required
+                    disabled={!form.department}
+                  >
+                    <option value="">Select a team</option>
+                    {availableTeams.map((team) => (
+                      <option key={team} value={team}>
+                        {team}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.team && (
+                    <p
+                      className={styles.fieldError}
+                      id="team-error"
+                      role="alert"
+                    >
+                      {errors.team}
+                    </p>
+                  )}
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="project">
+                    Project <span aria-hidden="true">*</span>
+                  </label>
+                  <select
+                    id="project"
+                    name="project"
+                    value={form.project}
+                    onChange={handleChange}
+                    aria-invalid={Boolean(errors.project)}
+                    aria-describedby={
+                      errors.project ? "project-error" : undefined
+                    }
+                    required
+                  >
+                    <option value="">Select a project</option>
+                    {projects.map((project) => (
+                      <option key={project} value={project}>
+                        {project}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.project && (
+                    <p
+                      className={styles.fieldError}
+                      id="project-error"
+                      role="alert"
+                    >
+                      {errors.project}
+                    </p>
+                  )}
+                </div>
+                <div className={`${styles.field} ${styles.fullWidth}`}>
+                  <label htmlFor="summary">
+                    Request summary <span aria-hidden="true">*</span>
+                  </label>
+                  <textarea
+                    id="summary"
+                    name="summary"
+                    rows={5}
+                    placeholder="Provide a brief summary"
+                    value={form.summary}
+                    onChange={handleChange}
+                    aria-invalid={Boolean(errors.summary)}
+                    aria-describedby={
+                      errors.summary ? "summary-error" : undefined
+                    }
+                    required
+                  />
+                  {errors.summary && (
+                    <p
+                      className={styles.fieldError}
+                      id="summary-error"
+                      role="alert"
+                    >
+                      {errors.summary}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
 
-        <div className={styles.actions}>
-          <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={handleCancel}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--primary"
-            onClick={handleReview}
-          >
-            Review request
-          </button>
-        </div>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--outline"
+                onClick={handleCancel}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--primary"
+                onClick={handleReview}
+              >
+                Review request
+              </button>
+            </div>
           </>
         )}
       </form>

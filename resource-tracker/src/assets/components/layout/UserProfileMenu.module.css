@@ -95,6 +95,7 @@
 
 .menu button:hover {
   background: var(--color-primary-dark);
+  color: rgb(255, 0, 0);
 }
 
 @media (max-width: 480px) {

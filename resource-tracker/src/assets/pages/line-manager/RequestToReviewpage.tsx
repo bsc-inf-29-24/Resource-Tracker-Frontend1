@@ -11,9 +11,7 @@ export default function RequestToReviewPage() {
 
   return (
     <div className={styles.page}>
-      <div>
-        <Link to="/line-manager/dashboard">Dashboard</Link>
-      </div>
+    
       <PageHeader
         title="Requests to review"
         description="Pending requests and queried requests with a response from the requesting Team Lead."

@@ -56,7 +56,11 @@ export default function AdminUserForm({
     } else if (hasDuplicateEmail(email, user?.id)) {
       next.email = "An account with this email address already exists.";
     }
-    if (!availableDepartments.some((department) => department.name === form.department)) {
+    if (
+      !availableDepartments.some(
+        (department) => department.name === form.department,
+      )
+    ) {
       next.department = "Select an available department.";
     }
     if (!supportedRoles.some((role) => role.value === form.role)) {
@@ -85,13 +89,13 @@ export default function AdminUserForm({
       setSuccess(
         user
           ? "Account details were updated in this browser."
-          : "The account record was created in this browser. No password, invitation, or secure sign-in access was created."
+          : "The account record was created in this browser. No password, invitation, or secure sign-in access was created.",
       );
     } catch (error) {
       setSubmitError(
         error instanceof Error
           ? error.message
-          : "The account could not be saved. Your entered values have been preserved."
+          : "The account could not be saved. Your entered values have been preserved.",
       );
     } finally {
       submitting.current = false;
@@ -103,7 +107,10 @@ export default function AdminUserForm({
     onCancel();
   }
 
-  function updateField<K extends keyof UserDraft>(field: K, value: UserDraft[K]) {
+  function updateField<K extends keyof UserDraft>(
+    field: K,
+    value: UserDraft[K],
+  ) {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
     setSubmitError("");
@@ -117,23 +124,36 @@ export default function AdminUserForm({
       )}
       {success && (
         <p className={styles.success} role="status">
-          {success} <Link to="/system-admin/users">Return to user management</Link>
+          {success}{" "}
+          <Link to="/system-admin/users">Return to user management</Link>
         </p>
       )}
-      <form className={`rt-root ${styles.form}`} onSubmit={handleSubmit} noValidate>
+      <form
+        className={`rt-root ${styles.form}`}
+        onSubmit={handleSubmit}
+        noValidate
+      >
         <div className={styles.field}>
           <label htmlFor="admin-user-name">User name</label>
           <input
             id="admin-user-name"
             autoComplete="name"
-            placeholder="Enter your full name"
+            placeholder="Enter full name"
             value={form.name}
             onChange={(event) => updateField("name", event.target.value)}
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? "admin-user-name-error" : undefined}
             required
           />
-          {errors.name && <p className={styles.fieldError} id="admin-user-name-error" role="alert">{errors.name}</p>}
+          {errors.name && (
+            <p
+              className={styles.fieldError}
+              id="admin-user-name-error"
+              role="alert"
+            >
+              {errors.name}
+            </p>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -142,14 +162,24 @@ export default function AdminUserForm({
             id="admin-user-email"
             type="email"
             autoComplete="email"
-            placeholder="Enter your email address"
+            placeholder="Enter email"
             value={form.email}
             onChange={(event) => updateField("email", event.target.value)}
             aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "admin-user-email-error" : undefined}
+            aria-describedby={
+              errors.email ? "admin-user-email-error" : undefined
+            }
             required
           />
-          {errors.email && <p className={styles.fieldError} id="admin-user-email-error" role="alert">{errors.email}</p>}
+          {errors.email && (
+            <p
+              className={styles.fieldError}
+              id="admin-user-email-error"
+              role="alert"
+            >
+              {errors.email}
+            </p>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -159,7 +189,9 @@ export default function AdminUserForm({
             value={form.department}
             onChange={(event) => updateField("department", event.target.value)}
             aria-invalid={Boolean(errors.department)}
-            aria-describedby={errors.department ? "admin-user-department-error" : undefined}
+            aria-describedby={
+              errors.department ? "admin-user-department-error" : undefined
+            }
             required
           >
             <option value="">Select a department</option>
@@ -169,7 +201,15 @@ export default function AdminUserForm({
               </option>
             ))}
           </select>
-          {errors.department && <p className={styles.fieldError} id="admin-user-department-error" role="alert">{errors.department}</p>}
+          {errors.department && (
+            <p
+              className={styles.fieldError}
+              id="admin-user-department-error"
+              role="alert"
+            >
+              {errors.department}
+            </p>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -177,26 +217,42 @@ export default function AdminUserForm({
           <select
             id="admin-user-role"
             value={form.role}
-            onChange={(event) => updateField("role", event.target.value as UserDraft["role"])}
+            onChange={(event) =>
+              updateField("role", event.target.value as UserDraft["role"])
+            }
             aria-invalid={Boolean(errors.role)}
             aria-describedby={errors.role ? "admin-user-role-error" : undefined}
             required
           >
             {supportedRoles.map((role) => (
-              <option key={role.value} value={role.value}>{role.label}</option>
+              <option key={role.value} value={role.value}>
+                {role.label}
+              </option>
             ))}
           </select>
-          {errors.role && <p className={styles.fieldError} id="admin-user-role-error" role="alert">{errors.role}</p>}
+          {errors.role && (
+            <p
+              className={styles.fieldError}
+              id="admin-user-role-error"
+              role="alert"
+            >
+              {errors.role}
+            </p>
+          )}
         </div>
 
         {/* <p className={styles.accountNote}>
           Account records are demonstration data stored in this browser. There is no authentication or invitation service.
         </p> */}
         <div className={styles.actions}>
-          <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => {
-            if (isDirty) setConfirmCancel(true);
-            else onCancel();
-          }}>
+          <button
+            type="button"
+            className="rt-root rt-btn rt-btn--outline"
+            onClick={() => {
+              if (isDirty) setConfirmCancel(true);
+              else onCancel();
+            }}
+          >
             Cancel
           </button>
           <button type="submit" className="rt-root rt-btn rt-btn--primary">

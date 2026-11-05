@@ -36,9 +36,9 @@ export default function LineManagerDashboard() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Line Manager Dashboard"
+        title="Line Manager"
         description="Review and follow up on resource requests."
-        supplementary={<Link to="/line-manager/requests">Open review queue</Link>}
+        // supplementary={<Link to="/line-manager/requests">Open review queue</Link>}
       />
 
       

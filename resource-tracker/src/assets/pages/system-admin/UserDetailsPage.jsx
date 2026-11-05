@@ -23,7 +23,10 @@ export default function UserDetailsPage() {
       <div className={`rt-root ${styles.page}`}>
         <PageHeader title="User account details" />
         {persistenceWarning && (
-          <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+          <ErrorMessage
+            title="Using demonstration accounts"
+            message={persistenceWarning}
+          />
         )}
         <ErrorMessage
           title="User not found"
@@ -46,14 +49,34 @@ export default function UserDetailsPage() {
       <section className={styles.details}>
         <PageHeader title={user.name} description="User account details." />
         {persistenceWarning && (
-          <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+          <ErrorMessage
+            title="Using demonstration accounts"
+            message={persistenceWarning}
+          />
         )}
         <dl className={styles.detailList}>
-          <div><dt>Email</dt><dd>{user.email}</dd></div>
-          <div><dt>Role</dt><dd>{roleLabels[user.role] ?? user.role}</dd></div>
-          <div><dt>Department</dt><dd>{user.department || "Not assigned"}</dd></div>
-          <div><dt>Account status</dt><dd><StatusLabel status={user.status} /></dd></div>
-          <div><dt>Created</dt><dd>{user.createdAt || "Not available"}</dd></div>
+          <div>
+            <dt>Email</dt>
+            <dd>{": "+  user.email}</dd>
+          </div>
+          <div>
+            <dt>Role</dt>
+            <dd>{": "+roleLabels[user.role] ?? user.role}</dd>
+          </div>
+          <div>
+            <dt>Department</dt>
+            <dd>{": "+user.department || "Not assigned"}</dd>
+          </div>
+          <div>
+            <dt>Account status</dt> 
+            <dd>
+              <StatusLabel status={user.status} />
+            </dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd>{": "+user.createdAt || "Not available"}</dd>
+          </div>
         </dl>
         <div className={styles.actions}>
           <button

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,8 +10,7 @@ function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -61,7 +59,7 @@ function ResetPasswordPage() {
               id="new-password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
-              placeholder="Enter a new password"
+              placeholder="New password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
@@ -72,10 +70,9 @@ function ResetPasswordPage() {
               aria-pressed={showPassword}
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff/> : <Eye/>}
+              {showPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
-         
         </div>
 
         <div className={styles.field}>
@@ -87,9 +84,7 @@ function ResetPasswordPage() {
               autoComplete="new-password"
               placeholder="Confirm your new password"
               value={confirmPassword}
-              onChange={(event) =>
-                setConfirmPassword(event.target.value)
-              }
+              onChange={(event) => setConfirmPassword(event.target.value)}
               required
             />
             <button
@@ -98,14 +93,11 @@ function ResetPasswordPage() {
                 showConfirmPassword ? "Hide password" : "Show password"
               }
               aria-pressed={showConfirmPassword}
-              onClick={() =>
-                setShowConfirmPassword(!showConfirmPassword)
-              }
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              {showPassword ? <EyeOff/> : <Eye/>}
+              {showConfirmPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
-
         </div>
 
         {error && (

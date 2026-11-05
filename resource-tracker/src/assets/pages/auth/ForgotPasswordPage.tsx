@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
-import ErrorMessage from "../../components/feedback/ErrorMessage";
 import styles from "./AuthPage.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -12,9 +11,9 @@ export default function ForgotPasswordPage() {
 
   const emailError = submitted
     ? !email.trim()
-      ? "Enter your email address."
+      ? "Enter your email."
       : !emailPattern.test(email.trim())
-        ? "Enter a valid email address."
+        ? "Enter a valid email."
         : ""
     : "";
 
@@ -29,9 +28,7 @@ export default function ForgotPasswordPage() {
       aria-labelledby="forgot-title"
     >
       <p className={styles.eyebrow}>Account Recovery</p>
-      {/* <h1 className={styles.title} id="forgot-title">
-        Forgot password
-      </h1> */}
+     
       <p className={styles.description}>
         Enter your account email to request a password reset.
       </p>
@@ -43,7 +40,7 @@ export default function ForgotPasswordPage() {
             id="recovery-email"
             type="email"
             autoComplete="email"
-            placeholder="Enter your email address"
+            placeholder="Enter your email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={Boolean(emailError)}

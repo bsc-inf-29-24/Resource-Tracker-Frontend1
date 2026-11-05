@@ -6,6 +6,8 @@ function NotBuilt() {
 
 export default function lazyPage(loader) {
   return lazy(() =>
-    loader().then((module) => (module.default ? module : { default: NotBuilt }))
+    loader().then((module) =>
+      module.default ? module : { default: NotBuilt },
+    ),
   );
 }

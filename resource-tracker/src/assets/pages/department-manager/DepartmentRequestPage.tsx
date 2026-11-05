@@ -164,11 +164,11 @@ export default function DepartmentRequestPage() {
       <PageHeader
         title="Departmental Requests"
         description={`Department requests for ${departmentName}`}
-        supplementary={
-          <Link className={styles.linkButton} to="/department-manager/dashboard">
-            Back to dashboard
-          </Link>
-        }
+        // supplementary={
+        //   <Link className={styles.linkButton} to="/department-manager/dashboard">
+        //     Back to dashboard
+        //   </Link>
+        // }
       />
 
       {persistenceWarning && (

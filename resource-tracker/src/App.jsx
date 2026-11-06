@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AuthLayout from "./assets/components/layout/AuthLayout";
@@ -82,11 +83,20 @@ const EditUserPage = page(
   () => import("./assets/pages/system-admin/EditUserPage"),
 );
 
+// Managing Director
+const ManagingDirectorDashboard = page(
+  () =>
+    import(
+      "./assets/pages/managing-director/ManagingDirectorDashboard"
+    ),
+);
+
 function App() {
   return (
     <BrowserRouter>
       <Suspense fallback={<p style={{ padding: 24 }}>Loading...</p>}>
         <Routes>
+          {/* Authentication Routes */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -94,6 +104,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Route>
 
+          {/* Dashboard Routes */}
           <Route element={<DashboardLayout />}>
             {/* System Admin */}
             <Route
@@ -115,6 +126,12 @@ function App() {
             <Route
               path="/system-admin/users/:id/edit"
               element={<EditUserPage />}
+            />
+
+            {/* Managing Director */}
+            <Route
+              path="/managing-director/dashboard"
+              element={<ManagingDirectorDashboard />}
             />
 
             {/* Team Lead */}
@@ -176,6 +193,7 @@ function App() {
             />
           </Route>
 
+          {/* Default Routes */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

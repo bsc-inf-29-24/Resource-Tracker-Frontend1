@@ -1,26 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { signInDemoUser } from "../../data/auth-store";
-import styles from "./AuthPage.module.css";
 import { Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getDashboardPathForRole } from "../../data/auth-store";
+import styles from "./AuthPage.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const roleHome: Record<string, string> = {
-  "team-lead": "/team-lead/dashboard",
-  "line-manager": "/line-manager/dashboard",
-  "department-manager": "/department-manager/dashboard",
-  "system-admin": "/system-admin/dashboard",
-};
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { user, login, isLoading, sessionError } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      navigate(getDashboardPathForRole(user.role), { replace: true });
+    }
+  }, [navigate, user, isLoading]);
 
   const emailError = submitted
     ? !email.trim()
@@ -40,8 +42,8 @@ export default function LoginPage() {
 
     setBusy(true);
     try {
-      const account = await signInDemoUser(email.trim(), password);
-      navigate(roleHome[account.role], { replace: true });
+      const authenticatedUser = await login(email.trim(), password);
+      navigate(getDashboardPathForRole(authenticatedUser.role), { replace: true });
     } catch (signInError) {
       setError(
         signInError instanceof Error
@@ -59,6 +61,17 @@ export default function LoginPage() {
       <h1 id="login-title" className={styles.title}>
         Sign in
       </h1>
+
+      {error && (
+        <p className={styles.fieldError} role="alert">
+          {error}
+        </p>
+      )}
+      {sessionError && (
+        <p className={styles.fieldError} role="alert">
+          Your saved session could not be restored: {sessionError}
+        </p>
+      )}
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className={styles.field}>
@@ -120,24 +133,14 @@ export default function LoginPage() {
             </p>
           )}
         </div>
-        <button className={styles.submit} type="submit" disabled={busy}>
+        <button className={styles.submit} type="submit" disabled={busy || isLoading}>
           {busy ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
       <div className={styles.links}>
-        <Link to="/register">Sign up</Link>
         <Link to="/forgot-password">Forgot your password?</Link>
       </div>
     </section>
   );
 }
-
-/*defining the dashboard routes for each user role, 
- which will be used to navigate to the appropriate dashboard after a successful login.*/
-const dashboardRoutes: Record<string, string> = {
-  TEAM_LEAD: "/team-lead/dashboard",
-  LINE_MANAGER: "/line-manager/dashboard",
-  DEPARTMENT_MANAGER: "/department-manager/dashboard",
-  SYSTEM_ADMIN: "/admin/dashboard",
-};

@@ -94,7 +94,7 @@ export default function RegisterPage() {
   return (
     <section className={`rt-root ${styles.card}`} aria-labelledby="register-title">
       <h1 id="register-title" className={styles.title}>
-        Create test account
+        Create account
       </h1>
     
       {error && <ErrorMessage title="Could not create account" message={error} />}
@@ -152,7 +152,7 @@ export default function RegisterPage() {
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="register-role">Test role</label>
+          <label htmlFor="register-role">Role</label>
           <select
             id="register-role"
             value={form.role}

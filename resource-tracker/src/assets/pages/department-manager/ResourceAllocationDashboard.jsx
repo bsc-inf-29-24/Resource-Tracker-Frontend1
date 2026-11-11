@@ -370,10 +370,10 @@ export default function ResourceAllocationDashboard() {
         // }
       />
 
-      <p className={styles.demoNotice}>
-        Sample allocation data is provided for this local demo. Filters update
-        all summaries and tables immediately.
-      </p>
+      {/* <p className={styles.demoNotice}> */}
+        {/* Sample allocation data is provided for this local demo. Filters update */}
+        {/* all summaries and tables immediately. */}
+      {/* </p> */}
 
       <section className={styles.filterPanel} aria-label="Allocation filters">
         <div className={styles.filterHeading}>

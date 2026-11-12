@@ -11,6 +11,7 @@ const roleHome: Record<string, string> = {
   "line-manager": "/line-manager/dashboard",
   "department-manager": "/department-manager/dashboard",
   "system-admin": "/system-admin/dashboard",
+  
 };
 
 export default function LoginPage() {

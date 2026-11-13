@@ -35,7 +35,7 @@ export default function RequestDetails({ request, actions }: RequestDetailsProps
             </header>
 
             <dl className={styles.grid}>
-                <Field label="Manufacturer">{request.manufacturer || "Not provided"}</Field>
+                 <Field label="Manufacturer">{request.manufacturer || "Not provided"}</Field> 
                 <Field label="Required quantity">{request.quantity}</Field>
                 <Field label="Estimated price">{formatCurrency(request.estimatedPrice)}</Field>
                 {request.requiredByDate && (

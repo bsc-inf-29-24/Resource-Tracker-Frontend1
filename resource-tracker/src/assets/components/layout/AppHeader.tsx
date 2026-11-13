@@ -42,7 +42,9 @@ function getDashboardPath(role: UserRole | null | undefined) {
           TEAM_LEAD: "/team-lead/dashboard",
           LINE_MANAGER: "/line-manager/dashboard",
           DEPARTMENT_MANAGER: "/department-manager/dashboard",
+          MANAGING_DIRECTOR: "/managing-director/dashboard",
           SYSTEM_ADMIN: "/system-admin/dashboard",
+          TEAM_MEMBER: "/team-member/dashboard",
         }[role]
     : "/login";
 }

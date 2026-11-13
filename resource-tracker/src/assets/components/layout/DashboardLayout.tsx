@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getRoleForPath, navigationConfig } from "../../config/navigation";
-import { getCurrentDemoUser, signOutDemoUser } from "../../data/auth-store";
+import { getFrontendRoleFromBackendRole, getDashboardPathForRole } from "../../data/auth-store";
+import { useAuth } from "../../context/AuthContext";
 import AppHeader from "./AppHeader";
 import AppSidebar from "./AppSidebar";
 import styles from "./DashboardLayout.module.css";
@@ -9,8 +10,9 @@ import styles from "./DashboardLayout.module.css";
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const role = getRoleForPath(pathname);
-  const currentUser = getCurrentDemoUser();
+  const { user, isLoading, logout } = useAuth();
+  const routeRole = getRoleForPath(pathname);
+  const role = routeRole ?? getFrontendRoleFromBackendRole(user?.role);
   const showNavigation = role ? navigationConfig[role].length > 0 : false;
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
@@ -33,7 +35,17 @@ export default function DashboardLayout() {
     return () => window.removeEventListener("resize", handleResize);
   }, [mobileNavigationOpen, closeMobileNavigation]);
 
-  if (!role) return <Navigate to="/login" replace />;
+  if (isLoading) {
+    return <p style={{ padding: 24 }}>Loading session...</p>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!role) {
+    return <Navigate to={getDashboardPathForRole(user.role)} replace />;
+  }
 
   return (
     <div className={styles.layout}>
@@ -45,9 +57,9 @@ export default function DashboardLayout() {
         onToggleMobileNavigation={() =>
           setMobileNavigationOpen((current) => !current)
         }
-        userName={currentUser?.name}
-        onSignOut={() => {
-          signOutDemoUser();
+        userName={user.fullName}
+        onSignOut={async () => {
+          await logout();
           navigate("/login", { replace: true });
         }}
       />

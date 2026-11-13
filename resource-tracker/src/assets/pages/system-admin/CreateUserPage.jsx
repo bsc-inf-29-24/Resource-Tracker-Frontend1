@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../../components/layout/PageHeader";
-import { createUser } from "../../data/user-store";
-import AdminUserForm from "./AdminUserForm";
+import { usersApi } from "../../data/api-services";
+import CreateUserForm from "./CreateUserForm";
 import styles from "./SystemAdminPage.module.css";
 
 export default function CreateUserPage() {
@@ -9,13 +9,12 @@ export default function CreateUserPage() {
 
   return (
     <div className={`rt-root ${styles.page}`}>
-      <PageHeader
+      { <PageHeader
         title="Create user account"
-        description="Add an account record using the available department and role data."
-      />
-      <AdminUserForm
-        submitLabel="Create user"
-        onSave={(draft) => createUser(draft)}
+        //description="Create an account using the fields and role values supported by the backend API."
+      /> }
+      <CreateUserForm
+        onSave={(input) => usersApi.create(input)}
         onCancel={() => navigate("/system-admin/users")}
       />
     </div>

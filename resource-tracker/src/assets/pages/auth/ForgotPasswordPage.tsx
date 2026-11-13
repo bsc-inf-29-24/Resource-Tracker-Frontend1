@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { requestPasswordReset } from "../../data/auth-store";
 import styles from "./AuthPage.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -8,6 +9,9 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const emailError = submitted
     ? !email.trim()
@@ -17,9 +21,26 @@ export default function ForgotPasswordPage() {
         : ""
     : "";
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
+    setError("");
+    setSuccess("");
+    if (!email.trim() || !emailPattern.test(email.trim())) return;
+
+    setBusy(true);
+    try {
+      const response = await requestPasswordReset(email.trim());
+      setSuccess(response.message);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "The password reset request could not be sent.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -34,6 +55,16 @@ export default function ForgotPasswordPage() {
       </p>
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        {error && (
+          <p className={styles.fieldError} role="alert">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p className={styles.notice} role="status">
+            {success} Password reset completion is not available.
+          </p>
+        )}
         <div className={styles.field}>
           <label htmlFor="recovery-email">Email</label>
           <input
@@ -57,14 +88,8 @@ export default function ForgotPasswordPage() {
             </p>
           )}
         </div>
-        {submitted && !emailError && (
-          <div className={styles.notice} role="status">
-            <p>Continue to create a new password.</p>
-            <Link to="/reset-password">Reset password</Link>
-          </div>
-        )}
-        <button className={styles.submit} type="submit">
-          Request password reset
+        <button className={styles.submit} type="submit" disabled={busy}>
+          {busy ? "Sending request..." : "Request password reset"}
         </button>
       </form>
       <div className={styles.links}>

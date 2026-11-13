@@ -30,7 +30,7 @@ export default function UserDetailsPage() {
         )}
         <ErrorMessage
           title="User not found"
-          message="The selected account is not available in the current browser data."
+          message="The selected account is not available."
         />
         <Link to="/system-admin/users">Return to user management</Link>
       </div>

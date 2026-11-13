@@ -72,17 +72,6 @@ export default function DashboardPage() {
         />
       </StatusCardGrid>
 
-      <section
-        className={styles.quickLinks}
-        aria-labelledby="admin-actions-title"
-      >
-        <h2 id="admin-actions-title">Administration</h2>
-        <div className={styles.links}>
-          <Link to="/system-admin/users">Manage users</Link>
-          <Link to="/system-admin/users/new">Create user account</Link>
-        </div>
-        {/* <p>Role management is not available in this application preview.</p> */}
-      </section>
 
       <section
         className={styles.departmentSection}

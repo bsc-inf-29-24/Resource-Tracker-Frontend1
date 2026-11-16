@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
 import EmptyState from "../../components/feedback/EmptyState";
-import ErrorMessage from "../../components/feedback/ErrorMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import StatusLabel from "../../components/status/StatusLabel";
 import DataTable from "../../components/tables/DataTable";
@@ -37,21 +36,9 @@ export default function DashboardPage() {
       <PageHeader
         title="System Administrator"
         description="Manage account records and review department membership."
-        // supplementary={
-        //   // <Link
-        //   //   className="rt-root rt-btn rt-btn--primary"
-        //   //   to="/system-admin/users/new"
-        //   // >
-        //   //   Create user
-        //   // </Link>
-        // }
       />
 
       {persistenceWarning && (
-        <ErrorMessage
-          title="Using demonstration accounts"
-          message={persistenceWarning}
-        />
       )}
 
       <StatusCardGrid>

@@ -37,14 +37,6 @@ export default function DashboardPage() {
       <PageHeader
         title="System Administrator"
         description="Manage account records and review department membership."
-        // supplementary={
-        //   // <Link
-        //   //   className="rt-root rt-btn rt-btn--primary"
-        //   //   to="/system-admin/users/new"
-        //   // >
-        //   //   Create user
-        //   // </Link>
-        // }
       />
 
       {persistenceWarning && (

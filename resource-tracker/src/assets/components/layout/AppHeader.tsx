@@ -66,7 +66,9 @@ export default function AppHeader({
         <button
           ref={menuToggleRef}
           type="button"
-          className={styles.menuToggle}
+          className={`${styles.menuToggle} ${
+            role === "DEPARTMENT_MANAGER" ? styles.departmentHeadMenuToggle : ""
+          }`}
           aria-label={mobileNavigationOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={mobileNavigationOpen}
           aria-controls="application-sidebar"

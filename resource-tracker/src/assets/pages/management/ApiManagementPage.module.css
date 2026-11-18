@@ -3,6 +3,133 @@
   gap: 1.25rem;
 }
 
+.departmentHead {
+  gap: 1.5rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.departmentHead .departmentProfile {
+  gap: 1.25rem;
+  padding: 1.4rem;
+  border: 1px solid var(--rt-border);
+  border-top: 3px solid var(--rt-green-700);
+  border-radius: var(--rt-radius-md);
+}
+
+.departmentHead :global(.rt-statcards) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: 0.9rem;
+}
+
+.departmentHead :global(.rt-statcard) {
+  min-width: 0;
+  min-height: 126px;
+  padding: 1.1rem;
+  border-radius: var(--rt-radius-md);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.departmentHead :global(.rt-statcard):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgb(11 53 37 / 9%);
+}
+
+.departmentHead :global(.rt-statcard__label) {
+  color: var(--rt-text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.departmentHead :global(.rt-statcard__value) {
+  margin-top: 0.35rem;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+}
+
+.departmentHead :global(.rt-card) {
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-md);
+  box-shadow: 0 3px 14px rgb(11 53 37 / 5%);
+}
+
+.departmentHead :global(.rt-card__title) {
+  color: var(--rt-green-900);
+}
+
+.departmentHead :global(.rt-table th) {
+  white-space: nowrap;
+}
+
+.departmentShortcuts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.departmentShortcuts a {
+  display: grid;
+  min-height: 100px;
+  align-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-md);
+  color: var(--rt-green-900);
+  background: linear-gradient(145deg, #fff, var(--rt-green-50));
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.departmentShortcuts a:hover {
+  transform: translateY(-2px);
+  border-color: var(--rt-green-200);
+  box-shadow: 0 8px 20px rgb(11 53 37 / 8%);
+}
+
+.departmentShortcuts a:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
+}
+
+.departmentShortcuts a span:first-child {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.departmentShortcuts a span:last-child {
+  color: var(--rt-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.departmentSectionHeading {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: -0.75rem;
+}
+
+.departmentSectionHeading p {
+  color: var(--rt-green-700);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.departmentSectionHeading h2 {
+  color: var(--rt-green-950);
+  font-size: 1.25rem;
+}
+
+.departmentSectionHeading span {
+  color: var(--rt-text-muted);
+  font-size: 0.86rem;
+}
+
 .panel {
   display: grid;
   gap: 1rem;
@@ -146,9 +273,26 @@
 }
 
 @media (max-width: 600px) {
+  .departmentShortcuts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .actions > button,
   .panelHeading > button,
   .assignment > button {
     width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .departmentShortcuts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .departmentShortcuts a,
+  .departmentHead :global(.rt-statcard) {
+    transition: none;
   }
 }

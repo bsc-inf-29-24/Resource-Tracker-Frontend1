@@ -36,6 +36,7 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
     { label: "Allocation", path: "/department-manager/allocation" },
     { label: "Teams", path: "/department-manager/teams" },
     { label: "Projects", path: "/department-manager/projects" },
+    { label: "Reports", path: "/department-manager/reports" },
     { label: "Notifications", path: "/notifications" },
   ],
   MANAGING_DIRECTOR: [

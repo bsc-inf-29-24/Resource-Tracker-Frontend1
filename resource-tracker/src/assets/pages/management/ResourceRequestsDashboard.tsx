@@ -37,14 +37,17 @@ interface ResourceRequestsDashboardProps {
   title: string;
   description: string;
   detailsPath: string;
+  dashboardVariant?: "department-head";
 }
 
 export default function ResourceRequestsDashboard({
   title,
   description,
   detailsPath,
+  dashboardVariant,
 }: ResourceRequestsDashboardProps) {
   const { user } = useAuth();
+  const isDepartmentHeadDashboard = dashboardVariant === "department-head";
   const [requests, setRequests] = useState<RequestRecord[]>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -135,11 +138,19 @@ export default function ResourceRequestsDashboard({
   }, [detailsPath, requestRecords]);
 
   return (
-    <section className={`rt-root ${styles.page}`}>
+    <section
+      className={`rt-root ${styles.page} ${
+        isDepartmentHeadDashboard ? styles.departmentHead : ""
+      }`}
+    >
       <PageHeader title={title} description={description} />
       {user && (
-        <section className={`rt-root rt-card ${styles.panel}`}>
-          <h2>Profile</h2>
+        <section
+          className={`rt-root rt-card ${styles.panel} ${
+            isDepartmentHeadDashboard ? styles.departmentProfile : ""
+          }`}
+        >
+          <h2>{isDepartmentHeadDashboard ? "Department profile" : "Profile"}</h2>
           <dl className={styles.apiDataFields}>
             <div className={styles.apiDataField}>
               <dt>Name</dt>
@@ -164,6 +175,26 @@ export default function ResourceRequestsDashboard({
           </dl>
         </section>
       )}
+      {isDepartmentHeadDashboard && (
+        <nav className={styles.departmentShortcuts} aria-label="Department tools">
+          <Link to="/department-manager/requests">
+            <span>Requests</span>
+            <span aria-hidden="true">View and review →</span>
+          </Link>
+          <Link to="/department-manager/spending">
+            <span>Spending</span>
+            <span aria-hidden="true">Explore reports →</span>
+          </Link>
+          <Link to="/department-manager/allocation">
+            <span>Allocation</span>
+            <span aria-hidden="true">Manage resources →</span>
+          </Link>
+          <Link to="/department-manager/reports">
+            <span>Department reports</span>
+            <span aria-hidden="true">View insights →</span>
+          </Link>
+        </nav>
+      )}
       {error && (
         <ErrorMessage
           title="Request data unavailable"
@@ -180,6 +211,13 @@ export default function ResourceRequestsDashboard({
         />
       ) : !error ? (
         <>
+          {isDepartmentHeadDashboard && (
+            <div className={styles.departmentSectionHeading}>
+              <p>AT A GLANCE</p>
+              <h2>Request overview</h2>
+              <span>Current totals from your department’s request data.</span>
+            </div>
+          )}
           <StatusCardGrid>
             <StatusCard label="Requests returned" value={requestRecords.length} />
             {requestStatuses.map((status) => (
@@ -200,9 +238,15 @@ export default function ResourceRequestsDashboard({
               Refresh requests
             </button>
           </div>
+          {isDepartmentHeadDashboard && (
+            <div className={styles.departmentSectionHeading}>
+              <p>RECENT ACTIVITY</p>
+              <h2>Latest resource requests</h2>
+            </div>
+          )}
           {requestRecords.length ? (
             <DataTable
-              title="Recent requests"
+              title={isDepartmentHeadDashboard ? undefined : "Recent requests"}
               columns={columns}
               rows={requestRecords.slice(0, 5)}
               itemLabel="request"

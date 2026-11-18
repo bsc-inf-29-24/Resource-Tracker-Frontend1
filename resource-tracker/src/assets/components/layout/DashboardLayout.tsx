@@ -14,26 +14,29 @@ export default function DashboardLayout() {
   const routeRole = getRoleForPath(pathname);
   const role = routeRole ?? getFrontendRoleFromBackendRole(user?.role);
   const showNavigation = role ? navigationConfig[role].length > 0 : false;
+  const collapsibleNavigation = role === "DEPARTMENT_MANAGER";
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
 
   const closeMobileNavigation = useCallback(() => {
     setMobileNavigationOpen(false);
-    if (window.innerWidth <= 700) menuToggleRef.current?.focus();
-  }, []);
+    if (collapsibleNavigation || window.innerWidth <= 700) {
+      menuToggleRef.current?.focus();
+    }
+  }, [collapsibleNavigation]);
 
   useEffect(() => {
     closeMobileNavigation();
   }, [pathname, closeMobileNavigation]);
 
   useEffect(() => {
-    if (!mobileNavigationOpen) return;
+    if (!mobileNavigationOpen || collapsibleNavigation) return;
     function handleResize() {
       if (window.innerWidth > 700) closeMobileNavigation();
     }
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [mobileNavigationOpen, closeMobileNavigation]);
+  }, [mobileNavigationOpen, closeMobileNavigation, collapsibleNavigation]);
 
   if (isLoading) {
     return <p style={{ padding: 24 }}>Loading session...</p>;
@@ -67,6 +70,7 @@ export default function DashboardLayout() {
         <AppSidebar
           role={role}
           open={mobileNavigationOpen}
+          collapsible={collapsibleNavigation}
           onClose={closeMobileNavigation}
         />
         <main className={styles.main} inert={mobileNavigationOpen}>

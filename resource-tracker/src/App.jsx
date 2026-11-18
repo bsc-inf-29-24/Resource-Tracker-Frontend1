@@ -361,6 +361,7 @@ function App() {
                     title="Department Head Dashboard"
                     description="Department-head request counts and recent requests are loaded from the backend role scope."
                     detailsPath="/department-manager/requests"
+                    dashboardVariant="department-head"
                   />
                 }
               />

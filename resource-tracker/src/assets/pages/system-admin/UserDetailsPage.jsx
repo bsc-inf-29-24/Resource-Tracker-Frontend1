@@ -73,10 +73,10 @@ export default function UserDetailsPage() {
               <StatusLabel status={user.status} />
             </dd>
           </div>
-          <div>
+          {/* <div>
             <dt>Created</dt>
             <dd>{": "+user.createdAt || "Not available"}</dd>
-          </div>
+          </div> */}
         </dl>
         <div className={styles.actions}>
           <button

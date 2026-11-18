@@ -181,7 +181,6 @@ export default function NewApiRequestPage() {
     <section className={`rt-root ${styles.page}`}>
       <PageHeader
         title="Submit a resource request"
-        description="Create the documented draft, then request the documented SUBMITTED transition."
         supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
       {submitError && (
@@ -207,11 +206,6 @@ export default function NewApiRequestPage() {
           <section className={formStyles.card}>
             <div className={formStyles.sectionHeading}>
               <h2>{isReviewing ? "Review request" : "Request details"}</h2>
-              <p>
-                 The
-                authenticated Team Lead cannot list department, team, or
-                project catalogs; enter IDs supplied by your administrator.
-              </p>
             </div>
             {isReviewing ? (
               <dl className={formStyles.reviewGrid}>
@@ -261,8 +255,8 @@ export default function NewApiRequestPage() {
                 {(
                   [
                     ["itemDescription", "Item description"],
-                    ["manufacturerLabel", "Manufacturer label"],
                     ["price", "Unit price"],
+                    ["manufacturerLabel", "Manufacturer label"],
                     ["batchNumber", "Batch number"],
                     ["vendor", "Vendor"],
                     ["quantity", "Quantity"],
@@ -330,7 +324,6 @@ export default function NewApiRequestPage() {
                       updateField("lineManagerId", event.target.value)
                     }
                     aria-invalid={Boolean(fieldErrors.lineManagerId)}
-                    placeholder="Enter the assigned Line Manager UUID"
                     required
                   />
                   {fieldErrors.lineManagerId && (

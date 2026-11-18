@@ -35,14 +35,16 @@ const requestStatuses: ApiRequestStatus[] = [
 
 interface ResourceRequestsDashboardProps {
   title: string;
-  description: string;
+  description?: string;
   detailsPath: string;
+  showProfile?: boolean;
 }
 
 export default function ResourceRequestsDashboard({
   title,
   description,
   detailsPath,
+  showProfile = true,
 }: ResourceRequestsDashboardProps) {
   const { user } = useAuth();
   const [requests, setRequests] = useState<RequestRecord[]>();
@@ -137,7 +139,7 @@ export default function ResourceRequestsDashboard({
   return (
     <section className={`rt-root ${styles.page}`}>
       <PageHeader title={title} description={description} />
-      {user && (
+      {showProfile && user && (
         <section className={`rt-root rt-card ${styles.panel}`}>
           <h2>Profile</h2>
           <dl className={styles.apiDataFields}>

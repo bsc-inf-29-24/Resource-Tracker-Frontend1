@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import PageHeader from "../../components/layout/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { notificationsApi } from "../../data/api-services";
+import { getFrontendRoleFromBackendRole } from "../../data/auth-store";
 import ApiResponsePanel from "./ApiResponsePanel";
 import styles from "./ApiManagementPage.module.css";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
+  const isTeamLead =
+    getFrontendRoleFromBackendRole(user?.role) === "TEAM_LEAD";
   const [data, setData] = useState<unknown>();
   const [notificationId, setNotificationId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -61,8 +65,17 @@ export default function NotificationsPage() {
   return (
     <section className={`rt-root ${styles.page}`}>
       <PageHeader
-        title="Notifications"
-        description=""
+        title={isTeamLead ? "Team Lead Notifications" : "Notifications"}
+        description={
+          isTeamLead
+            ? "Updates about your resource requests, including queries and review decisions."
+            : undefined
+        }
+        supplementary={
+          isTeamLead ? (
+            <Link to="/team-lead/requests">View request history</Link>
+          ) : undefined
+        }
       />
       {notice && (
         <p className={styles.notice} role="status">
@@ -70,11 +83,27 @@ export default function NotificationsPage() {
         </p>
       )}
       <ApiResponsePanel
-        title="My notifications"
+        title={isTeamLead ? "Updates on your requests" : "My notifications"}
         data={data}
         loading={loading}
         error={error}
         onRefresh={() => void loadNotifications()}
+        emptyTitle={
+          isTeamLead ? "No request updates yet" : "No notifications yet"
+        }
+        emptyDescription={
+          isTeamLead
+            ? "Updates about queries and review decisions for your requests will appear here."
+            : "The backend returned no notifications for your account."
+        }
+        noResponseTitle={
+          isTeamLead ? "No request updates yet" : "No notifications yet"
+        }
+        noResponseDescription={
+          isTeamLead
+            ? "Updates about queries and review decisions for your requests will appear here."
+            : "The backend returned no notifications for your account."
+        }
       />
       <section className={`rt-root rt-card ${styles.panel}`}>
         <h2>Notification actions</h2>

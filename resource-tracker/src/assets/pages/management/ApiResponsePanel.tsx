@@ -10,6 +10,10 @@ interface ApiResponsePanelProps {
   loading?: boolean;
   error?: string;
   onRefresh?: () => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  noResponseTitle?: string;
+  noResponseDescription?: string;
 }
 
 export default function ApiResponsePanel({
@@ -18,6 +22,10 @@ export default function ApiResponsePanel({
   loading = false,
   error,
   onRefresh,
+  emptyTitle = "No records returned",
+  emptyDescription = "The backend returned no records.",
+  noResponseTitle = "No response yet",
+  noResponseDescription = "Run a request to load the response.",
 }: ApiResponsePanelProps) {
   return (
     <section className={`rt-root rt-card ${styles.panel}`}>
@@ -40,11 +48,15 @@ export default function ApiResponsePanel({
         <ErrorMessage title="API operation failed" message={error} onRetry={onRefresh} />
       ) : data === undefined ? (
         <EmptyState
-          title="No response yet"
-          description="Run a request to load the response."
+          title={noResponseTitle}
+          description={noResponseDescription}
         />
       ) : (
-        <ApiDataView data={data} />
+        <ApiDataView
+          data={data}
+          emptyTitle={emptyTitle}
+          emptyDescription={emptyDescription}
+        />
       )}
     </section>
   );

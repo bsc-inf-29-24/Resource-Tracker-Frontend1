@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
 import EmptyState from "../../components/feedback/EmptyState";
-import ErrorMessage from "../../components/feedback/ErrorMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import StatusLabel from "../../components/status/StatusLabel";
 import DataTable from "../../components/tables/DataTable";
@@ -40,10 +39,6 @@ export default function DashboardPage() {
       />
 
       {persistenceWarning && (
-        <ErrorMessage
-          title="Using demonstration accounts"
-          message={persistenceWarning}
-        />
       )}
 
       <StatusCardGrid>

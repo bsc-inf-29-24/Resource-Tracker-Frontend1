@@ -10,11 +10,52 @@
 }
 
 .departmentHead .departmentProfile {
-  gap: 1.25rem;
-  padding: 1.4rem;
+  width: 17rem;
+  max-width: 100%;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
   border: 1px solid var(--rt-border);
   border-top: 3px solid var(--rt-green-700);
   border-radius: var(--rt-radius-md);
+}
+
+.departmentHead .departmentProfileFields {
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.departmentHead .departmentProfileFields .apiDataField {
+  padding: 0.6rem 0.7rem;
+}
+
+.departmentWelcome {
+  display: grid;
+  min-height: clamp(13rem, 27vh, 18rem);
+  place-items: center;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  border: 1px solid var(--rt-border);
+  border-left: 4px solid var(--rt-green-700);
+  border-radius: var(--rt-radius-md);
+  background: linear-gradient(135deg, var(--rt-surface), var(--rt-green-50));
+  text-align: center;
+}
+
+.departmentWelcomeContent {
+  max-width: 46rem;
+}
+
+.departmentWelcome h2 {
+  margin: 0;
+  color: var(--rt-green-900);
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  line-height: 1.25;
+}
+
+.departmentWelcome p {
+  margin: 0.75rem 0 0;
+  color: var(--rt-text-muted);
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.65;
 }
 
 .departmentHead :global(.rt-statcards) {
@@ -60,51 +101,6 @@
 
 .departmentHead :global(.rt-table th) {
   white-space: nowrap;
-}
-
-.departmentShortcuts {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.9rem;
-}
-
-.departmentShortcuts a {
-  display: grid;
-  min-height: 100px;
-  align-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid var(--rt-border);
-  border-radius: var(--rt-radius-md);
-  color: var(--rt-green-900);
-  background: linear-gradient(145deg, #fff, var(--rt-green-50));
-  text-decoration: none;
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.departmentShortcuts a:hover {
-  transform: translateY(-2px);
-  border-color: var(--rt-green-200);
-  box-shadow: 0 8px 20px rgb(11 53 37 / 8%);
-}
-
-.departmentShortcuts a:focus-visible {
-  outline: 3px solid var(--rt-green-600);
-  outline-offset: 2px;
-}
-
-.departmentShortcuts a span:first-child {
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.departmentShortcuts a span:last-child {
-  color: var(--rt-text-muted);
-  font-size: 0.8rem;
-  font-weight: 600;
 }
 
 .departmentSectionHeading {
@@ -273,10 +269,6 @@
 }
 
 @media (max-width: 600px) {
-  .departmentShortcuts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .actions > button,
   .panelHeading > button,
   .assignment > button {
@@ -284,14 +276,7 @@
   }
 }
 
-@media (max-width: 380px) {
-  .departmentShortcuts {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .departmentShortcuts a,
   .departmentHead :global(.rt-statcard) {
     transition: none;
   }

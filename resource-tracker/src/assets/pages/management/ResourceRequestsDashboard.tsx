@@ -143,14 +143,51 @@ export default function ResourceRequestsDashboard({
         isDepartmentHeadDashboard ? styles.departmentHead : ""
       }`}
     >
-      <PageHeader title={title} description={description} />
-      {user && (
+      <PageHeader
+        title={title}
+        description={description}
+        supplementary={
+          user && isDepartmentHeadDashboard ? (
+            <section
+              className={`rt-root rt-card ${styles.panel} ${styles.departmentProfile}`}
+              aria-labelledby="department-profile-title"
+            >
+              <h2 id="department-profile-title">Department profile</h2>
+              <dl className={`${styles.apiDataFields} ${styles.departmentProfileFields}`}>
+                <div className={styles.apiDataField}>
+                  <dt>Name</dt>
+                  <dd>{user.fullName}</dd>
+                </div>
+                <div className={styles.apiDataField}>
+                  <dt>Role</dt>
+                  <dd>{humanizeApiKey(user.role)}</dd>
+                </div>
+              </dl>
+            </section>
+          ) : undefined
+        }
+      />
+      {isDepartmentHeadDashboard && (
         <section
-          className={`rt-root rt-card ${styles.panel} ${
-            isDepartmentHeadDashboard ? styles.departmentProfile : ""
-          }`}
+          className={styles.departmentWelcome}
+          aria-labelledby="department-welcome-title"
         >
-          <h2>{isDepartmentHeadDashboard ? "Department profile" : "Profile"}</h2>
+          <div className={styles.departmentWelcomeContent}>
+            <h2 id="department-welcome-title">
+              Welcome to Your Department Dashboard!
+            </h2>
+            <p>
+              Monitor department requests, track spending, manage resource
+              allocation and stay updated on your department&apos;s activities.
+            </p>
+          </div>
+        </section>
+      )}
+      {user && !isDepartmentHeadDashboard && (
+        <section
+          className={`rt-root rt-card ${styles.panel}`}
+        >
+          <h2>Profile</h2>
           <dl className={styles.apiDataFields}>
             <div className={styles.apiDataField}>
               <dt>Name</dt>
@@ -174,26 +211,6 @@ export default function ResourceRequestsDashboard({
             )}
           </dl>
         </section>
-      )}
-      {isDepartmentHeadDashboard && (
-        <nav className={styles.departmentShortcuts} aria-label="Department tools">
-          <Link to="/department-manager/requests">
-            <span>Requests</span>
-            <span aria-hidden="true">View and review →</span>
-          </Link>
-          <Link to="/department-manager/spending">
-            <span>Spending</span>
-            <span aria-hidden="true">Explore reports →</span>
-          </Link>
-          <Link to="/department-manager/allocation">
-            <span>Allocation</span>
-            <span aria-hidden="true">Manage resources →</span>
-          </Link>
-          <Link to="/department-manager/reports">
-            <span>Department reports</span>
-            <span aria-hidden="true">View insights →</span>
-          </Link>
-        </nav>
       )}
       {error && (
         <ErrorMessage

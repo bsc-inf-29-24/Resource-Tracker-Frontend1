@@ -229,7 +229,6 @@ export function DepartmentReportsPage() {
     <ReportsPage
       allowedReports={[
         "approval-history",
-        "departmental-spending",
         "allocation-history",
         "department",
       ]}

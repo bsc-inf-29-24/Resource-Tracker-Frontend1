@@ -50,6 +50,7 @@ function DataTable<Row extends object>({
   onEmptyAction,
   page,
   pageSize = 8,
+  expandable = false,
   total,
   onPageChange,
   itemLabel = "record",
@@ -65,9 +66,14 @@ function DataTable<Row extends object>({
   const currentPage = externallyPaginated
     ? Math.min(Math.max(page ?? 1, 1), pageCount)
     : Math.min(internalPage, pageCount);
-  const visibleRows = externallyPaginated
-    ? rows
-    : rows.slice((currentPage - 1) * safePageSize, currentPage * safePageSize);
+  const [expanded, setExpanded] = useState(false);
+  const visibleRows = expandable
+    ? expanded
+      ? rows
+      : rows.slice(0, safePageSize)
+    : externallyPaginated
+      ? rows
+      : rows.slice((currentPage - 1) * safePageSize, currentPage * safePageSize);
 
   function changePage(nextPage: number) {
     if (externallyPaginated) onPageChange?.(nextPage);
@@ -165,14 +171,27 @@ function DataTable<Row extends object>({
       {!loading && !error && rows.length > 0 && (
         <div className={`rt-table__footer ${styles.footer}`}>
           <span>
-            Showing {(currentPage - 1) * safePageSize + 1}-
-            {externallyPaginated
-              ? (currentPage - 1) * safePageSize + visibleRows.length
-              : Math.min(currentPage * safePageSize, recordCount)}{" "}
+            Showing{" "}
+            {expandable
+              ? `1-${visibleRows.length}`
+              : `${(currentPage - 1) * safePageSize + 1}-${
+                  externallyPaginated
+                    ? (currentPage - 1) * safePageSize + visibleRows.length
+                    : Math.min(currentPage * safePageSize, recordCount)
+                }`}{" "}
             of {recordCount} {itemLabel}
             {recordCount === 1 ? "" : "s"}
           </span>
-          {pageCount > 1 && (
+          {expandable && rows.length > safePageSize ? (
+            <button
+              type="button"
+              className={`rt-root rt-btn rt-btn--outline ${styles.expandButton}`}
+              aria-expanded={expanded}
+              onClick={() => setExpanded((current) => !current)}
+            >
+              {expanded ? "Show fewer" : `Show all ${recordCount}`}
+            </button>
+          ) : !expandable && pageCount > 1 ? (
             <nav className="rt-pagination" aria-label={`${itemLabel} pages`}>
               <button
                 type="button"
@@ -196,7 +215,7 @@ function DataTable<Row extends object>({
                 Next
               </button>
             </nav>
-          )}
+          ) : null}
         </div>
       )}
     </section>

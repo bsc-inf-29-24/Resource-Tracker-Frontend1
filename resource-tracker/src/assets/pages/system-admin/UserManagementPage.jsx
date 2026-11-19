@@ -226,7 +226,8 @@ export default function UserManagementPage() {
         title={`${filteredUsers.length} user${filteredUsers.length === 1 ? "" : "s"}`}
         columns={columns}
         rows={filteredUsers}
-        pageSize={8}
+        pageSize={4}
+        expandable
         itemLabel="user"
         emptyTitle="No users match these filters"
         emptyDescription="Try a different search or clear the selected filters."

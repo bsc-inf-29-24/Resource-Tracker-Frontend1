@@ -17,6 +17,7 @@ interface ApiDataViewProps {
   title?: string;
   emptyTitle?: string;
   emptyDescription?: string;
+  expandableRecords?: boolean;
   depth?: number;
 }
 
@@ -39,6 +40,7 @@ export default function ApiDataView({
   title,
   emptyTitle = "No records returned",
   emptyDescription = "The backend returned no records.",
+  expandableRecords = false,
   depth = 0,
 }: ApiDataViewProps) {
   const response = unwrapApiResponse(data);
@@ -83,6 +85,8 @@ export default function ApiDataView({
         title={title}
         columns={columns}
         rows={flatRecords}
+        pageSize={expandableRecords ? 4 : undefined}
+        expandable={expandableRecords}
         rowKey={(record, index) =>
           typeof record.id === "string" || typeof record.id === "number"
             ? record.id
@@ -132,6 +136,7 @@ export default function ApiDataView({
               data={value}
               emptyTitle={`No ${humanizeApiKey(key).toLowerCase()}`}
               emptyDescription="The backend returned an empty collection."
+              expandableRecords={expandableRecords}
               depth={depth + 1}
             />
           </section>

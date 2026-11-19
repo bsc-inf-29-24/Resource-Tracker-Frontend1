@@ -10,6 +10,7 @@ interface ApiResponsePanelProps {
   loading?: boolean;
   error?: string;
   onRefresh?: () => void;
+  expandableRecords?: boolean;
 }
 
 export default function ApiResponsePanel({
@@ -18,6 +19,7 @@ export default function ApiResponsePanel({
   loading = false,
   error,
   onRefresh,
+  expandableRecords = false,
 }: ApiResponsePanelProps) {
   return (
     <section className={`rt-root rt-card ${styles.panel}`}>
@@ -44,7 +46,7 @@ export default function ApiResponsePanel({
           description="Run a request to load the response."
         />
       ) : (
-        <ApiDataView data={data} />
+        <ApiDataView data={data} expandableRecords={expandableRecords} />
       )}
     </section>
   );

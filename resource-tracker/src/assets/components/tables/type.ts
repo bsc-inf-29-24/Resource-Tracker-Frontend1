@@ -21,6 +21,7 @@ export interface DataTableProps<Row extends object> {
   onEmptyAction?: () => void;
   page?: number;
   pageSize?: number;
+  expandable?: boolean;
   total?: number;
   onPageChange?: (page: number) => void;
   itemLabel?: string;

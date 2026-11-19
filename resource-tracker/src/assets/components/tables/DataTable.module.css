@@ -16,8 +16,16 @@ text-align: left;
   overflow-wrap: anywhere;
 }
 
+.expandButton {
+  flex-shrink: 0;
+}
+
 @media (max-width: 520px) {
   .footer {
     align-items: flex-start;
+  }
+
+  .expandButton {
+    width: 100%;
   }
 }

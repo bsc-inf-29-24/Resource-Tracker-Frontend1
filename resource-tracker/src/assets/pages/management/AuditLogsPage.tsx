@@ -101,6 +101,7 @@ export default function AuditLogsPage() {
         data={data}
         loading={loading}
         error={error}
+        expandableRecords
       />
     </section>
   );

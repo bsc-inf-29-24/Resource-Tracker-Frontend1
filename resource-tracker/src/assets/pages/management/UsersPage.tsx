@@ -16,6 +16,7 @@ export default function UsersPage() {
         // description=""
         list={usersApi.list}
         assignmentsInDialog
+        expandableRecords
         recordsTitle="User accounts"
         assignments={[
           {

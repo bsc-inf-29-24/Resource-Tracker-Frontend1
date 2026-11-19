@@ -210,11 +210,11 @@ export function ResourceRequestsPage({
     <section className={`rt-root ${styles.page}`}>
       <PageHeader title={title} description={description} />
       {mode === "query-response" && (
-        // <p className={styles.formError} role="note">
-        //   Swagger documents no requester-reply field or transition for a
-        //   queried request. The details are available, but this page will not
-        //   send an invented response payload.
-        // </p>
+        <p className={styles.formError} role="note">
+          Swagger documents no requester-reply field or transition for a
+          queried request. The details are available, but this page will not
+          send an invented response payload.
+        </p>
       )}
       {error && (
         <ErrorMessage

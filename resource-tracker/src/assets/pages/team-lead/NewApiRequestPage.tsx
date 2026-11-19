@@ -135,7 +135,6 @@ export default function NewApiRequestPage() {
     <section className={`rt-root ${styles.page}`}>
       <PageHeader
         title="Submit a resource request"
-        description="Submit a request using the fields required by the backend."
         supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
       {submitError && (
@@ -161,7 +160,6 @@ export default function NewApiRequestPage() {
           <section className={formStyles.card}>
             <div className={formStyles.sectionHeading}>
               <h2>{isReviewing ? "Review request" : "Request details"}</h2>
-              <p>Requests are submitted directly to the backend for review.</p>
             </div>
             {isReviewing ? (
               <dl className={formStyles.reviewGrid}>
@@ -174,9 +172,18 @@ export default function NewApiRequestPage() {
               </dl>
             ) : (
               <div className={formStyles.grid}>
-                {requestFields.map(({ name, label, numeric }) => (
-                  <div className={formStyles.field} key={name}>
-                    <label htmlFor={`request-${name}`}>{label} *</label>
+                {(
+                  [
+                    ["itemDescription", "Item description"],
+                    ["price", "Unit price"],
+                    ["manufacturerLabel", "Manufacturer label"],
+                    ["batchNumber", "Batch number"],
+                    ["vendor", "Vendor"],
+                    ["quantity", "Quantity"],
+                  ] as const
+                ).map(([field, label]) => (
+                  <div className={formStyles.field} key={field}>
+                    <label htmlFor={`request-${field}`}>{label} *</label>
                     <input
                       id={`request-${name}`}
                       type={numeric ? "number" : "text"}
@@ -194,6 +201,49 @@ export default function NewApiRequestPage() {
                     )}
                   </div>
                 ))}
+                {(
+                  [
+                    ["departmentId", "Department ID"],
+                    ["teamId", "Team ID"],
+                    ["projectId", "Project ID"],
+                  ] as const
+                ).map(([field, label]) => (
+                  <div className={formStyles.field} key={field}>
+                    <label htmlFor={`request-${field}`}>{label} *</label>
+                    <input
+                      id={`request-${field}`}
+                      inputMode="numeric"
+                      value={form[field]}
+                      onChange={(event) => updateField(field, event.target.value)}
+                      aria-invalid={Boolean(fieldErrors[field])}
+                      required
+                    />
+                    {fieldErrors[field] && (
+                      <p className={formStyles.fieldError} role="alert">
+                        {fieldErrors[field]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+                <div className={formStyles.field}>
+                  <label htmlFor="request-line-manager">
+                    Line Manager UUID *
+                  </label>
+                  <input
+                    id="request-line-manager"
+                    value={form.lineManagerId}
+                    onChange={(event) =>
+                      updateField("lineManagerId", event.target.value)
+                    }
+                    aria-invalid={Boolean(fieldErrors.lineManagerId)}
+                    required
+                  />
+                  {fieldErrors.lineManagerId && (
+                    <p className={formStyles.fieldError} role="alert">
+                      {fieldErrors.lineManagerId}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
             <div className={formStyles.actions}>

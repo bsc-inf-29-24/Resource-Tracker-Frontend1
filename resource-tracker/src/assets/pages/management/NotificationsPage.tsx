@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import PageHeader from "../../components/layout/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { notificationsApi } from "../../data/api-services";
+import { getFrontendRoleFromBackendRole } from "../../data/auth-store";
 import ApiResponsePanel from "./ApiResponsePanel";
 import styles from "./ApiManagementPage.module.css";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
+  const isTeamLead =
+    getFrontendRoleFromBackendRole(user?.role) === "TEAM_LEAD";
   const [data, setData] = useState<unknown>();
   const [notificationId, setNotificationId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -70,7 +74,7 @@ export default function NotificationsPage() {
         </p>
       )}
       <ApiResponsePanel
-        title="My notifications"
+        title={isTeamLead ? "Updates on your requests" : "My notifications"}
         data={data}
         loading={loading}
         error={error}

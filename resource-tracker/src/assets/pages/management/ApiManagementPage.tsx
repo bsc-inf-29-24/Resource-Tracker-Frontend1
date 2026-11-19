@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import EmptyState from "../../components/feedback/EmptyState";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
@@ -50,8 +50,8 @@ export interface AssignmentOperation {
 }
 
 interface ApiManagementPageProps {
-  title: string;
-  description: string;
+  // title: string;
+  // description: string;
   list: () => Promise<unknown>;
   initialId?: string;
   get?: (id: string) => Promise<unknown>;
@@ -62,6 +62,8 @@ interface ApiManagementPageProps {
   updateFields?: ApiField[];
   related?: RelatedOperation[];
   assignments?: AssignmentOperation[];
+  assignmentsInDialog?: boolean;
+  recordsTitle?: string;
 }
 
 function textValue(value: unknown): string {
@@ -72,9 +74,24 @@ function formatValue(value: unknown): string {
   return formatApiValue(value);
 }
 
+function getRecordDisplayName(record: ApiRecord): string {
+  for (const value of [record.fullName, record.name, record.displayName]) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  const firstName =
+    typeof record.firstName === "string" ? record.firstName.trim() : "";
+  const lastName =
+    typeof record.lastName === "string" ? record.lastName.trim() : "";
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
+  if (fullName) return fullName;
+  return typeof record.email === "string" && record.email.trim()
+    ? record.email.trim()
+    : "the selected user";
+}
+
 export default function ApiManagementPage({
-  title,
-  description,
+  // title,
+  // description,
   list,
   initialId = "",
   get,
@@ -85,11 +102,14 @@ export default function ApiManagementPage({
   updateFields = fields,
   related = [],
   assignments = [],
+  assignmentsInDialog = false,
+  recordsTitle = "Users records",
 }: ApiManagementPageProps) {
   const [data, setData] = useState<unknown>(null);
   const [detail, setDetail] = useState<unknown>(null);
   const [relatedData, setRelatedData] = useState<unknown>(null);
   const [selectedId, setSelectedId] = useState(initialId);
+  const [selectedUserName, setSelectedUserName] = useState("");
   const [form, setForm] = useState<Record<string, string>>({});
   const [assignmentValues, setAssignmentValues] = useState<
     Record<string, string>
@@ -99,6 +119,8 @@ export default function ApiManagementPage({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
+  const assignmentDialogRef = useRef<HTMLDialogElement>(null);
   const [pendingAssignment, setPendingAssignment] =
     useState<AssignmentOperation | null>(null);
 
@@ -121,6 +143,33 @@ export default function ApiManagementPage({
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    const dialog = assignmentDialogRef.current;
+    if (!dialog) return;
+    if (assignmentDialogOpen && !dialog.open) dialog.showModal();
+    else if (!assignmentDialogOpen && dialog.open) dialog.close();
+  }, [assignmentDialogOpen]);
+
+  const selectRecord = useCallback((record: ApiRecord) => {
+    const id = record.id;
+    if (typeof id === "string" || typeof id === "number") {
+      setSelectedId(String(id));
+    }
+    if (assignmentsInDialog) {
+      setSelectedUserName(getRecordDisplayName(record));
+    }
+    setForm(
+      Object.fromEntries(
+        fields.map((field) => [field.name, textValue(record[field.name])]),
+      ),
+    );
+    setDetail(assignmentsInDialog ? null : record);
+    setRelatedData(null);
+    setError("");
+    setNotice("");
+    if (assignmentsInDialog) setAssignmentDialogOpen(true);
+  }, [assignmentsInDialog, fields]);
 
   const records = useMemo(() => getApiRecords(data), [data]);
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
@@ -157,23 +206,15 @@ export default function ApiManagementPage({
       });
     }
     return result;
-  }, [assignments.length, get, records, remove, update]);
-
-  function selectRecord(record: ApiRecord) {
-    const id = record.id;
-    if (typeof id === "string" || typeof id === "number") {
-      setSelectedId(String(id));
-    }
-    setForm(
-      Object.fromEntries(
-        fields.map((field) => [field.name, textValue(record[field.name])]),
-      ),
-    );
-    setDetail(record);
-    setRelatedData(null);
-    setError("");
-    setNotice("");
-  }
+  }, [
+    assignments.length,
+    assignmentsInDialog,
+    get,
+    records,
+    remove,
+    selectRecord,
+    update,
+  ]);
 
   function visibleFields(fieldList: ApiField[]) {
     return fieldList.filter(
@@ -408,7 +449,7 @@ export default function ApiManagementPage({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader title={title} description={description} />
+      {/* <PageHeader title={title} description={description} /> */}
       {error && (
         <ErrorMessage title="API operation failed" message={error} onRetry={reload} />
       )}
@@ -420,10 +461,10 @@ export default function ApiManagementPage({
 
       <section className={`rt-root rt-card ${styles.panel}`}>
         <div className={styles.panelHeading}>
-          <h2>Users records</h2>
-          <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => void reload()}>
+          <h2>{recordsTitle}</h2>
+          {/* <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => void reload()}>
             Refresh
-          </button>
+          </button> */}
         </div>
         {loading ? (
           <LoadingState message="Loading backend records..." />
@@ -448,7 +489,12 @@ export default function ApiManagementPage({
         )}
       </section>
 
-      {(get || create || update || remove || related.length > 0 || assignments.length > 0) && (
+      {(get ||
+        create ||
+        update ||
+        remove ||
+        related.length > 0 ||
+        (assignments.length > 0 && !assignmentsInDialog)) && (
         <section className={`rt-root rt-card ${styles.panel}`}>
           <h2>Record actions</h2>
           <label className={styles.field} htmlFor="api-record-id">
@@ -517,7 +563,7 @@ export default function ApiManagementPage({
             </form>
           )}
 
-          {assignments.map((operation) => (
+          {!assignmentsInDialog && assignments.map((operation) => (
             <div className={styles.assignment} key={operation.field}>
               {operation.requiresValue !== false && (
                 <label
@@ -610,6 +656,119 @@ export default function ApiManagementPage({
           </h2>
           <ApiDataView data={relatedData ?? detail} />
         </section>
+      )}
+
+      {assignmentsInDialog && (
+        <dialog
+          ref={assignmentDialogRef}
+          className={styles.assignmentDialog}
+          aria-labelledby="user-actions-title"
+          onClose={() => setAssignmentDialogOpen(false)}
+        >
+          <div className={styles.dialogHeading}>
+            <h2 id="user-actions-title">User actions</h2>
+            <button
+              type="button"
+              className="rt-root rt-btn rt-btn--outline"
+              onClick={() => setAssignmentDialogOpen(false)}
+              aria-label="Close user actions"
+            >
+              Close
+            </button>
+          </div>
+          <p className={styles.assignmentIntro}>
+            Choose an action for {selectedUserName}.
+          </p>
+          {assignments
+            .filter((operation) => operation.requiresValue !== false)
+            .map((operation) => (
+              <div className={styles.assignment} key={operation.field}>
+                <label
+                  className={styles.field}
+                  htmlFor={`assignment-${operation.field}`}
+                >
+                  <span>{operation.label}</span>
+                  {operation.options ? (
+                    <select
+                      id={`assignment-${operation.field}`}
+                      value={assignmentValues[operation.field] ?? ""}
+                      onChange={(event) =>
+                        setAssignmentValues((current) => ({
+                          ...current,
+                          [operation.field]: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Select</option>
+                      {operation.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      id={`assignment-${operation.field}`}
+                      value={assignmentValues[operation.field] ?? ""}
+                      placeholder={
+                        operation.kind === "list" ||
+                        operation.kind === "number-list"
+                          ? "Enter IDs separated by commas"
+                          : "Enter ID"
+                      }
+                      onChange={(event) =>
+                        setAssignmentValues((current) => ({
+                          ...current,
+                          [operation.field]: event.target.value,
+                        }))
+                      }
+                    />
+                  )}
+                </label>
+                <button
+                  type="button"
+                  className="rt-root rt-btn rt-btn--outline"
+                  disabled={
+                    busy ||
+                    !selectedId.trim() ||
+                    !assignmentValues[operation.field]?.trim()
+                  }
+                  onClick={() => {
+                    setAssignmentDialogOpen(false);
+                    if (operation.confirmation) {
+                      setPendingAssignment(operation);
+                    } else {
+                      void runAssignment(operation);
+                    }
+                  }}
+                >
+                  {operation.label}
+                </button>
+              </div>
+            ))}
+          <div className={styles.dialogActions}>
+            {assignments
+              .filter((operation) => operation.requiresValue === false)
+              .map((operation) => (
+                <button
+                  type="button"
+                  className="rt-root rt-btn rt-btn--outline"
+                  key={operation.field}
+                  disabled={busy || !selectedId.trim()}
+                  onClick={() => {
+                    setAssignmentDialogOpen(false);
+                    if (operation.confirmation) {
+                      setPendingAssignment(operation);
+                    } else {
+                      void runAssignment(operation);
+                    }
+                  }}
+                >
+                  {operation.label}
+                </button>
+              ))}
+          </div>
+        </dialog>
       )}
 
       <ConfirmDialog

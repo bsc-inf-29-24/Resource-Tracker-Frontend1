@@ -64,19 +64,10 @@ export default function NotificationsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
-        title={isTeamLead ? "Team Lead Notifications" : "Notifications"}
-        description={
-          isTeamLead
-            ? "Updates about your resource requests, including queries and review decisions."
-            : undefined
-        }
-        supplementary={
-          isTeamLead ? (
-            <Link to="/team-lead/requests">View request history</Link>
-          ) : undefined
-        }
-      />
+      {/* <PageHeader
+        title="Notifications"
+        description=""
+      /> */}
       {notice && (
         <p className={styles.notice} role="status">
           {notice}
@@ -87,23 +78,7 @@ export default function NotificationsPage() {
         data={data}
         loading={loading}
         error={error}
-        onRefresh={() => void loadNotifications()}
-        emptyTitle={
-          isTeamLead ? "No request updates yet" : "No notifications yet"
-        }
-        emptyDescription={
-          isTeamLead
-            ? "Updates about queries and review decisions for your requests will appear here."
-            : "The backend returned no notifications for your account."
-        }
-        noResponseTitle={
-          isTeamLead ? "No request updates yet" : "No notifications yet"
-        }
-        noResponseDescription={
-          isTeamLead
-            ? "Updates about queries and review decisions for your requests will appear here."
-            : "The backend returned no notifications for your account."
-        }
+        // onRefresh={() => void loadNotifications()}
       />
       <section className={`rt-root rt-card ${styles.panel}`}>
         <h2>Notification actions</h2>
@@ -112,6 +87,7 @@ export default function NotificationsPage() {
           <input
             id="notification-id"
             value={notificationId}
+            placeholder="Enter the notification ID"
             onChange={(event) => setNotificationId(event.target.value)}
           />
         </label>
@@ -139,7 +115,7 @@ export default function NotificationsPage() {
             disabled={busy || !notificationId.trim() || !user?.id}
             onClick={() => setConfirmDelete(true)}
           >
-            Delete notification
+            Delete
           </button>
         </div>
       </section>

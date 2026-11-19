@@ -6,8 +6,6 @@ import styles from "./ApiManagementPage.module.css";
 
 export default function AuditLogsPage() {
   const [data, setData] = useState<unknown>();
-  const [entityType, setEntityType] = useState("");
-  const [entityId, setEntityId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -31,28 +29,6 @@ export default function AuditLogsPage() {
     void loadAuditLogs();
   }, [loadAuditLogs]);
 
-  async function loadRecord() {
-    if (!entityType.trim() || !entityId.trim()) {
-      setError("Enter both the entity type and entity ID.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      setData(
-        await auditLogsApi.record(entityType.trim(), entityId.trim()),
-      );
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "The audit record could not be loaded.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <section className={`rt-root ${styles.page}`}>
       <PageHeader
@@ -60,25 +36,8 @@ export default function AuditLogsPage() {
         description="Inspect audit log responses from the documented API. The response schema is not defined in Swagger."
       />
       <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Audit record lookup</h2>
-        <div className={styles.grid}>
-          <label className={styles.field} htmlFor="audit-entity-type">
-            <span>Entity type</span>
-            <input
-              id="audit-entity-type"
-              value={entityType}
-              onChange={(event) => setEntityType(event.target.value)}
-            />
-          </label>
-          <label className={styles.field} htmlFor="audit-entity-id">
-            <span>Entity ID</span>
-            <input
-              id="audit-entity-id"
-              value={entityId}
-              onChange={(event) => setEntityId(event.target.value)}
-            />
-          </label>
-        </div>
+        <h2>Audit log entries</h2>
+        <p>The backend currently supports listing audit logs; entity-specific lookup is not documented.</p>
         <div className={styles.actions}>
           <button
             type="button"
@@ -86,15 +45,7 @@ export default function AuditLogsPage() {
             disabled={loading}
             onClick={() => void loadAuditLogs()}
           >
-            Load all logs
-          </button>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--primary"
-            disabled={loading}
-            onClick={() => void loadRecord()}
-          >
-            Load entity record
+            Refresh logs
           </button>
         </div>
       </section>

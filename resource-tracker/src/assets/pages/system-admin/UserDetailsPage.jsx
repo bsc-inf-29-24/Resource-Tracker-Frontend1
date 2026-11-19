@@ -61,7 +61,7 @@ export default function UserDetailsPage() {
           </div>
           <div>
             <dt>Role</dt>
-            <dd>{": "+roleLabels[user.role] ?? user.role}</dd>
+            <dd>{": " + (roleLabels[user.role] ?? user.role)}</dd>
           </div>
           <div>
             <dt>Department</dt>

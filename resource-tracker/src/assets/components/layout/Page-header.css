@@ -1,0 +1,29 @@
+/* PAGE HEADER */
+
+.page-header {
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background-color: #173f35;
+  text-align: left;
+  border-radius: 8px;
+  border: 1px solid #dbe5df;
+}
+
+/* Page title */
+
+.page-header h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight:bold;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+
+/* Page description */
+
+.page-header p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #dce9e2;
+}

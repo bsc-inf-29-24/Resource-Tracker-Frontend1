@@ -1,0 +1,47 @@
+/* Resource Tracker design tokens — taken from the Figma prototypes */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --rt-green-950: #0b3525;
+  --rt-green-900: #104b34;
+  --rt-green-800: #145a3c;
+  --rt-green-700: #176b45;
+  --rt-green-600: #21865a;
+  --rt-green-200: #b8d2c1;
+  --rt-green-100: #dce9e0;
+  --rt-green-50: #eff5f0;
+
+  --rt-bg: #f5f6f5;
+  --rt-surface: #ffffff;
+  --rt-text: #111111;
+  --rt-text-muted: #6b7280;
+  --rt-border: #e0e5e1;
+
+  --rt-approved-bg: #dce9e0;
+  --rt-approved-fg: #104b34;
+  --rt-pending-bg: #e9f0eb;
+  --rt-pending-fg: #34443a;
+  --rt-queried-bg: #eef2ef;
+  --rt-queried-fg: #34443a;
+  --rt-declined-bg: #fce8e7;
+  --rt-declined-fg: #b4232c;
+  --rt-error: #b4232c;
+
+  --color-primary: #176b45;
+  --color-primary-dark: #104b34;
+  --color-primary-light: #dce9e0;
+  --color-background: #f5f6f5;
+  --color-surface: #ffffff;
+  --color-text: #111111;
+  --color-text-secondary: #6b7280;
+  --color-border: #e0e5e1;
+  --color-danger: #b4232c;
+
+  --rt-font:
+    "Montserrat", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --rt-radius-sm: 6px;
+  --rt-radius-md: 10px;
+  --rt-radius-pill: 999px;
+  --rt-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --shadow-card: var(--rt-shadow);
+}

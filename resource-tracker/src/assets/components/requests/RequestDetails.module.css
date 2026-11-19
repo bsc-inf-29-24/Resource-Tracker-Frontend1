@@ -1,0 +1,84 @@
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--rt-radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+
+}
+
+.title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--color-text);
+
+}
+
+.id {
+    margin: 4px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+
+}
+
+.status {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--rt-green-100);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px 24px;
+    margin: 0 0 24px;
+
+}
+
+.field {
+    margin: 0;
+}
+
+.label {
+    margin: 0 0 4px;
+    color: var(--color-text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.value {
+    margin: 0;
+}
+
+.summary p,
+.rejection p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.rejection {
+  margin-top: 24px;
+  padding: 12px 16px;
+  border-left: 4px solid var(--color-danger);
+  background: #fce8e7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}

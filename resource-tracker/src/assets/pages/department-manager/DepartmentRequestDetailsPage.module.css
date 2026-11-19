@@ -1,0 +1,40 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.topActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.backLink,
+.backLinkSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--rt-radius-sm);
+  background: var(--rt-green-700);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.backLinkSecondary {
+  background: var(--rt-green-900);
+}
+
+.warning {
+  margin: 0;
+  color: var(--color-danger);
+}
+
+.history {
+  padding: 1.25rem;
+}

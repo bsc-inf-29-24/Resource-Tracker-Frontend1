@@ -1,0 +1,109 @@
+.page {
+  display: grid;
+  gap: 22px;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 4px;
+}
+
+.sectionHeading > a {
+  color: var(--rt-green-800);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.demoNotice,
+.warning {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--rt-radius-sm);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.demoNotice {
+  color: var(--rt-green-900);
+  background: var(--rt-green-100);
+}
+
+.warning {
+  color: #6f1d1b;
+  background: #fce8e7;
+  border: 1px solid #e6b9b7;
+}
+
+.attention,
+.requestSection {
+  margin: 0;
+}
+
+.attentionGroups {
+  display: grid;
+  gap: 18px;
+}
+
+.attentionGroups h3 {
+  margin: 0 0 8px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.sectionHeading .rt-card__title {
+  margin-bottom: 4px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.attentionList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attentionList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+}
+
+.attentionList a {
+  color: var(--color-text);
+}
+
+.attentionList a:hover {
+  color: var(--rt-green-800);
+}
+
+.requestSection {
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 640px) {
+  .attentionList li {
+    flex-direction: column;
+  }
+}

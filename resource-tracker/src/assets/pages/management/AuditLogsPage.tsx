@@ -31,13 +31,28 @@ export default function AuditLogsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
-        title="Audit logs"
-        description="Inspect audit log responses from the documented API. The response schema is not defined in Swagger."
-      />
       <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Audit log entries</h2>
-        <p>The backend currently supports listing audit logs; entity-specific lookup is not documented.</p>
+        <h2>Audit record lookup</h2>
+        <div className={styles.grid}>
+          <label className={styles.field} htmlFor="audit-entity-type">
+            <span>Entity type</span>
+            <input
+              id="audit-entity-type"
+              value={entityType}
+              placeholder="Enter entity type e.g user"
+              onChange={(event) => setEntityType(event.target.value)}
+            />
+          </label>
+          <label className={styles.field} htmlFor="audit-entity-id">
+            <span>Entity ID</span>
+            <input
+              id="audit-entity-id"
+              value={entityId}
+              placeholder="Enter entity id"
+              onChange={(event) => setEntityId(event.target.value)}
+            />
+          </label>
+        </div>
         <div className={styles.actions}>
           <button
             type="button"
@@ -50,7 +65,7 @@ export default function AuditLogsPage() {
         </div>
       </section>
       <ApiResponsePanel
-        title="Audit response"
+        title="Audit Records"
         data={data}
         loading={loading}
         error={error}

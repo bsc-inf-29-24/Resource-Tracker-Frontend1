@@ -43,7 +43,9 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const authenticatedUser = await login(email.trim(), password);
-      navigate(getDashboardPathForRole(authenticatedUser.role), { replace: true });
+      navigate(getDashboardPathForRole(authenticatedUser.role), {
+        replace: true,
+      });
     } catch (signInError) {
       setError(
         signInError instanceof Error
@@ -133,7 +135,11 @@ export default function LoginPage() {
             </p>
           )}
         </div>
-        <button className={styles.submit} type="submit" disabled={busy || isLoading}>
+        <button
+          className={styles.submit}
+          type="submit"
+          disabled={busy || isLoading}
+        >
           {busy ? "Signing in..." : "Sign in"}
         </button>
       </form>

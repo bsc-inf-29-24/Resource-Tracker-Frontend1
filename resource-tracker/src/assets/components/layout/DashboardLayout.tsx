@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getRoleForPath, navigationConfig } from "../../config/navigation";
-import { getFrontendRoleFromBackendRole, getDashboardPathForRole } from "../../data/auth-store";
+import {
+  getFrontendRoleFromBackendRole,
+  getDashboardPathForRole,
+} from "../../data/auth-store";
 import { useAuth } from "../../context/AuthContext";
 import AppHeader from "./AppHeader";
 import AppSidebar from "./AppSidebar";
@@ -58,6 +61,7 @@ export default function DashboardLayout() {
           setMobileNavigationOpen((current) => !current)
         }
         userName={user.fullName}
+        email={user.email}
         onSignOut={async () => {
           await logout();
           navigate("/login", { replace: true });

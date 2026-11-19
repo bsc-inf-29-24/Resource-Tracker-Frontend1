@@ -43,10 +43,7 @@ export default function ApiDataView({
 }: ApiDataViewProps) {
   const response = unwrapApiResponse(data);
   const records = getApiRecords(response);
-  const flatRecords = useMemo(
-    () => records.map(flattenApiRecord),
-    [records],
-  );
+  const flatRecords = useMemo(() => records.map(flattenApiRecord), [records]);
   const columns = useMemo<DataTableColumn<Record<string, unknown>>[]>(() => {
     const keys = Array.from(
       new Set(flatRecords.flatMap((record) => Object.keys(record))),
@@ -70,9 +67,7 @@ export default function ApiDataView({
 
   if (Array.isArray(response)) {
     if (response.length === 0) {
-      return (
-        <EmptyState title={emptyTitle} description={emptyDescription} />
-      );
+      return <EmptyState title={emptyTitle} description={emptyDescription} />;
     }
     if (records.length === 0 || columns.length === 0) {
       return (
@@ -111,8 +106,8 @@ export default function ApiDataView({
   const entries = Object.entries(response).filter(
     ([, value]) => !Array.isArray(value),
   );
-  const nestedCollections = Object.entries(response).filter(
-    ([, value]) => Array.isArray(value),
+  const nestedCollections = Object.entries(response).filter(([, value]) =>
+    Array.isArray(value),
   );
 
   return (

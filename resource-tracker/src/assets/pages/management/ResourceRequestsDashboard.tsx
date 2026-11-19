@@ -143,11 +143,9 @@ export default function ResourceRequestsDashboard({
         isDepartmentHeadDashboard ? styles.departmentHead : ""
       }`}
     >
-      <PageHeader
-        title={title}
-        description={description}
-        supplementary={
-          user && isDepartmentHeadDashboard ? (
+      {isDepartmentHeadDashboard ? (
+        user ? (
+          <header className={styles.departmentProfileHeader}>
             <section
               className={`rt-root rt-card ${styles.panel} ${styles.departmentProfile}`}
               aria-labelledby="department-profile-title"
@@ -164,24 +162,10 @@ export default function ResourceRequestsDashboard({
                 </div>
               </dl>
             </section>
-          ) : undefined
-        }
-      />
-      {isDepartmentHeadDashboard && (
-        <section
-          className={styles.departmentWelcome}
-          aria-labelledby="department-welcome-title"
-        >
-          <div className={styles.departmentWelcomeContent}>
-            <h2 id="department-welcome-title">
-              Welcome to Your Department Dashboard!
-            </h2>
-            <p>
-              Monitor department requests, track spending, manage resource
-              allocation and stay updated on your department&apos;s activities.
-            </p>
-          </div>
-        </section>
+          </header>
+        ) : null
+      ) : (
+        <PageHeader title={title} description={description} />
       )}
       {user && !isDepartmentHeadDashboard && (
         <section
@@ -226,15 +210,8 @@ export default function ResourceRequestsDashboard({
           title="No request response"
           description="No request data."
         />
-      ) : !error ? (
+      ) : !error && !isDepartmentHeadDashboard ? (
         <>
-          {isDepartmentHeadDashboard && (
-            <div className={styles.departmentSectionHeading}>
-              <p>AT A GLANCE</p>
-              <h2>Request overview</h2>
-              <span>Current totals from your department’s request data.</span>
-            </div>
-          )}
           <StatusCardGrid>
             <StatusCard label="Requests returned" value={requestRecords.length} />
             {requestStatuses.map((status) => (
@@ -255,15 +232,9 @@ export default function ResourceRequestsDashboard({
               Refresh requests
             </button>
           </div>
-          {isDepartmentHeadDashboard && (
-            <div className={styles.departmentSectionHeading}>
-              <p>RECENT ACTIVITY</p>
-              <h2>Latest resource requests</h2>
-            </div>
-          )}
           {requestRecords.length ? (
             <DataTable
-              title={isDepartmentHeadDashboard ? undefined : "Recent requests"}
+              title="Recent requests"
               columns={columns}
               rows={requestRecords.slice(0, 5)}
               itemLabel="request"

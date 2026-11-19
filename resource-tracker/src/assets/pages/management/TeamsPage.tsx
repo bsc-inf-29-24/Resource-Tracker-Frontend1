@@ -2,6 +2,7 @@ import { teamsApi } from "../../data/api-services";
 import ApiManagementPage, {
   type ApiField,
 } from "./ApiManagementPage";
+import styles from "./TeamsPage.module.css";
 
 const teamFields: ApiField[] = [
   { name: "name", label: "Team name", required: true },
@@ -17,39 +18,41 @@ const teamUpdateFields: ApiField[] = [
 
 export default function TeamsPage() {
   return (
-    <ApiManagementPage
-      title="Teams"
-      description=""
-      list={teamsApi.list}
-      get={teamsApi.get}
-      create={teamsApi.create}
-      update={teamsApi.update}
-      remove={teamsApi.remove}
-      fields={teamFields}
-      updateFields={teamUpdateFields}
-      related={[
-        { label: "users", load: teamsApi.users },
-        { label: "projects", load: teamsApi.projects },
-        { label: "resource requests", load: teamsApi.requests },
-      ]}
-      assignments={[
-        {
-          label: "Assign team lead",
-          field: "teamLeadId",
-          run: (id, userId) => {
-            if (
-              !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-                userId,
-              )
-            ) {
-              return Promise.reject(
-                new Error("The team lead ID must be a UUID."),
-              );
-            }
-            return teamsApi.assignLead(id, userId);
+    <div className={styles.formLabels}>
+      <ApiManagementPage
+        title="Teams"
+        description=""
+        list={teamsApi.list}
+        get={teamsApi.get}
+        create={teamsApi.create}
+        update={teamsApi.update}
+        remove={teamsApi.remove}
+        fields={teamFields}
+        updateFields={teamUpdateFields}
+        related={[
+          { label: "users", load: teamsApi.users },
+          { label: "projects", load: teamsApi.projects },
+          { label: "resource requests", load: teamsApi.requests },
+        ]}
+        assignments={[
+          {
+            label: "Assign team lead",
+            field: "teamLeadId",
+            run: (id, userId) => {
+              if (
+                !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+                  userId,
+                )
+              ) {
+                return Promise.reject(
+                  new Error("The team lead ID must be a UUID."),
+                );
+              }
+              return teamsApi.assignLead(id, userId);
+            },
           },
-        },
-      ]}
-    />
+        ]}
+      />
+    </div>
   );
 }

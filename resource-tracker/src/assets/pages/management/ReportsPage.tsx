@@ -149,7 +149,10 @@ export default function ReportsPage({
             </label>
           )}
           {report !== "organization" && (
-            <label className={styles.field} htmlFor="report-department-id">
+            <label
+              className={`${styles.field} ${styles.reportFilterField}`}
+              htmlFor="report-department-id"
+            >
             <span>
               Department ID{requireDepartmentId || report === "department" ? " *" : ""}
             </span>
@@ -158,11 +161,15 @@ export default function ReportsPage({
               type="number"
               min="1"
               value={departmentId}
+              placeholder="Enter department ID"
               onChange={(event) => setDepartmentId(event.target.value)}
             />
             </label>
           )}
-          <label className={styles.field} htmlFor="report-start-date">
+          <label
+            className={`${styles.field} ${styles.reportFilterField}`}
+            htmlFor="report-start-date"
+          >
             <span>Start date</span>
             <input
               id="report-start-date"
@@ -171,7 +178,10 @@ export default function ReportsPage({
               onChange={(event) => setStartDate(event.target.value)}
             />
           </label>
-          <label className={styles.field} htmlFor="report-end-date">
+          <label
+            className={`${styles.field} ${styles.reportFilterField}`}
+            htmlFor="report-end-date"
+          >
             <span>End date</span>
             <input
               id="report-end-date"

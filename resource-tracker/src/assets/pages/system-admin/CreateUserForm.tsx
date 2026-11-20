@@ -13,7 +13,7 @@ interface CreateUserFormProps {
   onCancel: () => void;
 }
 
-const companyEmailPattern = /^[^\s@]+@gmail\.com$/i;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function CreateUserForm({
   onSave,
@@ -21,7 +21,7 @@ export default function CreateUserForm({
 }: CreateUserFormProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<CreateUserInput["role"]>("team_lead");
+  const [role, setRole] = useState<CreateUserInput["role"]>("TEAM_LEAD");
   const [initialPassword, setInitialPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -38,8 +38,8 @@ export default function CreateUserForm({
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
     if (!fullName.trim()) nextErrors.fullName = "Enter the user's full name.";
-    if (!companyEmailPattern.test(email.trim())) {
-      nextErrors.email = "Use a valid @gmail.com email.";
+    if (!emailPattern.test(email.trim())) {
+      nextErrors.email = "Enter a valid email address.";
     }
     if (initialPassword.length < 8 || initialPassword.length > 12) {
       nextErrors.initialPassword = "Use 8 to 12 characters.";

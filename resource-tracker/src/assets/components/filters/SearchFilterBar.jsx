@@ -13,7 +13,6 @@ export default function SearchFilterBar({
   filters = [], filterValues = {}, onFilterChange, onReset, debounceMs = 350,
 }) {
   const [text, setText] = useState(search);
-  useEffect(() => setText(search), [search]);
   useEffect(() => {
     if (text === search) return;
     const t = setTimeout(() => onSearchChange?.(text), debounceMs);

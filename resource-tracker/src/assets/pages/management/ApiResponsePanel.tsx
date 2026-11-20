@@ -10,6 +10,10 @@ interface ApiResponsePanelProps {
   loading?: boolean;
   error?: string;
   onRefresh?: () => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  noResponseTitle?: string;
+  noResponseDescription?: string;
   expandableRecords?: boolean;
 }
 
@@ -19,6 +23,10 @@ export default function ApiResponsePanel({
   loading = false,
   error,
   onRefresh,
+  emptyTitle = "No records returned",
+  emptyDescription = "The backend returned no records.",
+  noResponseTitle = "No response yet",
+  noResponseDescription = "Run a request to load the response.",
   expandableRecords = false,
 }: ApiResponsePanelProps) {
   return (
@@ -42,11 +50,15 @@ export default function ApiResponsePanel({
         <ErrorMessage title="API operation failed" message={error} onRetry={onRefresh} />
       ) : data === undefined ? (
         <EmptyState
-          title="No response yet"
-          description="Run a request to load the response."
+          title={noResponseTitle}
+          description={noResponseDescription}
         />
       ) : (
-        <ApiDataView data={data} expandableRecords={expandableRecords} />
+        <ApiDataView
+          data={data}
+          emptyTitle={emptyTitle}
+          emptyDescription={emptyDescription}
+        expandableRecords={expandableRecords} />
       )}
     </section>
   );

@@ -51,9 +51,10 @@ const resourceFields: ApiField[] = [
   { name: "batchNumber", label: "Batch number" },
 ];
 
-const resourceUpdateFields: ApiField[] = resourceFields
-  .filter((field) => field.name !== "type")
-  .map((field) => ({ ...field, required: false, when: undefined }));
+const resourceUpdateFields: ApiField[] = resourceFields.map((field) => ({
+  ...field,
+  required: false,
+}));
 
 export default function ResourcesPage() {
   return (

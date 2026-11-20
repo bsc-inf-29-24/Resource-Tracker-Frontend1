@@ -6,8 +6,6 @@ import styles from "./ApiManagementPage.module.css";
 
 export default function AuditLogsPage() {
   const [data, setData] = useState<unknown>();
-  const [entityType, setEntityType] = useState("");
-  const [entityId, setEntityId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -30,28 +28,6 @@ export default function AuditLogsPage() {
   useEffect(() => {
     void loadAuditLogs();
   }, [loadAuditLogs]);
-
-  async function loadRecord() {
-    if (!entityType.trim() || !entityId.trim()) {
-      setError("Enter both the entity type and entity ID.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      setData(
-        await auditLogsApi.record(entityType.trim(), entityId.trim()),
-      );
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "The audit record could not be loaded.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <section className={`rt-root ${styles.page}`}>
@@ -84,15 +60,7 @@ export default function AuditLogsPage() {
             disabled={loading}
             onClick={() => void loadAuditLogs()}
           >
-            Load all logs
-          </button>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--primary"
-            disabled={loading}
-            onClick={() => void loadRecord()}
-          >
-            Load entity record
+            Refresh logs
           </button>
         </div>
       </section>

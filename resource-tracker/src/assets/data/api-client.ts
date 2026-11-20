@@ -14,17 +14,38 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || "").replace(
+  /\/$/,
+  "",
+);
 const TOKEN_STORAGE_KEY = "resource-tracker.tokens.v1";
 const USER_STORAGE_KEY = "resource-tracker.user.v1";
 
-function isAuthTokens(value: unknown): value is AuthTokens {
-  if (typeof value !== "object" || value === null) return false;
-  const tokens = value as Record<string, unknown>;
-  return (
-    typeof tokens.accessToken === "string" &&
-    typeof tokens.refreshToken === "string"
-  );
+export function normalizeAuthTokens(value: unknown): AuthTokens | null {
+  if (typeof value !== "object" || value === null) return null;
+  const record = value as Record<string, unknown>;
+  const nested =
+    typeof record.data === "object" && record.data !== null
+      ? (record.data as Record<string, unknown>)
+      : record;
+  const accessToken =
+    nested.accessToken ??
+    nested.access_token ??
+    nested.token;
+  const refreshToken =
+    nested.refreshToken ??
+    nested.refresh_token ??
+    nested.refresh;
+
+  if (
+    typeof accessToken !== "string" ||
+    !accessToken ||
+    typeof refreshToken !== "string" ||
+    !refreshToken
+  ) {
+    return null;
+  }
+  return { accessToken, refreshToken };
 }
 
 export function getStoredAuthTokens(): AuthTokens | null {
@@ -33,7 +54,8 @@ export function getStoredAuthTokens(): AuthTokens | null {
 
   try {
     const parsed: unknown = JSON.parse(saved);
-    if (isAuthTokens(parsed)) return parsed;
+    const tokens = normalizeAuthTokens(parsed);
+    if (tokens) return tokens;
   } catch {
     // Invalid browser storage must not be used as credentials.
   }
@@ -76,10 +98,19 @@ async function send<T>(
   }
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new ApiError(
+      "Unable to reach the Resource Tracker API. Check that the backend is running and try again.",
+      0,
+      null,
+    );
+  }
   const text = await response.text();
   let body: unknown = null;
   if (text) {
@@ -110,14 +141,19 @@ async function refreshAuthTokens(): Promise<AuthTokens> {
       },
     )
       .then((tokens) => {
-        if (!isAuthTokens(tokens)) {
-          throw new Error("The refresh response did not contain both tokens.");
+        const normalized = normalizeAuthTokens(tokens);
+        if (!normalized) {
+          throw new Error("The refresh response did not contain both session tokens.");
         }
-        saveAuthTokens(tokens);
-        return tokens;
+        saveAuthTokens(normalized);
+        return normalized;
       })
       .catch((error: unknown) => {
-        if (error instanceof ApiError && error.status === 401) {
+        const rejectedCredentials =
+          error instanceof ApiError && error.status >= 400 && error.status < 500;
+        const malformedResponse =
+          error instanceof Error && !(error instanceof ApiError);
+        if (rejectedCredentials || malformedResponse) {
           clearAuthSession();
           window.dispatchEvent(new Event("resource-tracker:session-expired"));
         }

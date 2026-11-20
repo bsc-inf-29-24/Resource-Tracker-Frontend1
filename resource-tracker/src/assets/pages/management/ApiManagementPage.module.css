@@ -1,6 +1,8 @@
 .page {
   display: grid;
   gap: 1.25rem;
+  text-align: left;
+  margin-top: 0px ;
 }
 
 .departmentHead {
@@ -47,7 +49,9 @@
 .panel {
   display: grid;
   gap: 1rem;
+ font-size: 14px;
 }
+
 
 .panelHeading,
 .actions,
@@ -87,6 +91,10 @@
   gap: 0.4rem;
   min-width: min(100%, 220px);
   color: var(--rt-text);
+  font-weight: 400;
+}
+
+.field span{
   font-weight: 600;
 }
 
@@ -188,6 +196,50 @@
 .assignment {
   border-top: 1px solid var(--rt-border);
   padding-top: 1rem;
+}
+
+.assignmentDialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-md);
+  padding: 1.25rem;
+  color: var(--rt-text);
+  background: var(--rt-surface);
+  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 24%);
+}
+
+.assignmentDialog::backdrop {
+  background: rgb(0 0 0 / 48%);
+}
+
+.dialogHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dialogHeading h2 {
+  margin: 0;
+  color: var(--rt-green-900);
+}
+
+.assignmentIntro {
+  margin: 0.75rem 0 1rem;
+  text-align: left;
+}
+
+.dialogActions {
+  display: flex;
+  /* justify-content: space-between; */
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 @media (max-width: 600px) {

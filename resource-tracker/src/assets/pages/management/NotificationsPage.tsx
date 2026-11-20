@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import PageHeader from "../../components/layout/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { notificationsApi } from "../../data/api-services";
+import { getFrontendRoleFromBackendRole } from "../../data/auth-store";
 import ApiResponsePanel from "./ApiResponsePanel";
 import styles from "./ApiManagementPage.module.css";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
+  const isTeamLead =
+    getFrontendRoleFromBackendRole(user?.role) === "TEAM_LEAD";
   const [data, setData] = useState<unknown>();
   const [notificationId, setNotificationId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -60,21 +64,21 @@ export default function NotificationsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
+      {/* <PageHeader
         title="Notifications"
         description=""
-      />
+      /> */}
       {notice && (
         <p className={styles.notice} role="status">
           {notice}
         </p>
       )}
       <ApiResponsePanel
-        title="My notifications"
+        title={isTeamLead ? "Updates on your requests" : "My notifications"}
         data={data}
         loading={loading}
         error={error}
-        onRefresh={() => void loadNotifications()}
+        // onRefresh={() => void loadNotifications()}
       />
       <section className={`rt-root rt-card ${styles.panel}`}>
         <h2>Notification actions</h2>
@@ -83,6 +87,7 @@ export default function NotificationsPage() {
           <input
             id="notification-id"
             value={notificationId}
+            placeholder="Enter the notification ID"
             onChange={(event) => setNotificationId(event.target.value)}
           />
         </label>
@@ -110,7 +115,7 @@ export default function NotificationsPage() {
             disabled={busy || !notificationId.trim() || !user?.id}
             onClick={() => setConfirmDelete(true)}
           >
-            Delete notification
+            Delete
           </button>
         </div>
       </section>

@@ -86,7 +86,7 @@ export default function AppSidebar({
             }
           : {})}
       >
-        <p className={styles.label}>MAIN MENU</p>
+        {role !== "TEAM_LEAD" && <p className={styles.label}>MAIN MENU</p>}
         <nav className={styles.navigation} aria-label="Main navigation">
           {navigationItems.map((item) => {
             const isExact = pathname === item.path;

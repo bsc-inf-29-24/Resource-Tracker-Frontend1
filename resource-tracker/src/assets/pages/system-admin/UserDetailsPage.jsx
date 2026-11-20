@@ -61,7 +61,7 @@ export default function UserDetailsPage() {
           </div>
           <div>
             <dt>Role</dt>
-            <dd>{": "+roleLabels[user.role] ?? user.role}</dd>
+            <dd>{": " + (roleLabels[user.role] ?? user.role)}</dd>
           </div>
           <div>
             <dt>Department</dt>
@@ -73,10 +73,10 @@ export default function UserDetailsPage() {
               <StatusLabel status={user.status} />
             </dd>
           </div>
-          <div>
+          {/* <div>
             <dt>Created</dt>
             <dd>{": "+user.createdAt || "Not available"}</dd>
-          </div>
+          </div> */}
         </dl>
         <div className={styles.actions}>
           <button

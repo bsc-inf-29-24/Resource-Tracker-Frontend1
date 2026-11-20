@@ -6,6 +6,7 @@ import {
   apiRequest,
   clearAuthSession,
   getStoredAuthTokens,
+  normalizeAuthTokens,
   saveAuthTokens,
 } from "./api-client";
 
@@ -21,15 +22,6 @@ export interface AuthenticatedUser {
 interface AuthTokens {
   accessToken: string;
   refreshToken: string;
-}
-
-function isAuthTokens(value: unknown): value is AuthTokens {
-  if (typeof value !== "object" || value === null) return false;
-  const tokens = value as Record<string, unknown>;
-  return (
-    typeof tokens.accessToken === "string" &&
-    typeof tokens.refreshToken === "string"
-  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -52,7 +44,7 @@ function saveCurrentUser(user: AuthenticatedUser) {
   window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
 }
 
-export function getCurrentDemoUser(): AuthenticatedUser | undefined {
+export function getSavedUser(): AuthenticatedUser | undefined {
   const saved = window.localStorage.getItem(USER_STORAGE_KEY);
   if (!saved) return undefined;
 
@@ -109,23 +101,23 @@ export function getDashboardPathForRole(role?: string | null): string {
 export function getBackendRoleFromFrontendRole(role?: string | null): string {
   switch (role?.trim().toLowerCase()) {
     case "team-lead":
-      return "team_lead";
+      return "TEAM_LEAD";
     case "line-manager":
-      return "line_manager";
+      return "LINE_MANAGER";
     case "department-manager":
-      return "department_head";
+      return "DEPARTMENT_HEAD";
     case "system-admin":
-      return "system_admin";
+      return "SYSTEM_ADMIN";
     case "managing-director":
-      return "managing_director";
+      return "MANAGING_DIRECTOR";
     case "team-member":
-      return "team_member";
+      return "TEAM_MEMBER";
     default:
       throw new Error(`Unsupported frontend role: ${role ?? "missing"}.`);
   }
 }
 
-export async function registerDemoUser(
+export async function createAdministratorUser(
   draft: {
     name?: string;
     email?: string;
@@ -221,7 +213,7 @@ export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
   return normalized;
 }
 
-export async function signInDemoUser(
+export async function signIn(
   email: string,
   password: string,
 ): Promise<AuthenticatedUser> {
@@ -234,10 +226,11 @@ export async function signInDemoUser(
     false,
   );
 
-  if (!isAuthTokens(tokens)) {
+  const normalizedTokens = normalizeAuthTokens(tokens);
+  if (!normalizedTokens) {
     throw new Error("The sign-in response did not contain both session tokens.");
   }
-  saveTokens(tokens);
+  saveTokens(normalizedTokens);
 
   const profile = await getCurrentUserProfile();
   return profile;
@@ -251,48 +244,12 @@ export async function restoreAuthenticatedSession(): Promise<AuthenticatedUser |
     const user = await getCurrentUserProfile();
     return user;
   } catch (error) {
-    if (!(error instanceof ApiError) || error.status !== 401) throw error;
-
-    if (!tokens.refreshToken) {
-      clearTokens();
-      return null;
-    }
-
-    let refreshed: unknown;
-    try {
-      refreshed = await request<unknown>(
-        "/api/v1/auth/refresh",
-        {
-          method: "POST",
-          body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-        },
-        false,
-      );
-    } catch (refreshError) {
-      if (refreshError instanceof ApiError && refreshError.status === 401) {
-        clearTokens();
-        return null;
-      }
-      throw refreshError;
-    }
-
-    if (!isAuthTokens(refreshed)) {
-      throw new Error("The refresh response did not contain both session tokens.");
-    }
-    saveTokens(refreshed);
-    try {
-      return await getCurrentUserProfile();
-    } catch (profileError) {
-      if (profileError instanceof ApiError && profileError.status === 401) {
-        clearTokens();
-        return null;
-      }
-      throw profileError;
-    }
+    if (error instanceof ApiError && error.status === 401) return null;
+    throw error;
   }
 }
 
-export async function signOutDemoUser() {
+export async function signOut() {
   const tokens = readTokens();
 
   try {
@@ -317,6 +274,21 @@ export async function requestPasswordReset(email: string): Promise<{ message: st
     {
       method: "POST",
       body: JSON.stringify({ email }),
+    },
+    false,
+  );
+}
+
+export async function resetPassword(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<{ message: string }> {
+  return request<{ message: string }>(
+    "/api/v1/auth/reset-password",
+    {
+      method: "POST",
+      body: JSON.stringify({ email, code, newPassword }),
     },
     false,
   );

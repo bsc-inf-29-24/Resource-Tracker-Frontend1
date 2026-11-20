@@ -35,7 +35,7 @@ const requestStatuses: ApiRequestStatus[] = [
 
 interface ResourceRequestsDashboardProps {
   title: string;
-  description: string;
+  description?: string;
   detailsPath: string;
   dashboardVariant?: "department-head";
 }

@@ -6,8 +6,6 @@ import styles from "./ApiManagementPage.module.css";
 
 export default function AuditLogsPage() {
   const [data, setData] = useState<unknown>();
-  const [entityType, setEntityType] = useState("");
-  const [entityId, setEntityId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -31,34 +29,8 @@ export default function AuditLogsPage() {
     void loadAuditLogs();
   }, [loadAuditLogs]);
 
-  async function loadRecord() {
-    if (!entityType.trim() || !entityId.trim()) {
-      setError("Enter both the entity type and entity ID.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      setData(
-        await auditLogsApi.record(entityType.trim(), entityId.trim()),
-      );
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "The audit record could not be loaded.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
-        title="Audit logs"
-        description="Inspect audit log responses from the documented API. The response schema is not defined in Swagger."
-      />
       <section className={`rt-root rt-card ${styles.panel}`}>
         <h2>Audit record lookup</h2>
         <div className={styles.grid}>
@@ -67,6 +39,7 @@ export default function AuditLogsPage() {
             <input
               id="audit-entity-type"
               value={entityType}
+              placeholder="Enter entity type e.g user"
               onChange={(event) => setEntityType(event.target.value)}
             />
           </label>
@@ -75,6 +48,7 @@ export default function AuditLogsPage() {
             <input
               id="audit-entity-id"
               value={entityId}
+              placeholder="Enter entity id"
               onChange={(event) => setEntityId(event.target.value)}
             />
           </label>
@@ -86,20 +60,12 @@ export default function AuditLogsPage() {
             disabled={loading}
             onClick={() => void loadAuditLogs()}
           >
-            Load all logs
-          </button>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--primary"
-            disabled={loading}
-            onClick={() => void loadRecord()}
-          >
-            Load entity record
+            Refresh logs
           </button>
         </div>
       </section>
       <ApiResponsePanel
-        title="Audit response"
+        title="Audit Records"
         data={data}
         loading={loading}
         error={error}

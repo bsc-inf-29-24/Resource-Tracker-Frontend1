@@ -13,7 +13,7 @@ interface CreateUserFormProps {
   onCancel: () => void;
 }
 
-const companyEmailPattern = /^[^\s@]+@company\.com$/i;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function CreateUserForm({
   onSave,
@@ -21,7 +21,7 @@ export default function CreateUserForm({
 }: CreateUserFormProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<CreateUserInput["role"]>("team_lead");
+  const [role, setRole] = useState<CreateUserInput["role"]>("TEAM_LEAD");
   const [initialPassword, setInitialPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -30,14 +30,16 @@ export default function CreateUserForm({
   const [busy, setBusy] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
 
-  const isDirty = Boolean(fullName || email || initialPassword || confirmPassword);
+  const isDirty = Boolean(
+    fullName || email || initialPassword || confirmPassword,
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
     if (!fullName.trim()) nextErrors.fullName = "Enter the user's full name.";
-    if (!companyEmailPattern.test(email.trim())) {
-      nextErrors.email = "Use a valid @company.com email address.";
+    if (!emailPattern.test(email.trim())) {
+      nextErrors.email = "Enter a valid email address.";
     }
     if (initialPassword.length < 8 || initialPassword.length > 12) {
       nextErrors.initialPassword = "Use 8 to 12 characters.";
@@ -95,12 +97,14 @@ export default function CreateUserForm({
           System Administrator accounts are excluded because they are not in
           the documented create-user role enum.
         </p> */}
+        <h2>User Details</h2>
         <div className={styles.field}>
           <label htmlFor="create-user-full-name">Full name</label>
           <input
             id="create-user-full-name"
             autoComplete="name"
             maxLength={120}
+            placeholder="Enter user full name"
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
             aria-invalid={Boolean(errors.fullName)}
@@ -113,12 +117,13 @@ export default function CreateUserForm({
           )}
         </div>
         <div className={styles.field}>
-          <label htmlFor="create-user-email">Company email</label>
+          <label htmlFor="create-user-email">Email</label>
           <input
             id="create-user-email"
             type="email"
             autoComplete="email"
             maxLength={254}
+            placeholder="Enter user email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={Boolean(errors.email)}
@@ -131,7 +136,7 @@ export default function CreateUserForm({
           )}
         </div>
         <div className={styles.field}>
-          <label htmlFor="create-user-role">Role</label>
+          <label htmlFor="create-user-role">Assign role</label>
           <select
             id="create-user-role"
             value={role}
@@ -150,14 +155,13 @@ export default function CreateUserForm({
           </select>
         </div>
         <div className={styles.field}>
-          <label htmlFor="create-user-initial-password">
-            Initial password
-          </label>
+          <label htmlFor="create-user-initial-password">Password</label>
           <input
             id="create-user-initial-password"
             type="password"
             autoComplete="new-password"
             minLength={8}
+            placeholder="Enter user password"
             maxLength={12}
             value={initialPassword}
             onChange={(event) => setInitialPassword(event.target.value)}
@@ -171,15 +175,14 @@ export default function CreateUserForm({
           )}
         </div>
         <div className={styles.field}>
-          <label htmlFor="create-user-confirm-password">
-            Confirm password
-          </label>
+          <label htmlFor="create-user-confirm-password">Confirm password</label>
           <input
             id="create-user-confirm-password"
             type="password"
             autoComplete="new-password"
             minLength={8}
             maxLength={12}
+            placeholder="Confirm user password"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             aria-invalid={Boolean(errors.confirmPassword)}

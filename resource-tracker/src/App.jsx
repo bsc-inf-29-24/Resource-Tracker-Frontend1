@@ -303,8 +303,8 @@ function App() {
                 element={
                   <ResourceRequestsDashboard
                     title="Team Lead Dashboard"
-                    description="Request totals and recent requests are loaded from the authenticated backend request scope."
                     detailsPath="/team-lead/requests"
+                    showProfile={false}
                   />
                 }
               />

@@ -55,12 +55,6 @@
   font-size: 1.1rem;
 }
 
-.sectionHeading p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.82rem;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -102,6 +96,7 @@
   color: var(--color-text);
   font-size: 0.86rem;
   font-weight: 700;
+  text-align: left;
 }
 
 .field label span {

@@ -1,33 +1,17 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
-import { Eye, EyeOff } from "lucide-react";
-import {
-  availableDepartments,
-  supportedRoles,
-  type UserDraft,
-} from "../../data/user-store";
-import { registerDemoUser } from "../../data/auth-store";
+import { assignableUserRoles, usersApi, type CreateUserInput } from "../../data/api-services";
 import styles from "./AuthPage.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const roleHome: Record<UserDraft["role"], string> = {
-  "team-lead": "/team-lead/dashboard",
-  "line-manager": "/line-manager/dashboard",
-  "department-manager": "/department-manager/dashboard",
-  "system-admin": "/system-admin/dashboard",
-};
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState<UserDraft>({
-    name: "",
-    email: "",
-    department: "",
-    role: "team-lead",
-    team: "",
-  });
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<CreateUserInput["role"]>("TEAM_LEAD");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -36,17 +20,13 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
 
   const errors = {
-    name: submitted && !form.name.trim() ? "Enter your name." : "",
+    fullName: submitted && !fullName.trim() ? "Enter the user's full name." : "",
     email:
-      submitted && !form.email.trim()
-        ? "Enter your email address."
-        : submitted && !emailPattern.test(form.email.trim())
+      submitted && !email.trim()
+        ? "Enter the user's email address."
+        : submitted && !emailPattern.test(email.trim())
           ? "Enter a valid email address."
           : "",
-    department:
-      submitted && !availableDepartments.some((item) => item.name === form.department)
-        ? "Select an available department."
-        : "",
     password:
       submitted && password.length < 8
         ? "Use at least 8 characters for the password."
@@ -57,34 +37,31 @@ export default function RegisterPage() {
         : "",
   };
 
-  function updateField<K extends keyof UserDraft>(key: K, value: UserDraft[K]) {
-    setForm((current) => ({ ...current, [key]: value }));
-    setError("");
-  }
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
     setError("");
     if (
-      !form.name.trim() ||
-      !emailPattern.test(form.email.trim()) ||
-      !availableDepartments.some((item) => item.name === form.department) ||
+      !fullName.trim() ||
+      !emailPattern.test(email.trim()) ||
       password.length < 8 ||
       confirmPassword !== password
-    ) {
-      return;
-    }
+    ) return;
 
     setBusy(true);
     try {
-      const account = await registerDemoUser(form, password);
-      navigate(roleHome[account.role], { replace: true });
+      await usersApi.create({
+        fullName: fullName.trim(),
+        email: email.trim(),
+        role,
+        initialPassword: password,
+      });
+      navigate("/system-admin/users", { replace: true });
     } catch (registrationError) {
       setError(
         registrationError instanceof Error
           ? registrationError.message
-          : "The test account could not be created. Please try again."
+          : "The account could not be created. Please try again.",
       );
     } finally {
       setBusy(false);
@@ -93,147 +70,59 @@ export default function RegisterPage() {
 
   return (
     <section className={`rt-root ${styles.card}`} aria-labelledby="register-title">
-      <h1 id="register-title" className={styles.title}>
-        Create account
-      </h1>
-    
+      <h1 id="register-title" className={styles.title}>Create account</h1>
       {error && <ErrorMessage title="Could not create account" message={error} />}
-
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className={styles.field}>
           <label htmlFor="register-name">Full name</label>
-          <input
-            id="register-name"
-            autoComplete="name"
-            placeholder="Enter your full name"
-            value={form.name}
-            onChange={(event) => updateField("name", event.target.value)}
-            aria-invalid={Boolean(errors.name)}
-            aria-describedby={errors.name ? "register-name-error" : undefined}
-            required
-          />
-          {errors.name && <p className={styles.fieldError} id="register-name-error" role="alert">{errors.name}</p>}
+          <input id="register-name" autoComplete="name" value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            aria-invalid={Boolean(errors.fullName)} required />
+          {errors.fullName && <p className={styles.fieldError} role="alert">{errors.fullName}</p>}
         </div>
-
         <div className={styles.field}>
           <label htmlFor="register-email">Email address</label>
-          <input
-            id="register-email"
-            type="email"
-            autoComplete="email"
-            placeholder="Enter your email address"
-            value={form.email}
-            onChange={(event) => updateField("email", event.target.value)}
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "register-email-error" : undefined}
-            required
-          />
-          {errors.email && <p className={styles.fieldError} id="register-email-error" role="alert">{errors.email}</p>}
+          <input id="register-email" type="email" autoComplete="email" value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(errors.email)} required />
+          {errors.email && <p className={styles.fieldError} role="alert">{errors.email}</p>}
         </div>
-
-        <div className={styles.field}>
-          <label htmlFor="register-department">Department</label>
-          <select
-            id="register-department"
-            value={form.department}
-            onChange={(event) => updateField("department", event.target.value)}
-            aria-invalid={Boolean(errors.department)}
-            aria-describedby={errors.department ? "register-department-error" : undefined}
-            required
-          >
-            <option value="">Select a department</option>
-            {availableDepartments.map((department) => (
-              <option key={department.id} value={department.name}>
-                {department.name}
-              </option>
-            ))}
-          </select>
-          {errors.department && <p className={styles.fieldError} id="register-department-error" role="alert">{errors.department}</p>}
-        </div>
-
         <div className={styles.field}>
           <label htmlFor="register-role">Role</label>
-          <select
-            id="register-role"
-            value={form.role}
-            onChange={(event) => updateField("role", event.target.value as UserDraft["role"])}
-          >
-            {supportedRoles.map((role) => (
-              <option key={role.value} value={role.value}>
-                {role.label}
-              </option>
+          <select id="register-role" value={role}
+            onChange={(event) => setRole(event.target.value as CreateUserInput["role"])}>
+            {assignableUserRoles.map((item) => (
+              <option key={item.value} value={item.value}>{item.label}</option>
             ))}
           </select>
         </div>
-
-        {form.role === "team-lead" && (
-          <div className={styles.field}>
-            <label htmlFor="register-team">Team (optional)</label>
-            <input
-              id="register-team"
-              placeholder="Enter team name"
-              value={form.team ?? ""}
-              onChange={(event) => updateField("team", event.target.value)}
-            />
-          </div>
-        )}
-
         <div className={styles.field}>
           <label htmlFor="register-password">Password</label>
           <div className={styles.passwordControl}>
-            <input
-              id="register-password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value);
-                setError("");
-              }}
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={errors.password ? "register-password-error" : undefined}
-              required
-            />
-            <button
-              type="button"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-              aria-pressed={showPassword}
-              onClick={() => setShowPassword((visible) => !visible)}
-            >
-              {showPassword ? <EyeOff/> : <Eye/>}
+            <input id="register-password" type={showPassword ? "text" : "password"}
+              autoComplete="new-password" value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-invalid={Boolean(errors.password)} required />
+            <button type="button" aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword} onClick={() => setShowPassword((visible) => !visible)}>
+              {showPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
-          {errors.password && <p className={styles.fieldError} id="register-password-error" role="alert">{errors.password}</p>}
+          {errors.password && <p className={styles.fieldError} role="alert">{errors.password}</p>}
         </div>
-
         <div className={styles.field}>
           <label htmlFor="register-confirm-password">Confirm password</label>
-          <input
-            id="register-confirm-password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="new-password"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChange={(event) => {
-              setConfirmPassword(event.target.value);
-              setError("");
-            }}
-            aria-invalid={Boolean(errors.confirmPassword)}
-            aria-describedby={errors.confirmPassword ? "register-confirm-password-error" : undefined}
-            required
-          />
-          {errors.confirmPassword && <p className={styles.fieldError} id="register-confirm-password-error" role="alert">{errors.confirmPassword}</p>}
+          <input id="register-confirm-password" type={showPassword ? "text" : "password"}
+            autoComplete="new-password" value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            aria-invalid={Boolean(errors.confirmPassword)} required />
+          {errors.confirmPassword && <p className={styles.fieldError} role="alert">{errors.confirmPassword}</p>}
         </div>
-
         <button className={styles.submit} type="submit" disabled={busy}>
           {busy ? "Creating account..." : "Create account"}
         </button>
       </form>
-
-      <div className={styles.links}>
-        <Link to="/login">Back to sign in</Link>
-      </div>
+      <div className={styles.links}><Link to="/login">Back to sign in</Link></div>
     </section>
   );
 }

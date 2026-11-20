@@ -7,10 +7,10 @@ import {
   type ReactNode,
 } from "react";
 import {
-  getCurrentDemoUser,
+  getSavedUser,
   restoreAuthenticatedSession,
-  signInDemoUser,
-  signOutDemoUser,
+  signIn,
+  signOut,
   type AuthenticatedUser,
 } from "../data/auth-store";
 
@@ -27,7 +27,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthenticatedUser | null>(() => getCurrentDemoUser() ?? null);
+  const [user, setUser] = useState<AuthenticatedUser | null>(() => getSavedUser() ?? null);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionError, setSessionError] = useState<string | null>(null);
 
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const authenticatedUser = await signInDemoUser(email, password);
+    const authenticatedUser = await signIn(email, password);
     setUser(authenticatedUser);
     setSessionError(null);
     setIsLoading(false);
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await signOutDemoUser();
+      await signOut();
     } finally {
       setUser(null);
       setSessionError(null);

@@ -66,15 +66,12 @@ export type ApiRequestStatus =
 
 export interface CreateResourceRequestInput {
   itemDescription: string;
-  manufacturerLabel: string;
-  price: number;
   batchNumber: string;
-  vendor: string;
   quantity: number;
-  projectId: string;
-  lineManagerId: string;
-  teamId: string;
-  departmentId: string;
+  expectedDurationDays: number;
+  projectName: string;
+  lineManagerName: string;
+  teamName: string;
 }
 
 export interface UpdateResourceRequestInput {
@@ -123,6 +120,7 @@ function withQuery(
 
 export const usersApi = {
   list: () => apiRequest<unknown>("/api/v1/users"),
+  lineManagers: () => apiRequest<unknown>("/api/v1/users/line-managers"),
   create: (input: CreateUserInput) =>
     apiRequest<void>(
       "/api/v1/users",

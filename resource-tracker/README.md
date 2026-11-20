@@ -20,6 +20,12 @@ also lists the demonstration teams. Team activation changes are stored only in
 the current browser; the project list and team catalogue are sample data. These
 controls do not update the backend.
 
+The new request form uses demonstration department, team, and project names;
+Line Manager choices are loaded from the API. The backend resolves the selected
+team and project by name, so they must exist and be assigned to each other.
+Department is displayed for selection and team filtering; the API derives it
+from the selected team.
+
 ## Start the backend
 
 The Vite development server forwards `/api` and `/resource-requests` calls to

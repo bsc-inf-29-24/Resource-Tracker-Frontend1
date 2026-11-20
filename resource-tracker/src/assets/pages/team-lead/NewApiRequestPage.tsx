@@ -1,65 +1,114 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import PageHeader from "../../components/layout/PageHeader";
-import { resourceRequestsApi } from "../../data/api-services";
+import LoadingState from "../../components/feedback/LoadingState";
+import { mockDepartments } from "../../data/Users.js";
+import { resourceRequestsApi, usersApi } from "../../data/api-services";
 import type { CreateResourceRequestInput } from "../../data/api-services";
-import { isApiRecord, unwrapApiResponse } from "../../data/api-response";
+import {
+  isApiRecord,
+  unwrapApiResponse,
+} from "../../data/api-response";
+import {
+  teamLeadProjects,
+  teamLeadTeams,
+} from "../../data/team-lead-catalog";
 import styles from "../management/ApiManagementPage.module.css";
 import formStyles from "./NewRequestPage.module.css";
 
 type RequestForm = {
   itemDescription: string;
-  manufacturerLabel: string;
-  price: string;
   batchNumber: string;
-  vendor: string;
   quantity: string;
-  projectId: string;
-  lineManagerId: string;
-  teamId: string;
-  departmentId: string;
+  expectedDurationDays: string;
+  departmentName: string;
+  teamName: string;
+  projectName: string;
+  lineManagerName: string;
 };
 
 const initialForm: RequestForm = {
   itemDescription: "",
-  manufacturerLabel: "",
-  price: "",
   batchNumber: "",
-  vendor: "",
   quantity: "",
-  projectId: "",
-  lineManagerId: "",
-  teamId: "",
-  departmentId: "",
+  expectedDurationDays: "",
+  departmentName: "",
+  teamName: "",
+  projectName: "",
+  lineManagerName: "",
 };
 
-function isValidPrice(value: string) {
-  if (!/^\d+(?:\.\d{1,2})?$/.test(value.trim())) return false;
-  const amount = Number(value);
-  return Number.isFinite(amount) && amount >= 0.01;
+interface LineManagerOption {
+  id: string;
+  fullName: string;
+  email: string;
 }
 
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
-}
+const departmentNames = [
+  ...new Set([
+    ...mockDepartments.map((department) => department.name),
+    "Data Science",
+  ]),
+].sort((a, b) => a.localeCompare(b));
 
 export default function NewApiRequestPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof RequestForm, string>>>({});
+  const [lineManagers, setLineManagers] = useState<LineManagerOption[]>([]);
+  const [isLoadingLineManagers, setIsLoadingLineManagers] = useState(true);
+  const [lineManagerLoadError, setLineManagerLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createdDraft, setCreatedDraft] = useState(false);
-  const [createdDraftId, setCreatedDraftId] = useState("");
   const [submissionComplete, setSubmissionComplete] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+
+  const loadLineManagers = useCallback(async () => {
+    setIsLoadingLineManagers(true);
+    setLineManagerLoadError("");
+    try {
+      const response = unwrapApiResponse(await usersApi.lineManagers());
+      if (!Array.isArray(response)) {
+        throw new Error("The Line Manager list response was invalid.");
+      }
+      const options = response.map((record) => {
+        if (
+          !isApiRecord(record) ||
+          typeof record.id !== "string" ||
+          !record.id.trim() ||
+          typeof record.fullName !== "string" ||
+          !record.fullName.trim() ||
+          typeof record.email !== "string"
+        ) {
+          throw new Error("A Line Manager record is missing required details.");
+        }
+        return {
+          id: record.id,
+          fullName: record.fullName,
+          email: record.email,
+        };
+      });
+      setLineManagers(options);
+    } catch (loadError) {
+      setLineManagerLoadError(
+        loadError instanceof Error
+          ? loadError.message
+          : "The active Line Managers could not be loaded.",
+      );
+      setLineManagers([]);
+    } finally {
+      setIsLoadingLineManagers(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadLineManagers();
+  }, [loadLineManagers]);
 
   function updateField<K extends keyof RequestForm>(
     field: K,
@@ -74,27 +123,39 @@ export default function NewApiRequestPage() {
     setSuccess("");
   }
 
+  function updateDepartment(value: string) {
+    setForm((current) => ({
+      ...current,
+      departmentName: value,
+      teamName: "",
+    }));
+    setFieldErrors((current) => ({
+      ...current,
+      departmentName: undefined,
+      teamName: undefined,
+    }));
+    setSubmitError("");
+    setSuccess("");
+  }
+
   function validate(): Partial<Record<keyof RequestForm, string>> {
     const errors: Partial<Record<keyof RequestForm, string>> = {};
-    for (const field of [
-      "itemDescription",
-      "manufacturerLabel",
-      "batchNumber",
-      "vendor",
-    ] as const) {
+    for (const field of ["itemDescription", "batchNumber"] as const) {
       if (!form[field].trim()) errors[field] = "This field is required.";
-    }
-    if (!isValidPrice(form.price)) {
-      errors.price = "Enter a unit price of at least 0.01 with at most 2 decimals.";
     }
     if (!/^[1-9]\d*$/.test(form.quantity.trim())) {
       errors.quantity = "Enter a positive whole number.";
     }
-    if (!form.departmentId.trim()) errors.departmentId = "Enter the backend department ID.";
-    if (!form.teamId.trim()) errors.teamId = "Enter the backend team ID.";
-    if (!form.projectId.trim()) errors.projectId = "Enter the backend project ID.";
-    if (!isUuid(form.lineManagerId.trim())) {
-      errors.lineManagerId = "Enter the assigned Line Manager's UUID.";
+    if (!/^[1-9]\d*$/.test(form.expectedDurationDays.trim())) {
+      errors.expectedDurationDays = "Enter a positive whole number of days.";
+    }
+    if (!form.departmentName) errors.departmentName = "Select a department.";
+    if (!form.teamName) errors.teamName = "Select a team.";
+    if (!form.projectName) errors.projectName = "Select a project.";
+    if (!form.lineManagerName) errors.lineManagerName = "Select a Line Manager.";
+    if (lineManagerLoadError) errors.lineManagerName = "Load Line Managers before continuing.";
+    if (lineManagers.length === 0 && !lineManagerLoadError) {
+      errors.lineManagerName = "No active Line Managers are available.";
     }
     return errors;
   }
@@ -110,15 +171,12 @@ export default function NewApiRequestPage() {
   function requestInput(): CreateResourceRequestInput {
     return {
       itemDescription: form.itemDescription.trim(),
-      manufacturerLabel: form.manufacturerLabel.trim(),
-      price: Number(form.price),
       batchNumber: form.batchNumber.trim(),
-      vendor: form.vendor.trim(),
       quantity: Number(form.quantity),
-      projectId: form.projectId,
-      lineManagerId: form.lineManagerId.trim(),
-      teamId: form.teamId,
-      departmentId: form.departmentId,
+      expectedDurationDays: Number(form.expectedDurationDays),
+      projectName: form.projectName,
+      lineManagerName: form.lineManagerName,
+      teamName: form.teamName,
     };
   }
 
@@ -129,34 +187,21 @@ export default function NewApiRequestPage() {
     setSubmitError("");
     setSuccess("");
     try {
-      let requestId = createdDraftId;
-      if (!createdDraft) {
-        const draftResponse = unwrapApiResponse(
-          await resourceRequestsApi.create(requestInput()),
-        );
-        setCreatedDraft(true);
-        if (
-          !isApiRecord(draftResponse) ||
-          (typeof draftResponse.id !== "string" &&
-            typeof draftResponse.id !== "number")
-        ) {
-          setSubmitError(
-            " created a DRAFT with no ID. Check Request History before trying again; this form will not create a duplicate.",
-          );
-          return;
-        }
-        requestId = String(draftResponse.id);
-        setCreatedDraftId(requestId);
-      }
-      if (!requestId) {
+      const response = unwrapApiResponse(
+        await resourceRequestsApi.create(requestInput()),
+      );
+      if (
+        !isApiRecord(response) ||
+        (typeof response.id !== "string" && typeof response.id !== "number")
+      ) {
+        setSubmissionComplete(true);
         setSubmitError(
-          "The draft ID is unavailable. Check Request History before retrying.",
+          "The request was sent, but the API did not return its ID. Check Request History before trying again.",
         );
         return;
       }
-      await resourceRequestsApi.update(requestId, { status: "SUBMITTED" });
       setSubmissionComplete(true);
-      setSuccess(`Request ${requestId} was submitted.`);
+      setSuccess(`Request ${String(response.id)} was submitted.`);
     } catch (requestError) {
       setSubmitError(
         requestError instanceof Error
@@ -170,7 +215,7 @@ export default function NewApiRequestPage() {
 
   function cancelRequest() {
     const hasInput = Object.values(form).some((value) => value.trim());
-    if (hasInput || createdDraft) {
+    if (hasInput || submissionComplete) {
       setConfirmCancel(true);
       return;
     }
@@ -183,6 +228,13 @@ export default function NewApiRequestPage() {
         title="Submit a resource request"
         supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
+      {lineManagerLoadError && (
+        <ErrorMessage
+          title="Line Managers could not be loaded"
+          message={lineManagerLoadError}
+          onRetry={() => void loadLineManagers()}
+        />
+      )}
       {submitError && (
         <ErrorMessage title="Request operation failed" message={submitError} />
       )}
@@ -214,40 +266,32 @@ export default function NewApiRequestPage() {
                   <dd className={formStyles.reviewValue}>{form.itemDescription}</dd>
                 </div>
                 <div className={formStyles.reviewField}>
-                  <dt className={formStyles.reviewLabel}>Manufacturer label</dt>
-                  <dd className={formStyles.reviewValue}>{form.manufacturerLabel}</dd>
-                </div>
-                <div className={formStyles.reviewField}>
-                  <dt className={formStyles.reviewLabel}>Unit price</dt>
-                  <dd className={formStyles.reviewValue}>{form.price}</dd>
+                  <dt className={formStyles.reviewLabel}>Batch number</dt>
+                  <dd className={formStyles.reviewValue}>{form.batchNumber}</dd>
                 </div>
                 <div className={formStyles.reviewField}>
                   <dt className={formStyles.reviewLabel}>Quantity</dt>
                   <dd className={formStyles.reviewValue}>{form.quantity}</dd>
                 </div>
                 <div className={formStyles.reviewField}>
-                  <dt className={formStyles.reviewLabel}>Batch number</dt>
-                  <dd className={formStyles.reviewValue}>{form.batchNumber}</dd>
-                </div>
-                <div className={formStyles.reviewField}>
-                  <dt className={formStyles.reviewLabel}>Vendor</dt>
-                  <dd className={formStyles.reviewValue}>{form.vendor}</dd>
+                  <dt className={formStyles.reviewLabel}>Expected duration (days)</dt>
+                  <dd className={formStyles.reviewValue}>{form.expectedDurationDays}</dd>
                 </div>
                 <div className={formStyles.reviewField}>
                   <dt className={formStyles.reviewLabel}>Department</dt>
-                  <dd className={formStyles.reviewValue}>{form.departmentId}</dd>
+                  <dd className={formStyles.reviewValue}>{form.departmentName}</dd>
                 </div>
                 <div className={formStyles.reviewField}>
                   <dt className={formStyles.reviewLabel}>Team</dt>
-                  <dd className={formStyles.reviewValue}>{form.teamId}</dd>
+                  <dd className={formStyles.reviewValue}>{form.teamName}</dd>
                 </div>
                 <div className={formStyles.reviewField}>
                   <dt className={formStyles.reviewLabel}>Project</dt>
-                  <dd className={formStyles.reviewValue}>{form.projectId}</dd>
+                  <dd className={formStyles.reviewValue}>{form.projectName}</dd>
                 </div>
                 <div className={`${formStyles.reviewField} ${formStyles.fullWidth}`}>
-                  <dt className={formStyles.reviewLabel}>Line Manager UUID</dt>
-                  <dd className={formStyles.reviewValue}>{form.lineManagerId}</dd>
+                  <dt className={formStyles.reviewLabel}>Line Manager</dt>
+                  <dd className={formStyles.reviewValue}>{form.lineManagerName}</dd>
                 </div>
               </dl>
             ) : (
@@ -255,11 +299,9 @@ export default function NewApiRequestPage() {
                 {(
                   [
                     ["itemDescription", "Item description"],
-                    ["price", "Unit price"],
-                    ["manufacturerLabel", "Manufacturer label"],
                     ["batchNumber", "Batch number"],
-                    ["vendor", "Vendor"],
                     ["quantity", "Quantity"],
+                    ["expectedDurationDays", "Expected duration (days)"],
                   ] as const
                 ).map(([field, label]) => (
                   <div className={formStyles.field} key={field}>
@@ -267,40 +309,12 @@ export default function NewApiRequestPage() {
                     <input
                       id={`request-${field}`}
                       type={
-                        field === "price" || field === "quantity"
+                        field === "quantity" || field === "expectedDurationDays"
                           ? "number"
                           : "text"
                       }
-                      min={
-                        field === "price" ? "0.01" : field === "quantity" ? "1" : undefined
-                      }
-                      step={
-                        field === "price" ? "0.01" : field === "quantity" ? "1" : undefined
-                      }
-                      value={form[field]}
-                      onChange={(event) => updateField(field, event.target.value)}
-                      aria-invalid={Boolean(fieldErrors[field])}
-                      required
-                    />
-                    {fieldErrors[field] && (
-                      <p className={formStyles.fieldError} role="alert">
-                        {fieldErrors[field]}
-                      </p>
-                    )}
-                  </div>
-                ))}
-                {(
-                  [
-                    ["departmentId", "Department ID"],
-                    ["teamId", "Team ID"],
-                    ["projectId", "Project ID"],
-                  ] as const
-                ).map(([field, label]) => (
-                  <div className={formStyles.field} key={field}>
-                    <label htmlFor={`request-${field}`}>{label} *</label>
-                    <input
-                      id={`request-${field}`}
-                      inputMode="numeric"
+                      min={field === "quantity" || field === "expectedDurationDays" ? "1" : undefined}
+                      step={field === "quantity" || field === "expectedDurationDays" ? "1" : undefined}
                       value={form[field]}
                       onChange={(event) => updateField(field, event.target.value)}
                       aria-invalid={Boolean(fieldErrors[field])}
@@ -314,41 +328,125 @@ export default function NewApiRequestPage() {
                   </div>
                 ))}
                 <div className={formStyles.field}>
-                  <label htmlFor="request-line-manager">
-                    Line Manager UUID *
-                  </label>
-                  <input
-                    id="request-line-manager"
-                    value={form.lineManagerId}
-                    onChange={(event) =>
-                      updateField("lineManagerId", event.target.value)
-                    }
-                    aria-invalid={Boolean(fieldErrors.lineManagerId)}
+                  <label htmlFor="request-department">Department *</label>
+                  <select
+                    id="request-department"
+                    value={form.departmentName}
+                    onChange={(event) => updateDepartment(event.target.value)}
+                    aria-invalid={Boolean(fieldErrors.departmentName)}
                     required
-                  />
-                  {fieldErrors.lineManagerId && (
+                  >
+                    <option value="">Select a department</option>
+                    {departmentNames.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldErrors.departmentName && (
                     <p className={formStyles.fieldError} role="alert">
-                      {fieldErrors.lineManagerId}
+                      {fieldErrors.departmentName}
                     </p>
                   )}
                 </div>
+                <div className={formStyles.field}>
+                  <label htmlFor="request-team">Team *</label>
+                  <select
+                    id="request-team"
+                    value={form.teamName}
+                    onChange={(event) => updateField("teamName", event.target.value)}
+                    aria-invalid={Boolean(fieldErrors.teamName)}
+                    disabled={!form.departmentName}
+                    required
+                  >
+                    <option value="">
+                      {form.departmentName ? "Select a team" : "Select a department first"}
+                    </option>
+                    {teamLeadTeams
+                      .filter((team) => team.department === form.departmentName)
+                      .map((team) => (
+                        <option key={team.id} value={team.name}>
+                          {team.name}
+                        </option>
+                      ))}
+                  </select>
+                  {fieldErrors.teamName && (
+                    <p className={formStyles.fieldError} role="alert">
+                      {fieldErrors.teamName}
+                    </p>
+                  )}
+                </div>
+                <div className={formStyles.field}>
+                  <label htmlFor="request-project">Project *</label>
+                  <select
+                    id="request-project"
+                    value={form.projectName}
+                    onChange={(event) => updateField("projectName", event.target.value)}
+                    aria-invalid={Boolean(fieldErrors.projectName)}
+                    required
+                  >
+                    <option value="">Select a project</option>
+                    {teamLeadProjects.map((project) => (
+                      <option key={project.id} value={project.name}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldErrors.projectName && (
+                    <p className={formStyles.fieldError} role="alert">
+                      {fieldErrors.projectName}
+                    </p>
+                  )}
+                </div>
+                <div className={formStyles.field}>
+                  <label htmlFor="request-line-manager">Line Manager *</label>
+                  {isLoadingLineManagers ? (
+                    <LoadingState message="Loading active Line Managers..." />
+                  ) : (
+                    <select
+                      id="request-line-manager"
+                      value={form.lineManagerName}
+                      onChange={(event) =>
+                        updateField("lineManagerName", event.target.value)
+                      }
+                      aria-invalid={Boolean(fieldErrors.lineManagerName)}
+                      disabled={lineManagers.length === 0}
+                      required
+                    >
+                      <option value="">
+                        {lineManagers.length
+                          ? "Select a Line Manager"
+                          : "No active Line Managers available"}
+                      </option>
+                      {lineManagers.map((manager) => (
+                        <option key={manager.id} value={manager.fullName}>
+                          {manager.fullName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {fieldErrors.lineManagerName && (
+                    <p className={formStyles.fieldError} role="alert">
+                      {fieldErrors.lineManagerName}
+                    </p>
+                  )}
+                </div>
+                <p className={formStyles.fullWidth} role="note">
+                  Department, team, and project options are demonstration data. Choose
+                  values that exist in the backend for request submission to succeed.
+                </p>
               </div>
-            )}
-            {isReviewing && createdDraft && (
-              <p className={styles.notice} role="status">
-                A draft already exists. Retry will only submit that draft.
-              </p>
             )}
             <div className={formStyles.actions}>
               <button
                 type="button"
                 className="rt-root rt-btn rt-btn--outline"
                 onClick={() => {
-                  if (isReviewing && !createdDraft) setIsReviewing(false);
+                  if (isReviewing && !submissionComplete) setIsReviewing(false);
                   else cancelRequest();
                 }}
               >
-                {isReviewing && !createdDraft ? "Back to edit" : "Cancel"}
+                {isReviewing && !submissionComplete ? "Back to edit" : "Cancel"}
               </button>
               {!isReviewing ? (
                 <button
@@ -363,19 +461,14 @@ export default function NewApiRequestPage() {
                   className="rt-root rt-btn rt-btn--primary"
                   disabled={
                     isSubmitting ||
-                    submissionComplete ||
-                    (createdDraft && !createdDraftId)
+                    submissionComplete
                   }
                 >
                   {isSubmitting
-                    ? createdDraft
-                      ? "Submitting..."
-                      : "Creating draft..."
+                    ? "Submitting..."
                     : submissionComplete
                       ? "Submitted"
-                    : createdDraft
-                      ? "Retry submission"
-                      : "Create draft and submit"}
+                      : "Submit request"}
                 </button>
               )}
             </div>
@@ -386,20 +479,16 @@ export default function NewApiRequestPage() {
         title={
           submissionComplete
             ? "Leave submitted request?"
-            : createdDraft
-              ? "Leave this draft?"
-              : "Discard request details?"
+            : "Discard request details?"
         }
         message={
           submissionComplete
             ? "The request was submitted. Leaving will not remove it."
-            : createdDraft
-            ? "The draft will remain saved. Leaving will not delete it."
             : "The entered request details will be lost."
         }
         confirmLabel="Continue"
         cancelLabel="Stay here"
-        destructive={!createdDraft}
+        destructive={!submissionComplete}
         onCancel={() => setConfirmCancel(false)}
         onConfirm={() => {
           setConfirmCancel(false);

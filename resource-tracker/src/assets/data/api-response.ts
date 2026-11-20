@@ -28,8 +28,9 @@ export function unwrapApiResponse(value: unknown): unknown {
       current = current.result;
       continue;
     }
+    const record = current;
     const collectionKey = collectionKeys.find((key) =>
-      Array.isArray(current[key]),
+      Array.isArray(record[key]),
     );
     if (collectionKey) return current[collectionKey];
     break;

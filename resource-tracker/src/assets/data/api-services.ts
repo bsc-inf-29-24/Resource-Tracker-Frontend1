@@ -117,6 +117,7 @@ function withQuery(
 
 export const usersApi = {
   list: () => apiRequest<unknown>("/api/v1/users"),
+  lineManagers: () => apiRequest<unknown>("/api/v1/users/line-managers"),
   create: (input: CreateUserInput) =>
     apiRequest<void>(
       "/api/v1/users",

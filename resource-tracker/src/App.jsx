@@ -73,8 +73,17 @@ const ResetPasswordPage = page(
 );
 
 // Team Lead
+const TeamLeadDashboardPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadDashboard"),
+);
 const NewRequestPage = page(
   () => import("./assets/pages/team-lead/NewApiRequestPage"),
+);
+const TeamLeadRequestHistoryPage = page(
+  () => import("./assets/pages/team-lead/RequestHistoryPage"),
+);
+const TeamLeadQueryResponsePage = page(
+  () => import("./assets/pages/team-lead/QueryResponsePage"),
 );
 
 const SpendingReportsPage = page(() =>
@@ -148,16 +157,6 @@ const AuditLogsPage = page(
 );
 const TeamMemberDashboard = page(
   () => import("./assets/pages/team-member/TeamMemberDashboard"),
-);
-const TeamLeadRequestHistoryPage = page(() =>
-  import("./assets/pages/management/ResourceRequestPages").then((module) => ({
-    default: module.TeamLeadRequestHistoryPage,
-  })),
-);
-const TeamLeadQueryResponsePage = page(() =>
-  import("./assets/pages/management/ResourceRequestPages").then((module) => ({
-    default: module.TeamLeadQueryResponsePage,
-  })),
 );
 const LineManagerReviewQueuePage = page(() =>
   import("./assets/pages/management/ResourceRequestPages").then((module) => ({
@@ -300,13 +299,7 @@ function App() {
               {/* Team Lead */}
               <Route
                 path="/team-lead/dashboard"
-                element={
-                  <ResourceRequestsDashboard
-                    title="Team Lead Dashboard"
-                    detailsPath="/team-lead/requests"
-                    showProfile={false}
-                  />
-                }
+                element={<TeamLeadDashboardPage />}
               />
               <Route
                 path="/team-lead/requests/new"

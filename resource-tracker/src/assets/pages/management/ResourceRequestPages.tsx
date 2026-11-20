@@ -17,6 +17,7 @@ import {
   getApiRecords,
   humanizeApiKey,
 } from "../../data/api-response";
+import TeamLeadTeamsTable from "../team-lead/TeamLeadTeamsTable";
 import ApiDataView from "./ApiDataView";
 import styles from "./ApiManagementPage.module.css";
 
@@ -38,6 +39,7 @@ interface ResourceRequestsPageProps {
   description: string;
   mode?: PageMode;
   includeAudit?: boolean;
+  includeTeams?: boolean;
   initialStatus?: ApiRequestStatus | "";
 }
 
@@ -58,6 +60,7 @@ export function ResourceRequestsPage({
   description,
   mode = "history",
   includeAudit = false,
+  includeTeams = false,
   initialStatus = "",
 }: ResourceRequestsPageProps) {
   const { id: routeId } = useParams();
@@ -208,21 +211,14 @@ export function ResourceRequestsPage({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader title={title} description={description} />
-      {mode === "query-response" && (
-        <p className={styles.notice} role="note">
-          Swagger documents no requester-reply field or transition for a
-          queried request. The details are available, but this page will not
-          send an invented response payload.
-        </p>
-      )}
-      {error && (
+      {/* <PageHeader title={title} description={description} /> */}
+      {/* {error && (
         <ErrorMessage
           title="Request operation failed"
           message={error}
           onRetry={loadRequests}
         />
-      )}
+      )} */}
       {notice && (
         <p className={styles.notice} role="status">
           {notice}
@@ -232,14 +228,7 @@ export function ResourceRequestsPage({
       <section className={`rt-root rt-card ${styles.panel}`}>
         <div className={styles.panelHeading}>
           <h2>Backend requests</h2>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--outline"
-            disabled={loading}
-            onClick={() => void loadRequests()}
-          >
-            Refresh
-          </button>
+
         </div>
         <label className={styles.field} htmlFor="request-status-filter">
           <span>Filter by status</span>
@@ -282,7 +271,7 @@ export function ResourceRequestsPage({
         )}
       </section>
 
-      <section className={`rt-root rt-card ${styles.panel}`}>
+      {/* <section className={`rt-root rt-card ${styles.panel}`}>
         <h2>Request details</h2>
           {detailError && (
             <ErrorMessage
@@ -358,7 +347,8 @@ export function ResourceRequestsPage({
               </button>
             </form>
           )}
-      </section>
+      </section> */}
+      {includeTeams && <TeamLeadTeamsTable />}
     </section>
   );
 }
@@ -368,6 +358,7 @@ export function TeamLeadRequestHistoryPage() {
     <ResourceRequestsPage
       title="Request history"
       description=""
+      includeTeams
     />
   );
 }

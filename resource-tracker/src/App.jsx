@@ -76,6 +76,12 @@ const ResetPasswordPage = page(
 const NewRequestPage = page(
   () => import("./assets/pages/team-lead/NewApiRequestPage"),
 );
+const TeamLeadTeamsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadTeamsPage"),
+);
+const TeamLeadProjectsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadProjectsPage"),
+);
 
 const SpendingReportsPage = page(() =>
   import("./assets/pages/management/ReportsPage").then((module) => ({
@@ -324,6 +330,14 @@ function App() {
                 path="/team-lead/requests/:id/respond"
                 element={<TeamLeadQueryResponsePage />}
               />
+              <Route
+                path="/team-lead/teams"
+                element={<TeamLeadTeamsPage />}
+              />
+              <Route
+                path="/team-lead/projects"
+                element={<TeamLeadProjectsPage />}
+              />
 
               {/* Line Manager */}
               <Route
@@ -358,8 +372,8 @@ function App() {
                 path="/department-manager/dashboard"
                 element={
                   <ResourceRequestsDashboard
-                    title="Department Head Dashboard"
-                    description="Department-head request counts and recent requests are loaded from the backend role scope."
+                    // title="Department Head Dashboard"
+                    // description="Department-head request counts and recent requests are loaded from the backend role scope."
                     detailsPath="/department-manager/requests"
                     dashboardVariant="department-head"
                   />
@@ -377,10 +391,10 @@ function App() {
                 path="/department-manager/spending"
                 element={<SpendingReportsPage />}
               />
-              <Route
+              {<Route
                 path="/department-manager/allocation"
                 element={<ResourceAllocationPage />}
-              />
+              />}
               <Route
                 path="/department-manager/reports"
                 element={<DepartmentReportsPage />}

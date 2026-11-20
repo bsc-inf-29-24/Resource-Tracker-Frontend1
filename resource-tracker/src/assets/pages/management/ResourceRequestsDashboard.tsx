@@ -138,71 +138,10 @@ export default function ResourceRequestsDashboard({
   }, [detailsPath, requestRecords]);
 
   return (
-    <section
-      className={`rt-root ${styles.page} ${
-        isDepartmentHeadDashboard ? styles.departmentHead : ""
-      }`}
-    >
-      {isDepartmentHeadDashboard ? (
-        user ? (
-          <header className={styles.departmentProfileHeader}>
-            <section
-              className={`rt-root rt-card ${styles.panel} ${styles.departmentProfile}`}
-              aria-labelledby="department-profile-title"
-            >
-              <h2 id="department-profile-title">Department profile</h2>
-              <dl className={`${styles.apiDataFields} ${styles.departmentProfileFields}`}>
-                <div className={styles.apiDataField}>
-                  <dt>Name</dt>
-                  <dd>{user.fullName}</dd>
-                </div>
-                <div className={styles.apiDataField}>
-                  <dt>Role</dt>
-                  <dd>{humanizeApiKey(user.role)}</dd>
-                </div>
-              </dl>
-            </section>
-          </header>
-        ) : null
-      ) : (
-        <PageHeader title={title} description={description} />
-      )}
-      {user && !isDepartmentHeadDashboard && (
-        <section
-          className={`rt-root rt-card ${styles.panel}`}
-        >
-          <h2>Profile</h2>
-          <dl className={styles.apiDataFields}>
-            <div className={styles.apiDataField}>
-              <dt>Name</dt>
-              <dd>{user.fullName}</dd>
-            </div>
-            <div className={styles.apiDataField}>
-              <dt>Role</dt>
-              <dd>{humanizeApiKey(user.role)}</dd>
-            </div>
-            {user.department && (
-              <div className={styles.apiDataField}>
-                <dt>Department</dt>
-                <dd>{user.department}</dd>
-              </div>
-            )}
-            {user.team && (
-              <div className={styles.apiDataField}>
-                <dt>Team</dt>
-                <dd>{user.team}</dd>
-              </div>
-            )}
-          </dl>
-        </section>
-      )}
-      {error && (
-        <ErrorMessage
-          title="Request data unavailable"
-          message={error}
-          onRetry={() => void loadRequests()}
-        />
-      )}
+    <section className={`rt-root ${styles.page}`}>
+      {/* <PageHeader title={title} description={description} /> */}
+   
+   
       {!error && loading ? (
         <LoadingState message="Loading backend requests..." />
       ) : !error && !loading && requests === undefined ? (

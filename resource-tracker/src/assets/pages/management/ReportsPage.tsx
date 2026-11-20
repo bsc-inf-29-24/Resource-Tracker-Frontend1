@@ -118,17 +118,17 @@ export default function ReportsPage({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
+      {/* <PageHeader
         title={title}
         description={description}
-      />
+      /> */}
       {error && (
         <p className={styles.formError} role="alert">
           {error}
         </p>
       )}
       <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Report filters</h2>
+        <h2>Spending Filter</h2>
         <div className={styles.grid}>
           {availableOptions.length > 1 && (
             <label className={styles.field} htmlFor="report-name">

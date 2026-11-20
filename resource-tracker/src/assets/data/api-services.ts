@@ -1,21 +1,21 @@
 import { apiRequest } from "./api-client";
 
 export type AssignableUserRole =
-  | "team_lead"
-  | "line_manager"
-  | "department_head"
-  | "managing_director"
-  | "team_member";
+  | "TEAM_LEAD"
+  | "LINE_MANAGER"
+  | "DEPARTMENT_HEAD"
+  | "MANAGING_DIRECTOR"
+  | "TEAM_MEMBER";
 
 export const assignableUserRoles: {
   value: AssignableUserRole;
   label: string;
 }[] = [
-  { value: "team_lead", label: "Team Lead" },
-  { value: "line_manager", label: "Line Manager" },
-  { value: "department_head", label: "Department Head" },
-  { value: "managing_director", label: "Managing Director" },
-  { value: "team_member", label: "Team Member" },
+  { value: "TEAM_LEAD", label: "Team Lead" },
+  { value: "LINE_MANAGER", label: "Line Manager" },
+  { value: "DEPARTMENT_HEAD", label: "Department Head" },
+  { value: "MANAGING_DIRECTOR", label: "Managing Director" },
+  { value: "TEAM_MEMBER", label: "Team Member" },
 ];
 
 export interface CreateUserInput {
@@ -49,7 +49,7 @@ export interface ResourceInput {
   name?: string;
   type?: "insourced" | "outsourced";
   description?: string;
-  departmentName?: number;
+  departmentName?: string;
   price?: number;
   label?: string;
   vendor?: string;
@@ -76,15 +76,12 @@ export interface CreateResourceRequestInput {
 
 export interface UpdateResourceRequestInput {
   itemDescription?: string;
-  manufacturerLabel?: string;
-  price?: number;
   batchNumber?: string;
-  vendor?: string;
   quantity?: number;
-  projectId?: string;
-  lineManagerId?: string;
-  teamId?: string;
-  departmentId?: string;
+  expectedDurationDays?: number;
+  projectName?: string;
+  lineManagerName?: string;
+  teamName?: string;
   status?: Exclude<ApiRequestStatus, "DRAFT">;
   note?: string;
 }
@@ -127,20 +124,20 @@ export const usersApi = {
       { method: "POST", body: JSON.stringify(input) },
     ),
   setRole: (id: string, role: AssignableUserRole) =>
-    apiRequest<unknown>(`/api/v1/users/${encodeURIComponent(id)}/role`, {
+    apiRequest<unknown>(`/api/v1/users/${encodeURIComponent(id)}`, {
       method: "PATCH",
-      body: JSON.stringify({ role }),
+      body: JSON.stringify({ action: "assign_role", role }),
     }),
   deactivate: (id: string) =>
-    apiRequest<unknown>(
-      `/api/v1/users/${encodeURIComponent(id)}/deactivate`,
-      { method: "PATCH" },
-    ),
+    apiRequest<unknown>(`/api/v1/users/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ action: "deactivate" }),
+    }),
   reactivate: (id: string) =>
-    apiRequest<unknown>(
-      `/api/v1/users/${encodeURIComponent(id)}/reactivate`,
-      { method: "PATCH" },
-    ),
+    apiRequest<unknown>(`/api/v1/users/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ action: "reactivate" }),
+    }),
 };
 
 export const departmentsApi = {
@@ -257,17 +254,27 @@ export const resourcesApi = {
     ),
   get: (id: string) =>
     apiRequest<unknown>(`/api/v1/resources/${encodeURIComponent(id)}`),
-  create: (input: ResourceInput) =>
-    apiRequest<unknown>("/api/v1/resources", {
+  create: (input: ResourceInput) => {
+    const { type, ...body } = input;
+    if (type !== "insourced" && type !== "outsourced") {
+      throw new Error("Select a supported resource type.");
+    }
+    return apiRequest<unknown>(`/api/v1/resources/${type}`, {
       method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: ResourceInput) =>
-    apiRequest<unknown>(`/api/v1/resources/${encodeURIComponent(id)}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  available: () => apiRequest<unknown>("/api/v1/resources/available"),
+      body: JSON.stringify(body),
+    });
+  },
+  update: (id: string, input: ResourceInput) => {
+    const { type, ...body } = input;
+    if (type !== "insourced" && type !== "outsourced") {
+      throw new Error("Select the resource type before updating it.");
+    }
+    return apiRequest<unknown>(
+      `/api/v1/resources/${type}/${encodeURIComponent(id)}`,
+      { method: "PATCH", body: JSON.stringify(body) },
+    );
+  },
+  available: () => apiRequest<unknown>("/api/v1/resources"),
   allocate: (id: string, input: CreateResourceAllocationInput) =>
     apiRequest<unknown>(
       `/api/v1/resources/${encodeURIComponent(id)}/allocations`,
@@ -407,8 +414,4 @@ export const reportsApi = {
 
 export const auditLogsApi = {
   list: () => apiRequest<unknown>("/api/v1/audit-logs"),
-  record: (entityType: string, entityId: string) =>
-    apiRequest<unknown>(
-      `/api/v1/audit-logs/record/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
-    ),
 };

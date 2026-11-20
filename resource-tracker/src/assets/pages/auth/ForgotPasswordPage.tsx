@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
         )}
         {success && (
           <p className={styles.notice} role="status">
-            {success} Password reset completion is not available.
+            {success} Check your email for the reset code, then <Link to="/reset-password">reset your password</Link>.
           </p>
         )}
         <div className={styles.field}>

@@ -3,6 +3,7 @@ import styles from "./UserProfileMenu.module.css";
 
 interface UserProfileMenuProps {
   userName?: string | null;
+  email?: string | null;
   roleLabel?: string;
   inert?: boolean;
   onSignOut: () => void;
@@ -20,6 +21,7 @@ function getInitials(userName: string | null | undefined) {
 
 export default function UserProfileMenu({
   userName,
+  email,
   roleLabel,
   inert = false,
   onSignOut,
@@ -32,7 +34,10 @@ export default function UserProfileMenu({
     if (!open) return;
 
     function handlePointerDown(event: MouseEvent) {
-      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) {
+      if (
+        event.target instanceof Node &&
+        !rootRef.current?.contains(event.target)
+      ) {
         setOpen(false);
       }
     }
@@ -65,19 +70,29 @@ export default function UserProfileMenu({
         </span>
         <span className={styles.triggerText}>
           {/* {User Name on the app heafer} */}
-         <strong>{displayName}</strong>
+          <strong>{displayName}</strong>
           {/* <span>{roleLabel ? `${roleLabel}` : "Not signed in"}</span> */}
         </span>
       </button>
       {open && (
-        <div className={styles.menu} role="menu" aria-label="Profile menu">
-          <p className={styles.menuName}>{displayName}</p>
-          <p className={styles.menuRole}>
-            {roleLabel ? `${roleLabel}` : "No authenticated account"}
-          </p>
+        <div
+          className={styles.menu}
+          role="group"
+          aria-label="Signed-in user details"
+        >
+          <dl className={styles.details}>
+            <div className={styles.detail}>
+              <dd><span>Name: </span>{displayName}</dd>
+            </div>
+            <div className={styles.detail}>
+              <dd><span>Role: </span>{roleLabel || "No authenticated account"}</dd>
+            </div>
+            <div className={styles.detail}>
+              <dd><span>Email: </span>{email?.trim() || "Not available"}</dd>
+            </div>
+          </dl>
           <button
             type="button"
-            role="menuitem"
             onClick={() => {
               setOpen(false);
               onSignOut();

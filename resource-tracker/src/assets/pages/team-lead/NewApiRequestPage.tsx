@@ -445,14 +445,12 @@ export default function NewApiRequestPage() {
                   if (isReviewing && !submissionComplete) setIsReviewing(false);
                   else cancelRequest();
                 }}
+                disabled={isSubmitting}
               >
                 {isReviewing && !submissionComplete ? "Back to edit" : "Cancel"}
               </button>
               {!isReviewing ? (
-                <button
-                  type="submit"
-                  className="rt-root rt-btn rt-btn--primary"
-                >
+                <button type="submit" className="rt-root rt-btn rt-btn--primary">
                   Review request
                 </button>
               ) : (

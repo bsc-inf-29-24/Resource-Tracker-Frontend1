@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import StatusCard, {
   StatusCardGrid,
 } from "../../components/cards/StatusCard";
-import PageHeader from "../../components/layout/PageHeader";
 import { auditLogsApi, usersApi } from "../../data/api-services";
 import { getApiRecords } from "../../data/api-response";
-import ApiResponsePanel from "./ApiResponsePanel";
 import styles from "./ApiManagementPage.module.css";
 
 type DashboardData = {
@@ -57,52 +54,21 @@ export default function SystemAdminDashboard() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
-        title="System Administrator"
-        description="User and audit-log information comes from endpoints documented for System Administrators. No unguarded dashboard or department endpoint is used."
-      />
+  
       <StatusCardGrid>
         <StatusCard
-          label="Users returned"
+          label="System users"
           value={arrayCount(data.users)}
-          note="Counted from the user-list records returned by the API."
+          note="User returned by the API."
           loading={loading}
         />
         <StatusCard
-          label="Audit log records returned"
+          label="Audit log records"
           value={arrayCount(data.auditLogs)}
-          note="Counted from audit-log records returned by the API."
+          note="Audit-log records returned by the API."
           loading={loading}
         />
       </StatusCardGrid>
-      <div className={styles.actions}>
-        <Link
-          to="/system-admin/users"
-          className="rt-root rt-btn rt-btn--outline"
-        >
-          Manage users
-        </Link>
-        <Link
-          to="/system-admin/users/new"
-          className="rt-root rt-btn rt-btn--primary"
-        >
-          Create user
-        </Link>
-      </div>
-      <ApiResponsePanel
-        title="Users"
-        data={data.users}
-        loading={loading}
-        error={errors.users}
-        onRefresh={() => void loadDashboard()}
-      />
-      <ApiResponsePanel
-        title="Recent audit activity"
-        data={data.auditLogs}
-        loading={loading}
-        error={errors.auditLogs}
-        onRefresh={() => void loadDashboard()}
-      />
     </section>
   );
 }

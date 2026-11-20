@@ -11,18 +11,12 @@ function isAssignableUserRole(value: string): value is AssignableUserRole {
 export default function UsersPage() {
   return (
     <div className={`rt-root ${styles.page}`}>
-      <div className={styles.actions}>
-        <Link
-          to="/system-admin/users/new"
-          className="rt-root rt-btn rt-btn--primary"
-        >
-          Create user
-        </Link>
-      </div>
       <ApiManagementPage
-        title="User management"
-        description=""
+        // title=""
+        // description=""
         list={usersApi.list}
+        assignmentsInDialog
+        recordsTitle="User accounts"
         assignments={[
           {
             label: "Assign role",
@@ -44,18 +38,18 @@ export default function UsersPage() {
             confirmation: {
               title: "Deactivate this user account?",
               message:
-                "this account will be disabled. The selected user record will remain stored.",
+                "This account will be disabled. The user will not be able to log in or access the system.",
               confirmLabel: "Deactivate account",
             },
             run: (id) => usersApi.deactivate(id),
           },
           {
             label: "Reactivate account",
-            field: "reactivate",
+            field: "Reactivate",
             requiresValue: false,
             confirmation: {
               title: "Reactivate this user account?",
-              message: "This account will be reanabled.",
+              message: "This account will be reenabled.",
               confirmLabel: "Reactivate account",
             },
             run: (id) => usersApi.reactivate(id),

@@ -11,6 +11,7 @@ import styles from "./AppHeader.module.css";
 //AppHeader component
 interface AppHeaderProps {
   userName?: string | null;
+  email?: string | null;
   role?: UserRole | null;
   mobileNavigationOpen: boolean;
   showMobileNavigation: boolean;
@@ -51,6 +52,7 @@ function getDashboardPath(role: UserRole | null | undefined) {
 
 export default function AppHeader({
   userName,
+  email,
   role,
   mobileNavigationOpen,
   showMobileNavigation,
@@ -90,7 +92,8 @@ export default function AppHeader({
         {getPageContext(pathname, role)}
       </span> */}
       <UserProfileMenu
-   userName={userName}
+        userName={userName}
+        email={email}
         roleLabel={role ? roleDisplayNames[role] : undefined}
         inert={mobileNavigationOpen}
         onSignOut={onSignOut}

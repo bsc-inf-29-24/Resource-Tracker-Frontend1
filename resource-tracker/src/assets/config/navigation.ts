@@ -20,6 +20,8 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
     { label: "Dashboard", path: "/team-lead/dashboard" },
     { label: "New Request", path: "/team-lead/requests/new" },
     { label: "Request History", path: "/team-lead/requests" },
+    { label: "Teams", path: "/team-lead/teams" },
+    { label: "Projects", path: "/team-lead/projects" },
     { label: "Notifications", path: "/notifications" },
   ],
   LINE_MANAGER: [

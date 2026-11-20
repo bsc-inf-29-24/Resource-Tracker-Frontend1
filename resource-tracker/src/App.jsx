@@ -76,6 +76,12 @@ const ResetPasswordPage = page(
 const NewRequestPage = page(
   () => import("./assets/pages/team-lead/NewApiRequestPage"),
 );
+const TeamLeadTeamsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadTeamsPage"),
+);
+const TeamLeadProjectsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadProjectsPage"),
+);
 
 const SpendingReportsPage = page(() =>
   import("./assets/pages/management/ReportsPage").then((module) => ({
@@ -323,6 +329,14 @@ function App() {
               <Route
                 path="/team-lead/requests/:id/respond"
                 element={<TeamLeadQueryResponsePage />}
+              />
+              <Route
+                path="/team-lead/teams"
+                element={<TeamLeadTeamsPage />}
+              />
+              <Route
+                path="/team-lead/projects"
+                element={<TeamLeadProjectsPage />}
               />
 
               {/* Line Manager */}

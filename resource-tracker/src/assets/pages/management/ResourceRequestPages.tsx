@@ -17,6 +17,7 @@ import {
   getApiRecords,
   humanizeApiKey,
 } from "../../data/api-response";
+import TeamLeadTeamsTable from "../team-lead/TeamLeadTeamsTable";
 import ApiDataView from "./ApiDataView";
 import styles from "./ApiManagementPage.module.css";
 
@@ -38,6 +39,7 @@ interface ResourceRequestsPageProps {
   description: string;
   mode?: PageMode;
   includeAudit?: boolean;
+  includeTeams?: boolean;
   initialStatus?: ApiRequestStatus | "";
 }
 
@@ -58,6 +60,7 @@ export function ResourceRequestsPage({
   description,
   mode = "history",
   includeAudit = false,
+  includeTeams = false,
   initialStatus = "",
 }: ResourceRequestsPageProps) {
   const { id: routeId } = useParams();
@@ -359,6 +362,7 @@ export function ResourceRequestsPage({
             </form>
           )}
       </section>
+      {includeTeams && <TeamLeadTeamsTable />}
     </section>
   );
 }
@@ -368,6 +372,7 @@ export function TeamLeadRequestHistoryPage() {
     <ResourceRequestsPage
       title="Request history"
       description=""
+      includeTeams
     />
   );
 }

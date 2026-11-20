@@ -4,8 +4,8 @@ import ApiManagementPage, {
 } from "./ApiManagementPage";
 
 const teamFields: ApiField[] = [
-  { name: "name", label: "Team name", required: true },
-  { name: "description", label: "Description", kind: "textarea" },
+  { name: "name", label: "Team name", required: true,  },
+  { name: "description", label: "Team Description", kind: "textarea" },
   { name: "departmentId", label: "Department ID", kind: "number", required: true },
 ];
 
@@ -18,7 +18,7 @@ const teamUpdateFields: ApiField[] = [
 export default function TeamsPage() {
   return (
     <ApiManagementPage
-      title="Teams"
+      title=""
       description=""
       recordsTitle="Teams"
       list={teamsApi.list}

@@ -31,7 +31,7 @@ export interface ApiField {
   kind?: InputKind;
   required?: boolean;
   options?: { value: string; label: string }[];
-  when?: { field: string; value: string };
+  when?: { field: string; value: string };  
 }
 
 export interface RelatedOperation {

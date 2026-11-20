@@ -20,6 +20,7 @@ export default function ProjectsPage() {
     <ApiManagementPage
       title="Projects"
       description="Create projects with the required dates and optionally assign documented numeric team IDs."
+      recordsTitle="Projects"
       list={projectsApi.list}
       get={projectsApi.get}
       create={projectsApi.create}

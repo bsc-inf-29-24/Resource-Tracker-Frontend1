@@ -20,6 +20,7 @@ export default function TeamsPage() {
     <ApiManagementPage
       title="Teams"
       description=""
+      recordsTitle="Teams"
       list={teamsApi.list}
       get={teamsApi.get}
       create={teamsApi.create}

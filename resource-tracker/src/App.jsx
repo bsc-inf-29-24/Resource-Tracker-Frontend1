@@ -161,6 +161,9 @@ const ReportsPage = page(
 const AuditLogsPage = page(
   () => import("./assets/pages/management/AuditLogsPage"),
 );
+const AccountSettingsPage = page(
+  () => import("./assets/pages/account/AccountSettingsPage"),
+);
 const TeamMemberDashboard = page(
   () => import("./assets/pages/team-member/TeamMemberDashboard"),
 );
@@ -222,6 +225,7 @@ function App() {
                 </ProtectedRoute>
               }
             >
+              <Route path="/account" element={<AccountSettingsPage />} />
               {/* System Admin */}
               <Route
                 path="/system-admin/dashboard"

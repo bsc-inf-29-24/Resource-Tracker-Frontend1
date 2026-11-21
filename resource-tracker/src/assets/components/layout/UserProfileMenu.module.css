@@ -76,6 +76,20 @@
   margin: 0;
 }
 
+.accountLink {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--rt-radius-sm);
+  color: var(--rt-green-900);
+  background: var(--rt-green-50);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.accountLink:hover {
+  background: var(--rt-green-100);
+}
+
 .detail {
   display: grid;
   gap: 2px;

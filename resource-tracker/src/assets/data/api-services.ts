@@ -38,6 +38,32 @@ export interface CreateUserResponse {
   user: CreatedUser;
 }
 
+export type PreferredPronoun = "Mr." | "Mrs." | "Miss";
+
+export interface UpdateMyProfileInput {
+  action: "update_profile";
+  phoneNumber?: string;
+  address?: string;
+  dateOfBirth?: string;
+  preferredPronoun?: PreferredPronoun;
+}
+
+export interface ChangeMyPasswordInput {
+  action: "change_password";
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type ManageMyAccountInput = UpdateMyProfileInput | ChangeMyPasswordInput;
+
+export interface AuditLogFilters {
+  userId?: string;
+  actionType?: string;
+  entityType?: string;
+  date?: string;
+  time?: string;
+}
+
 export interface DepartmentInput {
   name?: string;
   code?: string;
@@ -135,6 +161,16 @@ function withQuery(
 export const usersApi = {
   list: () => apiRequest<unknown>("/api/v1/users"),
   lineManagers: () => apiRequest<unknown>("/api/v1/users/line-managers"),
+  myProfile: () => apiRequest<unknown>("/api/v1/users/me"),
+  updateMyAccount: (input: ManageMyAccountInput) =>
+    apiRequest<unknown>("/api/v1/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  deleteMyAccount: () =>
+    apiRequest<{ message: string }>("/api/v1/users/me/delete", {
+      method: "DELETE",
+    }),
   create: (input: CreateUserInput) =>
     apiRequest<CreateUserResponse>(
       "/api/v1/users",
@@ -465,5 +501,14 @@ export const reportsApi = {
 };
 
 export const auditLogsApi = {
-  list: () => apiRequest<unknown>("/api/v1/audit-logs"),
+  list: (filters: AuditLogFilters = {}) =>
+    apiRequest<unknown>(
+      withQuery("/api/v1/audit-logs", {
+        userId: filters.userId,
+        actionType: filters.actionType,
+        entityType: filters.entityType,
+        date: filters.date,
+        time: filters.time,
+      }),
+    ),
 };

@@ -17,6 +17,10 @@ export interface AuthenticatedUser {
   role: string;
   department?: string | null;
   team?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  dateOfBirth?: string | null;
+  preferredPronoun?: string | null;
 }
 
 interface AuthTokens {
@@ -153,6 +157,10 @@ function normalizeUser(
     role: String(user.role ?? ""),
     department: user.department ?? null,
     team: user.team ?? null,
+    phoneNumber: user.phoneNumber ?? null,
+    address: user.address ?? null,
+    dateOfBirth: user.dateOfBirth ?? null,
+    preferredPronoun: user.preferredPronoun ?? null,
   };
 }
 
@@ -175,6 +183,15 @@ export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
     department:
       typeof profile.department === "string" ? profile.department : null,
     team: typeof profile.team === "string" ? profile.team : null,
+    phoneNumber:
+      typeof profile.phoneNumber === "string" ? profile.phoneNumber : null,
+    address: typeof profile.address === "string" ? profile.address : null,
+    dateOfBirth:
+      typeof profile.dateOfBirth === "string" ? profile.dateOfBirth : null,
+    preferredPronoun:
+      typeof profile.preferredPronoun === "string"
+        ? profile.preferredPronoun
+        : null,
   });
   saveCurrentUser(normalized);
   return normalized;

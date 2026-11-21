@@ -13,17 +13,17 @@ interface CreateUserFormProps {
   onCancel: () => void;
 }
 
-const companyEmailPattern = /^[^\s@]+@gmail\.com$/i;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function CreateUserForm({
   onSave,
   onCancel,
 }: CreateUserFormProps) {
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<CreateUserInput["role"]>("TEAM_LEAD");
-  const [initialPassword, setInitialPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -31,23 +31,19 @@ export default function CreateUserForm({
   const [confirmCancel, setConfirmCancel] = useState(false);
 
   const isDirty = Boolean(
-    fullName || email || initialPassword || confirmPassword,
+    firstName || middleName || surname || email,
   );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
-    if (!fullName.trim()) nextErrors.fullName = "Enter the user's full name.";
-    if (!companyEmailPattern.test(email.trim())) {
-      nextErrors.email = "Use a valid @gmail.com email address.";
-    }
-    if (initialPassword.length < 8 || initialPassword.length > 12) {
-      nextErrors.initialPassword = "Use 8 to 12 characters.";
-    } else if (!/\d/.test(initialPassword)) {
-      nextErrors.initialPassword = "Include at least one number.";
-    }
-    if (confirmPassword !== initialPassword) {
-      nextErrors.confirmPassword = "The passwords do not match.";
+    if (!firstName.trim()) nextErrors.firstName = "Enter the user's first name.";
+    if (firstName.trim().length > 60) nextErrors.firstName = "Use 60 characters or fewer.";
+    if (middleName.trim().length > 60) nextErrors.middleName = "Use 60 characters or fewer.";
+    if (!surname.trim()) nextErrors.surname = "Enter the user's surname.";
+    if (surname.trim().length > 60) nextErrors.surname = "Use 60 characters or fewer.";
+    if (!emailPattern.test(email.trim()) || email.trim().length > 254) {
+      nextErrors.email = "Enter a valid email address (254 characters maximum).";
     }
     setErrors(nextErrors);
     setSubmitError("");
@@ -57,13 +53,16 @@ export default function CreateUserForm({
     setBusy(true);
     try {
       await onSave({
-        fullName: fullName.trim(),
+        firstName: firstName.trim(),
+        ...(middleName.trim() ? { middleName: middleName.trim() } : {}),
+        surname: surname.trim(),
         email: email.trim(),
         role,
-        initialPassword,
       });
-      setInitialPassword("");
-      setConfirmPassword("");
+      setFirstName("");
+      setMiddleName("");
+      setSurname("");
+      setEmail("");
       setSuccess(true);
     } catch (error) {
       setSubmitError(
@@ -83,7 +82,7 @@ export default function CreateUserForm({
       )}
       {success && (
         <p className={styles.success} role="status">
-          Account created successfully.{" "}
+          Account created successfully. A temporary password was emailed to the user.{" "}
           <Link to="/system-admin/users">Return to user management</Link>
         </p>
       )}
@@ -92,29 +91,53 @@ export default function CreateUserForm({
         onSubmit={(event) => void handleSubmit(event)}
         noValidate
       >
-        {/* <p className={styles.accountNote}>
-          The API does not accept a department or team during user creation.
-          System Administrator accounts are excluded because they are not in
-          the documented create-user role enum.
-        </p> */}
+        <p className={styles.accountNote}>
+          The backend will email the user a generated temporary password.
+        </p>
         <h2>User Details</h2>
         <div className={styles.field}>
-          <label htmlFor="create-user-full-name">Full name</label>
+          <label htmlFor="create-user-first-name">First name</label>
           <input
-            id="create-user-full-name"
-            autoComplete="name"
-            maxLength={120}
-            placeholder="Enter user full name"
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-            aria-invalid={Boolean(errors.fullName)}
+            id="create-user-first-name"
+            autoComplete="given-name"
+            maxLength={60}
+            placeholder="Enter first name"
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+            aria-invalid={Boolean(errors.firstName)}
             required
           />
-          {errors.fullName && (
+          {errors.firstName && (
             <p className={styles.fieldError} role="alert">
-              {errors.fullName}
+              {errors.firstName}
             </p>
           )}
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="create-user-middle-name">Middle name (optional)</label>
+          <input
+            id="create-user-middle-name"
+            autoComplete="additional-name"
+            maxLength={60}
+            value={middleName}
+            onChange={(event) => setMiddleName(event.target.value)}
+            aria-invalid={Boolean(errors.middleName)}
+          />
+          {errors.middleName && <p className={styles.fieldError} role="alert">{errors.middleName}</p>}
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="create-user-surname">Surname</label>
+          <input
+            id="create-user-surname"
+            autoComplete="family-name"
+            maxLength={60}
+            placeholder="Enter surname"
+            value={surname}
+            onChange={(event) => setSurname(event.target.value)}
+            aria-invalid={Boolean(errors.surname)}
+            required
+          />
+          {errors.surname && <p className={styles.fieldError} role="alert">{errors.surname}</p>}
         </div>
         <div className={styles.field}>
           <label htmlFor="create-user-email">Email</label>
@@ -153,46 +176,6 @@ export default function CreateUserForm({
               </option>
             ))}
           </select>
-        </div>
-        <div className={styles.field}>
-          <label htmlFor="create-user-initial-password">Password</label>
-          <input
-            id="create-user-initial-password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            placeholder="Enter user password"
-            maxLength={12}
-            value={initialPassword}
-            onChange={(event) => setInitialPassword(event.target.value)}
-            aria-invalid={Boolean(errors.initialPassword)}
-            required
-          />
-          {errors.initialPassword && (
-            <p className={styles.fieldError} role="alert">
-              {errors.initialPassword}
-            </p>
-          )}
-        </div>
-        <div className={styles.field}>
-          <label htmlFor="create-user-confirm-password">Confirm password</label>
-          <input
-            id="create-user-confirm-password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            maxLength={12}
-            placeholder="Confirm user password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            aria-invalid={Boolean(errors.confirmPassword)}
-            required
-          />
-          {errors.confirmPassword && (
-            <p className={styles.fieldError} role="alert">
-              {errors.confirmPassword}
-            </p>
-          )}
         </div>
         <div className={styles.actions}>
           <button

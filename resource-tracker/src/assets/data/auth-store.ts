@@ -118,50 +118,17 @@ export function getBackendRoleFromFrontendRole(role?: string | null): string {
 }
 
 export async function createAdministratorUser(
-  draft: {
-    name?: string;
-    email?: string;
-    role?: string;
-    department?: string;
-    team?: string;
-  },
-  password: string,
+  input: import("./api-services").CreateUserInput,
 ): Promise<AuthenticatedUser> {
-  const fullName = draft.name?.trim();
-  const email = draft.email?.trim();
-
-  if (!fullName || !email) {
-    throw new Error("Full name and email are required.");
-  }
-
-  const backendRole = getBackendRoleFromFrontendRole(draft.role);
-  const payload = {
-    fullName,
-    email,
-    role: backendRole,
-    initialPassword: password,
-  };
-
-  const created = await request<{ id?: string; fullName?: string; email?: string; role?: string }>(
+  const created = await request<import("./api-services").CreateUserResponse>(
     "/api/v1/users",
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
+    { method: "POST", body: JSON.stringify(input) },
     true,
   );
-
-  const nextUser = normalizeUser({
-    id: created?.id ?? "",
-    fullName: created?.fullName ?? fullName,
-    email: created?.email ?? email,
-    role: created?.role ?? backendRole,
-    department: draft.department ?? null,
-    team: draft.team ?? null,
-  });
-
-  saveCurrentUser(nextUser);
-  return nextUser;
+  if (!created?.user) {
+    throw new Error("The create-user response did not contain the created account.");
+  }
+  return normalizeUser(created.user);
 }
 
 async function request<T>(

@@ -48,7 +48,12 @@ const resourceFields: ApiField[] = [
     when: { field: "type", value: "outsourced" },
   },
   { name: "quantity", label: "Quantity", kind: "number", required: true },
-  { name: "batchNumber", label: "Batch number" },
+  {
+    name: "batchNumber",
+    label: "Batch number",
+    required: true,
+    when: { field: "type", value: "outsourced" },
+  },
 ];
 
 const resourceUpdateFields: ApiField[] = resourceFields.map((field) => ({

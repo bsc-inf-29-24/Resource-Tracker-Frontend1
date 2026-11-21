@@ -5,6 +5,47 @@
   margin-top: 0px ;
 }
 
+.departmentHead {
+  gap: 1.5rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.departmentProfileHeader {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.departmentHead .departmentProfile {
+  width: 17rem;
+  max-width: 100%;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--rt-border);
+  border-top: 3px solid var(--rt-green-700);
+  border-radius: var(--rt-radius-md);
+}
+
+.departmentHead .departmentProfileFields {
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.departmentHead .departmentProfileFields .apiDataField {
+  padding: 0.6rem 0.7rem;
+}
+
+.departmentHead :global(.rt-card) {
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-md);
+  box-shadow: 0 3px 14px rgb(11 53 37 / 5%);
+}
+
+.departmentHead :global(.rt-card__title) {
+  color: var(--rt-green-900);
+}
+
 .panel {
   display: grid;
   gap: 1rem;
@@ -55,6 +96,10 @@
 
 .field span{
   font-weight: 600;
+}
+
+.reportFilterField {
+  text-align: left;
 }
 
 .field input,

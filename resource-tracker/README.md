@@ -13,6 +13,39 @@ The sign-in and registration screens use browser-local demonstration data; they 
 
 Use **Create a test account** on the sign-in page to add a browser-local account. Registered account records and password hashes are stored in this browser only. Do not use real credentials or sensitive information. Clearing this browser's site data removes registered demo accounts.
 
+## Team Lead teams and projects
+
+The Team Lead Teams and Projects pages load records from the backend API. The
+new resource request form loads Line Manager choices from the API and accepts
+team and project names that the backend validates when the request is submitted.
+
+## Start the backend
+
+The Vite development server forwards `/api` and `/resource-requests` calls to
+`http://localhost:3000`. If the backend is stopped, requests such as sign-in
+will fail with a Vite `http proxy error` and `ECONNREFUSED`.
+
+Start Docker Engine, then run the backend from the deployment directory before
+starting the frontend:
+
+```powershell
+cd ..\Resource-Tracker-production
+docker compose up -d
+docker compose ps
+```
+
+Confirm the `app` service is running and exposing port `3000`. Then, in a
+separate terminal, start the frontend:
+
+```powershell
+cd ..\resource-tracker
+npm run dev
+```
+
+If the backend is already running, verify that `http://localhost:3000` is
+reachable. Do not change the Vite proxy target to resolve `ECONNREFUSED` when
+the backend service is stopped.
+
 ## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

@@ -31,7 +31,7 @@ export interface ApiField {
   kind?: InputKind;
   required?: boolean;
   options?: { value: string; label: string }[];
-  when?: { field: string; value: string };
+  when?: { field: string; value: string };  
 }
 
 export interface RelatedOperation {
@@ -50,8 +50,8 @@ export interface AssignmentOperation {
 }
 
 interface ApiManagementPageProps {
-  // title: string;
-  // description: string;
+  title: string;
+  description: string;
   list: () => Promise<unknown>;
   initialId?: string;
   get?: (id: string) => Promise<unknown>;
@@ -90,8 +90,8 @@ function getRecordDisplayName(record: ApiRecord): string {
 }
 
 export default function ApiManagementPage({
-  // title,
-  // description,
+  title,
+  description,
   list,
   initialId = "",
   get,
@@ -449,7 +449,7 @@ export default function ApiManagementPage({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      {/* <PageHeader title={title} description={description} /> */}
+      <PageHeader title={title} description={description} />
       {error && (
         <ErrorMessage title="API operation failed" message={error} onRetry={reload} />
       )}

@@ -13,7 +13,7 @@ interface CreateUserFormProps {
   onCancel: () => void;
 }
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const companyEmailPattern = /^[^\s@]+@gmail\.com$/i;
 
 export default function CreateUserForm({
   onSave,
@@ -38,8 +38,8 @@ export default function CreateUserForm({
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
     if (!fullName.trim()) nextErrors.fullName = "Enter the user's full name.";
-    if (!emailPattern.test(email.trim())) {
-      nextErrors.email = "Enter a valid email address.";
+    if (!companyEmailPattern.test(email.trim())) {
+      nextErrors.email = "Use a valid @gmail.com email address.";
     }
     if (initialPassword.length < 8 || initialPassword.length > 12) {
       nextErrors.initialPassword = "Use 8 to 12 characters.";

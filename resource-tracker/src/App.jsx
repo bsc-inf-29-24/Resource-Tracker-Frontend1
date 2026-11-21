@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+﻿import { lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -84,6 +84,12 @@ const TeamLeadRequestHistoryPage = page(
 );
 const TeamLeadQueryResponsePage = page(
   () => import("./assets/pages/team-lead/QueryResponsePage"),
+);
+const TeamLeadTeamsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadTeamsPage"),
+);
+const TeamLeadProjectsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadProjectsPage"),
 );
 
 const SpendingReportsPage = page(() =>
@@ -317,6 +323,8 @@ function App() {
                 path="/team-lead/requests/:id/respond"
                 element={<TeamLeadQueryResponsePage />}
               />
+              <Route path="/team-lead/teams" element={<TeamLeadTeamsPage />} />
+              <Route path="/team-lead/projects" element={<TeamLeadProjectsPage />} />
 
               {/* Line Manager */}
               <Route

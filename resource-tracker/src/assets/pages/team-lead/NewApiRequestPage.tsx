@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
@@ -164,11 +164,11 @@ export default function NewApiRequestPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      {/* <PageHeader
+      <PageHeader
         title="Submit a resource request"
         description="Use project and team names exactly as configured; the backend verifies that the project is assigned to the team."
         supplementary={<Link to="/team-lead/requests">Request history</Link>}
-      /> */}
+      />
       {submitError && <ErrorMessage title="Request not submitted" message={submitError} />}
       {success && <p className={styles.notice} role="status">{success}</p>}
       {managerError && (

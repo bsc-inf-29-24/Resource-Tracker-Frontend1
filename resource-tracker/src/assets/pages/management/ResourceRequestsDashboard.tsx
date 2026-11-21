@@ -37,16 +37,17 @@ interface ResourceRequestsDashboardProps {
   title: string;
   description?: string;
   detailsPath: string;
-  showProfile?: boolean;
+  dashboardVariant?: "department-head";
 }
 
 export default function ResourceRequestsDashboard({
   title,
   description,
   detailsPath,
-  showProfile = true,
+  dashboardVariant,
 }: ResourceRequestsDashboardProps) {
   const { user } = useAuth();
+  const isDepartmentHeadDashboard = dashboardVariant === "department-head";
   const [requests, setRequests] = useState<RequestRecord[]>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -138,41 +139,9 @@ export default function ResourceRequestsDashboard({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader title={title} description={description} />
-      {showProfile && user && (
-        <section className={`rt-root rt-card ${styles.panel}`}>
-          <h2>Profile</h2>
-          <dl className={styles.apiDataFields}>
-            <div className={styles.apiDataField}>
-              <dt>Name</dt>
-              <dd>{user.fullName}</dd>
-            </div>
-            <div className={styles.apiDataField}>
-              <dt>Role</dt>
-              <dd>{humanizeApiKey(user.role)}</dd>
-            </div>
-            {user.department && (
-              <div className={styles.apiDataField}>
-                <dt>Department</dt>
-                <dd>{user.department}</dd>
-              </div>
-            )}
-            {user.team && (
-              <div className={styles.apiDataField}>
-                <dt>Team</dt>
-                <dd>{user.team}</dd>
-              </div>
-            )}
-          </dl>
-        </section>
-      )}
-      {error && (
-        <ErrorMessage
-          title="Request data unavailable"
-          message={error}
-          onRetry={() => void loadRequests()}
-        />
-      )}
+      {/* <PageHeader title={title} description={description} /> */}
+   
+   
       {!error && loading ? (
         <LoadingState message="Loading backend requests..." />
       ) : !error && !loading && requests === undefined ? (
@@ -180,7 +149,7 @@ export default function ResourceRequestsDashboard({
           title="No request response"
           description="No request data."
         />
-      ) : !error ? (
+      ) : !error && !isDepartmentHeadDashboard ? (
         <>
           <StatusCardGrid>
             <StatusCard label="Requests returned" value={requestRecords.length} />

@@ -1,42 +1,62 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import RequestDetails from "../../components/requests/RequestDetails";
-import RequestTimeline from "../../components/requests/RequestTimeline";
-import { mockUsers } from "../../data/mock-data";
-import { useResourceRequests } from "../../data/request-store";
-import { getCurrentDepartmentManager } from "../../utils/department-manager";
+import ErrorMessage from "../../components/feedback/ErrorMessage";
+import LoadingState from "../../components/feedback/LoadingState";
+import { getApiRecords } from "../../data/api-response";
+import type { ApiRecord } from "../../data/api-response";
+import { departmentsApi } from "../../data/api-services";
+import ApiResponsePanel from "../management/ApiResponsePanel";
 import styles from "./DepartmentRequestDetailsPage.module.css";
+import useDepartmentScope from "./useDepartmentScope";
 
 export default function DepartmentRequestDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { requests, persistenceWarning } = useResourceRequests();
-  const manager = getCurrentDepartmentManager();
-  const request = requests.find((item) => item.id === id);
+  const { department, loading: scopeLoading, error: scopeError, reload } =
+    useDepartmentScope();
+  const [request, setRequest] = useState<ApiRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  if (!request) {
-    return (
-      <section className={styles.page}>
-        <Link className={styles.backLink} to="/department-manager/requests">
-          Back to requests
-        </Link>
-        <h1>Request not found</h1>
-        <p>No request matching {id ?? "this ID"} is available in this browser.</p>
-      </section>
-    );
+  async function loadRequest() {
+    if (!department || !id) return;
+    setLoading(true);
+    setError("");
+    try {
+      const response = await departmentsApi.requests(String(department.id));
+      const matched = getApiRecords(response).find(
+        (record) => String(record.id ?? "") === id,
+      );
+      setRequest(matched ?? null);
+      if (!matched) {
+        setError("This request was not returned for your department.");
+      }
+    } catch (loadError) {
+      setRequest(null);
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "The department request could not be loaded.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
-  if (request.department !== manager?.department) {
+  useEffect(() => {
+    if (department && id) void loadRequest();
+  }, [department?.id, id]);
+
+  if (scopeLoading) return <LoadingState message="Loading your department..." />;
+  if (scopeError) {
     return (
-      <section className={styles.page}>
-        <Link className={styles.backLink} to="/department-manager/requests">
-          Back to requests
-        </Link>
-        <h1>Request unavailable</h1>
-        <p>
-          This request belongs to another department and is not visible to the current Department Manager.
-        </p>
-      </section>
+      <ErrorMessage
+        title="Department unavailable"
+        message={scopeError}
+        onRetry={reload}
+      />
     );
   }
+  if (!department) return null;
 
   return (
     <div className={styles.page}>
@@ -48,24 +68,23 @@ export default function DepartmentRequestDetailsPage() {
           Return to dashboard
         </Link>
       </div>
-
-      {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
-      )}
-
-      <RequestDetails request={request} />
-
-      <section className={`rt-root rt-card ${styles.history}`} aria-labelledby="department-request-history-title">
-        <h2 id="department-request-history-title" className="rt-card__title">
-          Request history
-        </h2>
-        <RequestTimeline
-          request={request}
-          getUserName={(userId) => mockUsers.find((user) => user.id === userId)?.name ?? userId}
+      {error && (
+        <ErrorMessage
+          title="Request unavailable"
+          message={error}
+          onRetry={() => void loadRequest()}
         />
-      </section>
+      )}
+      {loading ? (
+        <LoadingState message="Loading department request..." />
+      ) : request ? (
+        <ApiResponsePanel
+          title="Department request details"
+          data={request}
+          emptyTitle="Request details unavailable"
+          emptyDescription="The backend returned no details for this request."
+        />
+      ) : null}
     </div>
   );
 }

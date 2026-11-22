@@ -1,200 +1,166 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import DataTable from "../../components/tables/DataTable";
+import type { DataTableColumn } from "../../components/tables/type";
+import ErrorMessage from "../../components/feedback/ErrorMessage";
+import LoadingState from "../../components/feedback/LoadingState";
 import PageHeader from "../../components/layout/PageHeader";
-import FilterToolbar from "../../components/filters/filterToolbar";
 import StatusLabel from "../../components/status/StatusLabel";
-import { useResourceRequests } from "../../data/request-store";
-import { formatCurrency, formatDate } from "../../utils/format";
 import {
-  applyDepartmentFilters,
-  getCurrentDepartmentManager,
-  getDepartmentRequests,
-} from "../../utils/department-manager";
-import type { RequestStatus, ResourceRequest } from "../../types/resource-request";
-import type { ToolbarFilter } from "../../components/filters/filterToolbar";
+  flattenApiRecord,
+  formatApiValue,
+  getApiRecords,
+  humanizeApiKey,
+} from "../../data/api-response";
+import type { ApiRecord } from "../../data/api-response";
+import { departmentsApi } from "../../data/api-services";
+import useDepartmentScope from "./useDepartmentScope";
 import styles from "./DepartmentRequestPage.module.css";
 
-type StatusFilter = RequestStatus | "All";
+type StatusFilter = "All" | "SUBMITTED" | "QUERIED" | "APPROVED" | "REJECTED";
+
+function getRequestId(record: ApiRecord): string | null {
+  return typeof record.id === "string" || typeof record.id === "number"
+    ? String(record.id)
+    : null;
+}
 
 export default function DepartmentRequestPage() {
-  const navigate = useNavigate();
-  const { requests, persistenceWarning } = useResourceRequests();
-  const manager = getCurrentDepartmentManager();
-  const departmentName = manager?.department ?? "Data Science";
-  const departmentRequests = useMemo(
-    () => getDepartmentRequests(requests, departmentName),
-    [departmentName, requests]
-  );
-
+  const { department, loading: scopeLoading, error: scopeError, reload } =
+    useDepartmentScope();
+  const [records, setRecords] = useState<ApiRecord[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("All");
-  const [project, setProject] = useState("All");
-  const [team, setTeam] = useState("All");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const projectOptions = useMemo(
-    () => Array.from(new Set(departmentRequests.map((request) => request.project))).sort(),
-    [departmentRequests]
-  );
-  const teamOptions = useMemo(
-    () => Array.from(new Set(departmentRequests.map((request) => request.team))).sort(),
-    [departmentRequests]
-  );
-
-  const filteredRequests = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    const byFilters = applyDepartmentFilters(departmentRequests, {
-      project,
-      team,
-      status,
-      startDate: fromDate,
-      endDate: toDate,
-    });
-
-    return byFilters.filter((request) => {
-      if (!term) return true;
-      const haystack = [request.id, request.itemDescription, request.project, request.team]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [departmentRequests, fromDate, project, search, status, team, toDate]);
-
-  const filters: ToolbarFilter[] = [
-    {
-      id: "request-status-filter",
-      label: "Status",
-      type: "select",
-      value: status,
-      onChange: setStatus,
-      options: [
-        { value: "All", label: "All statuses" },
-        ...(["Submitted", "Pending", "Queried", "Approved", "Rejected"] as RequestStatus[]).map(
-          (value) => ({ value, label: value })
-        ),
-      ],
-    },
-    {
-      id: "request-project-filter",
-      label: "Project",
-      type: "select",
-      value: project,
-      onChange: setProject,
-      options: [
-        { value: "All", label: "All projects" },
-        ...projectOptions.map((value) => ({ value, label: value })),
-      ],
-    },
-    {
-      id: "request-team-filter",
-      label: "Requesting team",
-      type: "select",
-      value: team,
-      onChange: setTeam,
-      options: [
-        { value: "All", label: "All teams" },
-        ...teamOptions.map((value) => ({ value, label: value })),
-      ],
-    },
-    {
-      id: "request-from-date",
-      label: "Submitted from",
-      type: "date",
-      value: fromDate,
-      max: toDate || undefined,
-      onChange: setFromDate,
-    },
-    {
-      id: "request-to-date",
-      label: "Submitted to",
-      type: "date",
-      value: toDate,
-      min: fromDate || undefined,
-      onChange: setToDate,
-    },
-  ];
-
-  const columns = [
-    { key: "id", header: "Request ID" },
-    { key: "itemDescription", header: "Item description" },
-    { key: "team", header: "Requesting team" },
-    { key: "project", header: "Project" },
-    {
-      key: "submittedAt",
-      header: "Submission date",
-      render: (request: ResourceRequest) => formatDate(request.submittedAt),
-    },
-    {
-      key: "estimatedPrice",
-      header: "Estimated amount",
-      render: (request: ResourceRequest) => formatCurrency(request.estimatedPrice),
-    },
-    {
-      key: "status",
-      header: "Status",
-      render: (request: ResourceRequest) => <StatusLabel status={request.status} />,
-    },
-    {
-      key: "actions",
-      header: "Action",
-      render: (request: ResourceRequest) => (
-        <Link
-          className={styles.linkButton}
-          to={`/department-manager/requests/${encodeURIComponent(request.id)}`}
-        >
-          View details
-        </Link>
-      ),
-    },
-  ];
-
-  function resetFilters() {
-    setSearch("");
-    setStatus("All");
-    setProject("All");
-    setTeam("All");
-    setFromDate("");
-    setToDate("");
+  async function loadRequests() {
+    if (!department) return;
+    setLoading(true);
+    setError("");
+    try {
+      const response = await departmentsApi.requests(String(department.id));
+      setRecords(getApiRecords(response));
+    } catch (loadError) {
+      setRecords([]);
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Department requests could not be loaded.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
-  return (
-    <div className={styles.page}>
-      <PageHeader
-        title="Departmental Requests"
-        description={`Department requests for ${departmentName}`}
-        // supplementary={
-        //   <Link className={styles.linkButton} to="/department-manager/dashboard">
-        //     Back to dashboard
-        //   </Link>
-        // }
+  useEffect(() => {
+    if (department) void loadRequests();
+  }, [department?.id]);
+
+  const filteredRecords = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return records.filter((record) => {
+      const statusMatches =
+        status === "All" ||
+        String(record.status ?? "").toUpperCase() === status;
+      const searchMatches =
+        !term || JSON.stringify(record).toLowerCase().includes(term);
+      return statusMatches && searchMatches;
+    });
+  }, [records, search, status]);
+
+  const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
+    const flattened = records.map(flattenApiRecord);
+    const keys = Array.from(
+      new Set(flattened.flatMap((record) => Object.keys(record))),
+    );
+    const result: DataTableColumn<ApiRecord>[] = keys.map((key) => ({
+      key,
+      header: humanizeApiKey(key.replaceAll(".", " ")),
+      render: (record) =>
+        key.toLowerCase().endsWith("status") ? (
+          <StatusLabel status={String(flattenApiRecord(record)[key] ?? "")} />
+        ) : (
+          formatApiValue(flattenApiRecord(record)[key])
+        ),
+    }));
+    result.push({
+      key: "departmentRequestAction",
+      header: "Action",
+      render: (record) => {
+        const requestId = getRequestId(record);
+        return requestId ? (
+          <Link
+            className={styles.linkButton}
+            to={`/department-manager/requests/${encodeURIComponent(requestId)}`}
+          >
+            View details
+          </Link>
+        ) : (
+          "—"
+        );
+      },
+    });
+    return result;
+  }, [records]);
+
+  if (scopeLoading) return <LoadingState message="Loading your department..." />;
+  if (scopeError) {
+    return (
+      <ErrorMessage
+        title="Department unavailable"
+        message={scopeError}
+        onRetry={reload}
       />
+    );
+  }
+  if (!department) return null;
 
-      {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
-      )}
-
-      <section className={styles.tableSection}>
-        <FilterToolbar
-          searchLabel="Search requests"
-          searchPlaceholder="Request ID, item, project or team"
-          searchValue={search}
-          onSearchChange={setSearch}
-          filters={filters}
-          onClear={resetFilters}
+  return (
+    <div className="rt-root">
+      <PageHeader
+        title="Department Requests"
+        description={`Resource requests for ${department.name}`}
+      />
+      {error && (
+        <ErrorMessage
+          title="Department requests unavailable"
+          message={error}
+          onRetry={() => void loadRequests()}
         />
-
+      )}
+      <section className={styles.tableSection}>
+        <label>
+          Search requests
+          <input
+            type="search"
+            value={search}
+            placeholder="Search request details"
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </label>
+        <label>
+          Status
+          <select
+            value={status}
+            onChange={(event) => setStatus(event.target.value as StatusFilter)}
+          >
+            <option value="All">All statuses</option>
+            <option value="SUBMITTED">Submitted</option>
+            <option value="QUERIED">Queried</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </label>
         <DataTable
-          title={`${filteredRequests.length} ${filteredRequests.length === 1 ? "request" : "requests"}`}
+          title={`${filteredRecords.length} department ${filteredRecords.length === 1 ? "request" : "requests"}`}
           columns={columns}
-          rows={filteredRequests}
+          rows={filteredRecords}
+          rowKey={(record, index) => getRequestId(record) ?? index}
+          loading={loading}
           itemLabel="request"
-          emptyTitle="No departmental requests found"
-          emptyDescription="Try changing the filters or search term to widen the result set."
-          onRowClick={(request) => navigate(`/department-manager/requests/${encodeURIComponent(request.id)}`)}
+          emptyTitle="No department requests found"
+          emptyDescription="No requests match the current search and status."
         />
       </section>
     </div>

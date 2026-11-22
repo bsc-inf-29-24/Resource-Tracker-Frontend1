@@ -219,6 +219,10 @@ export const departmentsApi = {
     apiRequest<unknown>(
       `/api/v1/departments/${encodeURIComponent(id)}/teams`,
     ),
+  teamProjects: (id: string, teamId: string) =>
+    apiRequest<unknown>(
+      `/api/v1/departments/${encodeURIComponent(id)}/teams/${encodeURIComponent(teamId)}/projects`,
+    ),
   projects: (id: string) =>
     apiRequest<unknown>(
       `/api/v1/departments/${encodeURIComponent(id)}/projects`,

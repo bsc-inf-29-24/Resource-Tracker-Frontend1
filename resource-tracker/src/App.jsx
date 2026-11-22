@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+﻿import { lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -73,8 +73,23 @@ const ResetPasswordPage = page(
 );
 
 // Team Lead
+const TeamLeadDashboardPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadDashboard"),
+);
 const NewRequestPage = page(
   () => import("./assets/pages/team-lead/NewApiRequestPage"),
+);
+const TeamLeadRequestHistoryPage = page(
+  () => import("./assets/pages/team-lead/RequestHistoryPage"),
+);
+const TeamLeadQueryResponsePage = page(
+  () => import("./assets/pages/team-lead/QueryResponsePage"),
+);
+const TeamLeadTeamsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadTeamsPage"),
+);
+const TeamLeadProjectsPage = page(
+  () => import("./assets/pages/team-lead/TeamLeadProjectsPage"),
 );
 
 const SpendingReportsPage = page(() =>
@@ -146,18 +161,11 @@ const ReportsPage = page(
 const AuditLogsPage = page(
   () => import("./assets/pages/management/AuditLogsPage"),
 );
+const AccountSettingsPage = page(
+  () => import("./assets/pages/account/AccountSettingsPage"),
+);
 const TeamMemberDashboard = page(
   () => import("./assets/pages/team-member/TeamMemberDashboard"),
-);
-const TeamLeadRequestHistoryPage = page(() =>
-  import("./assets/pages/management/ResourceRequestPages").then((module) => ({
-    default: module.TeamLeadRequestHistoryPage,
-  })),
-);
-const TeamLeadQueryResponsePage = page(() =>
-  import("./assets/pages/management/ResourceRequestPages").then((module) => ({
-    default: module.TeamLeadQueryResponsePage,
-  })),
 );
 const LineManagerReviewQueuePage = page(() =>
   import("./assets/pages/management/ResourceRequestPages").then((module) => ({
@@ -217,6 +225,7 @@ function App() {
                 </ProtectedRoute>
               }
             >
+              <Route path="/account" element={<AccountSettingsPage />} />
               {/* System Admin */}
               <Route
                 path="/system-admin/dashboard"
@@ -300,13 +309,7 @@ function App() {
               {/* Team Lead */}
               <Route
                 path="/team-lead/dashboard"
-                element={
-                  <ResourceRequestsDashboard
-                    title="Team Lead Dashboard"
-                    detailsPath="/team-lead/requests"
-                    showProfile={false}
-                  />
-                }
+                element={<TeamLeadDashboardPage />}
               />
               <Route
                 path="/team-lead/requests/new"
@@ -324,6 +327,8 @@ function App() {
                 path="/team-lead/requests/:id/respond"
                 element={<TeamLeadQueryResponsePage />}
               />
+              <Route path="/team-lead/teams" element={<TeamLeadTeamsPage />} />
+              <Route path="/team-lead/projects" element={<TeamLeadProjectsPage />} />
 
               {/* Line Manager */}
               <Route

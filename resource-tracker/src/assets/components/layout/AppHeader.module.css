@@ -50,6 +50,10 @@
   cursor: pointer;
 }
 
+.departmentHeadMenuToggle {
+  display: grid;
+}
+
 .menuToggle:focus-visible {
   outline: 3px solid var(--rt-green-600);
   outline-offset: 2px;

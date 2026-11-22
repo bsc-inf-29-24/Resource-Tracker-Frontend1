@@ -17,6 +17,10 @@ export interface AuthenticatedUser {
   role: string;
   department?: string | null;
   team?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  dateOfBirth?: string | null;
+  preferredPronoun?: string | null;
 }
 
 interface AuthTokens {
@@ -118,50 +122,17 @@ export function getBackendRoleFromFrontendRole(role?: string | null): string {
 }
 
 export async function createAdministratorUser(
-  draft: {
-    name?: string;
-    email?: string;
-    role?: string;
-    department?: string;
-    team?: string;
-  },
-  password: string,
+  input: import("./api-services").CreateUserInput,
 ): Promise<AuthenticatedUser> {
-  const fullName = draft.name?.trim();
-  const email = draft.email?.trim();
-
-  if (!fullName || !email) {
-    throw new Error("Full name and email are required.");
-  }
-
-  const backendRole = getBackendRoleFromFrontendRole(draft.role);
-  const payload = {
-    fullName,
-    email,
-    role: backendRole,
-    initialPassword: password,
-  };
-
-  const created = await request<{ id?: string; fullName?: string; email?: string; role?: string }>(
+  const created = await request<import("./api-services").CreateUserResponse>(
     "/api/v1/users",
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
+    { method: "POST", body: JSON.stringify(input) },
     true,
   );
-
-  const nextUser = normalizeUser({
-    id: created?.id ?? "",
-    fullName: created?.fullName ?? fullName,
-    email: created?.email ?? email,
-    role: created?.role ?? backendRole,
-    department: draft.department ?? null,
-    team: draft.team ?? null,
-  });
-
-  saveCurrentUser(nextUser);
-  return nextUser;
+  if (!created?.user) {
+    throw new Error("The create-user response did not contain the created account.");
+  }
+  return normalizeUser(created.user);
 }
 
 async function request<T>(
@@ -186,6 +157,10 @@ function normalizeUser(
     role: String(user.role ?? ""),
     department: user.department ?? null,
     team: user.team ?? null,
+    phoneNumber: user.phoneNumber ?? null,
+    address: user.address ?? null,
+    dateOfBirth: user.dateOfBirth ?? null,
+    preferredPronoun: user.preferredPronoun ?? null,
   };
 }
 
@@ -208,6 +183,15 @@ export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
     department:
       typeof profile.department === "string" ? profile.department : null,
     team: typeof profile.team === "string" ? profile.team : null,
+    phoneNumber:
+      typeof profile.phoneNumber === "string" ? profile.phoneNumber : null,
+    address: typeof profile.address === "string" ? profile.address : null,
+    dateOfBirth:
+      typeof profile.dateOfBirth === "string" ? profile.dateOfBirth : null,
+    preferredPronoun:
+      typeof profile.preferredPronoun === "string"
+        ? profile.preferredPronoun
+        : null,
   });
   saveCurrentUser(normalized);
   return normalized;

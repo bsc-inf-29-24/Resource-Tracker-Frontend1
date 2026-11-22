@@ -18,8 +18,8 @@ const projectUpdateFields: ApiField[] = projectFields.filter(
 export default function ProjectsPage() {
   return (
     <ApiManagementPage
-      title="Projects"
-      description="Create projects with the required dates and optionally assign documented numeric team IDs."
+      title=""
+      description=""
       list={projectsApi.list}
       get={projectsApi.get}
       create={projectsApi.create}

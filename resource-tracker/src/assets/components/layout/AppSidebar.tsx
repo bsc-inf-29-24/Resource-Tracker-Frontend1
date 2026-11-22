@@ -6,10 +6,16 @@ import styles from "./AppSidebar.module.css";
 interface AppSidebarProps {
   role: UserRole | null;
   open: boolean;
+  collapsible?: boolean;
   onClose: () => void;
 }
 
-export default function AppSidebar({ role, open, onClose }: AppSidebarProps) {
+export default function AppSidebar({
+  role,
+  open,
+  collapsible = false,
+  onClose,
+}: AppSidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
 
@@ -63,7 +69,15 @@ export default function AppSidebar({ role, open, onClose }: AppSidebarProps) {
       <aside
         id="application-sidebar"
         ref={sidebarRef}
-        className={`${styles.sidebar} ${open ? styles.sidebarOpen : ""}`}
+        className={`${styles.sidebar} ${
+          collapsible
+            ? `${styles.departmentHeadSidebar} ${
+                open ? styles.departmentHeadSidebarOpen : ""
+              }`
+            : open
+              ? styles.sidebarOpen
+              : ""
+        }`}
         {...(open
           ? {
               role: "dialog",
@@ -72,7 +86,7 @@ export default function AppSidebar({ role, open, onClose }: AppSidebarProps) {
             }
           : {})}
       >
-        {/* <p className={styles.label}>MAIN MENU</p> */}
+        {/* {role !== "TEAM_LEAD" && <p className={styles.label}>MAIN MENU</p>} */}
         <nav className={styles.navigation} aria-label="Main navigation">
           {navigationItems.map((item) => {
             const isExact = pathname === item.path;

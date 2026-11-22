@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./UserProfileMenu.module.css";
 
 interface UserProfileMenuProps {
@@ -80,6 +81,13 @@ export default function UserProfileMenu({
           role="group"
           aria-label="Signed-in user details"
         >
+          <Link
+            to="/account"
+            onClick={() => setOpen(false)}
+            className={styles.accountLink}
+          >
+            My account
+          </Link>
           <dl className={styles.details}>
             <div className={styles.detail}>
               <dd><span>Name: </span>{displayName}</dd>

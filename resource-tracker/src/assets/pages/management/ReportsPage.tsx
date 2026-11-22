@@ -118,17 +118,17 @@ export default function ReportsPage({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
+      {/* <PageHeader
         title={title}
         description={description}
-      />
+      /> */}
       {error && (
         <p className={styles.formError} role="alert">
           {error}
         </p>
       )}
       <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Report filters</h2>
+        <h2>Spending Filter</h2>
         <div className={styles.grid}>
           {availableOptions.length > 1 && (
             <label className={styles.field} htmlFor="report-name">
@@ -149,7 +149,10 @@ export default function ReportsPage({
             </label>
           )}
           {report !== "organization" && (
-            <label className={styles.field} htmlFor="report-department-id">
+            <label
+              className={`${styles.field} ${styles.reportFilterField}`}
+              htmlFor="report-department-id"
+            >
             <span>
               Department ID{requireDepartmentId || report === "department" ? " *" : ""}
             </span>
@@ -158,11 +161,15 @@ export default function ReportsPage({
               type="number"
               min="1"
               value={departmentId}
+              placeholder="Enter department ID"
               onChange={(event) => setDepartmentId(event.target.value)}
             />
             </label>
           )}
-          <label className={styles.field} htmlFor="report-start-date">
+          <label
+            className={`${styles.field} ${styles.reportFilterField}`}
+            htmlFor="report-start-date"
+          >
             <span>Start date</span>
             <input
               id="report-start-date"
@@ -171,7 +178,10 @@ export default function ReportsPage({
               onChange={(event) => setStartDate(event.target.value)}
             />
           </label>
-          <label className={styles.field} htmlFor="report-end-date">
+          <label
+            className={`${styles.field} ${styles.reportFilterField}`}
+            htmlFor="report-end-date"
+          >
             <span>End date</span>
             <input
               id="report-end-date"
@@ -229,7 +239,6 @@ export function DepartmentReportsPage() {
     <ReportsPage
       allowedReports={[
         "approval-history",
-        "departmental-spending",
         "allocation-history",
         "department",
       ]}

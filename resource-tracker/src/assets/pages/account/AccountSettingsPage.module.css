@@ -1,0 +1,84 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel h2 {
+  margin: 0;
+  color: var(--rt-green-900);
+}
+
+.identity,
+.note,
+.panel > p {
+  margin: 0;
+  color: var(--rt-text-muted);
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--rt-text);
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 2.6rem;
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-sm);
+  padding: 0.6rem 0.7rem;
+  color: var(--rt-text);
+  background: var(--rt-surface);
+  font: inherit;
+}
+
+.field small,
+.note {
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.error,
+.success {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--rt-radius-sm);
+}
+
+.error {
+  color: var(--rt-danger-800, #8f1d1d);
+  background: var(--rt-danger-50, #fff0f0);
+}
+
+.success {
+  color: var(--rt-green-950);
+  background: var(--rt-green-50);
+}
+
+.danger {
+  border-color: #e6b7b7;
+}
+
+.danger h2 {
+  color: #8f1d1d;
+}

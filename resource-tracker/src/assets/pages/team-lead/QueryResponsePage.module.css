@@ -29,6 +29,32 @@
   line-height: 1.5;
 }
 
+.requestDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.requestDetails > div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+}
+
+.requestDetails dt {
+  margin-bottom: 5px;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.requestDetails dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .form {
   display: grid;
   gap: 16px;

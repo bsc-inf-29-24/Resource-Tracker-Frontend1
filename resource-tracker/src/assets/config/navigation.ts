@@ -20,6 +20,8 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
     { label: "Dashboard", path: "/team-lead/dashboard" },
     { label: "New Request", path: "/team-lead/requests/new" },
     { label: "Request History", path: "/team-lead/requests" },
+    { label: "Teams", path: "/team-lead/teams" },
+    { label: "Projects", path: "/team-lead/projects" },
     { label: "Notifications", path: "/notifications" },
   ],
   LINE_MANAGER: [
@@ -31,11 +33,12 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
   ],
   DEPARTMENT_MANAGER: [
     { label: "Dashboard", path: "/department-manager/dashboard" },
-    { label: "Requests", path: "/department-manager/requests" },
-    { label: "Spending", path: "/department-manager/spending" },
-    { label: "Allocation", path: "/department-manager/allocation" },
+    { label: "Department Requests", path: "/department-manager/requests" },
+    { label: "Department Spending", path: "/department-manager/spending" },
+    // { label: "Resource Allocation", path: "/department-manager/allocation" },
     { label: "Teams", path: "/department-manager/teams" },
     { label: "Projects", path: "/department-manager/projects" },
+    { label: "Reports", path: "/department-manager/reports" },
     { label: "Notifications", path: "/notifications" },
   ],
   MANAGING_DIRECTOR: [

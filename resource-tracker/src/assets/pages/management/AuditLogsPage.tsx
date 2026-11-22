@@ -1,112 +1,124 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import DataTable from "../../components/tables/DataTable";
+import type { DataTableColumn } from "../../components/tables/type";
 import PageHeader from "../../components/layout/PageHeader";
-import { auditLogsApi } from "../../data/api-services";
-import ApiResponsePanel from "./ApiResponsePanel";
+import {
+  auditLogsApi,
+  type AuditLogFilters,
+} from "../../data/api-services";
+import {
+  flattenApiRecord,
+  formatApiValue,
+  getApiRecords,
+  humanizeApiKey,
+  isApiRecord,
+  type ApiRecord,
+  unwrapApiResponse,
+} from "../../data/api-response";
 import styles from "./ApiManagementPage.module.css";
 
+type AuditRow = Record<string, unknown> & { __row: number };
+const sensitiveKey = /password|token|secret|credential/i;
+
+function readableAuditRecords(response: unknown): ApiRecord[] {
+  const records = getApiRecords(response);
+  if (records.length) return records;
+  const unwrapped = unwrapApiResponse(response);
+  return isApiRecord(unwrapped) && Object.keys(unwrapped).length
+    ? [unwrapped]
+    : [];
+}
+
 export default function AuditLogsPage() {
-  const [data, setData] = useState<unknown>();
-  const [entityType, setEntityType] = useState("");
-  const [entityId, setEntityId] = useState("");
+  const [filters, setFilters] = useState<AuditLogFilters>({});
+  const [rows, setRows] = useState<AuditRow[]>([]);
+  const [hasResponseRecords, setHasResponseRecords] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadAuditLogs = useCallback(
-    async (filters: { entityType?: string; entityId?: string } = {}) => {
-      setLoading(true);
-      setError("");
-      try {
-        setData(
-          await auditLogsApi.list(filters.entityType, filters.entityId),
-        );
-      } catch (loadError) {
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Audit logs could not be loaded.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
+  const loadAuditLogs = useCallback(async (appliedFilters: AuditLogFilters = {}) => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await auditLogsApi.list(appliedFilters);
+      const records = readableAuditRecords(response);
+      setHasResponseRecords(records.length > 0);
+      setRows(records.map((record, index) => {
+        const flattened = flattenApiRecord(record);
+        for (const key of Object.keys(flattened)) {
+          if (sensitiveKey.test(key)) flattened[key] = "[redacted]";
+        }
+        return { ...flattened, __row: index };
+      }));
+    } catch (loadError) {
+      setRows([]);
+      setHasResponseRecords(false);
+      const message = loadError instanceof Error ? loadError.message : "Audit logs could not be loaded.";
+      setError(/403|forbidden/i.test(message)
+        ? `You do not have permission to view these audit logs. ${message}`
+        : message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     void loadAuditLogs();
   }, [loadAuditLogs]);
 
-  function searchAuditLogs(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    void loadAuditLogs({
-      entityType: entityType.trim() || undefined,
-      entityId: entityId.trim() || undefined,
-    });
-  }
+  const columns = useMemo<DataTableColumn<AuditRow>[]>(() => {
+    const keys = Array.from(new Set(rows.flatMap((row) => Object.keys(row).filter((key) => key !== "__row"))));
+    return keys.map((key) => ({
+      key,
+      header: humanizeApiKey(key),
+      render: (row) => formatApiValue(row[key]),
+    }));
+  }, [rows]);
 
-  function clearFilters() {
-    setEntityType("");
-    setEntityId("");
-    void loadAuditLogs();
+  function submitFilters(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const userId = filters.userId?.trim();
+    if (userId && !/^\d+$/.test(userId)) {
+      setError("User ID must be a number.");
+      return;
+    }
+    const applied = Object.fromEntries(
+      Object.entries(filters).map(([key, value]) => [key, value?.trim() || undefined]),
+    ) as AuditLogFilters;
+    void loadAuditLogs(applied);
   }
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader
-        title="Audit logs"
-        description="Review administrative activity and inspect audit records."
-      />
-      <form
-        className={`rt-root rt-card ${styles.panel}`}
-        onSubmit={searchAuditLogs}
-      >
-        <h2>Filter audit records</h2>
-        <div className={styles.grid}>
-          <label className={styles.field} htmlFor="audit-entity-type">
-            <span>Entity type</span>
-            <input
-              id="audit-entity-type"
-              name="entityType"
-              value={entityType}
-              placeholder="e.g. user"
-              onChange={(event) => setEntityType(event.target.value)}
-            />
-          </label>
-          <label className={styles.field} htmlFor="audit-entity-id">
-            <span>Entity ID</span>
-            <input
-              id="audit-entity-id"
-              name="entityId"
-              value={entityId}
-              placeholder="Enter an entity ID"
-              onChange={(event) => setEntityId(event.target.value)}
-            />
-          </label>
-        </div>
-        <div className={styles.actions}>
-          <button
-            type="submit"
-            className="rt-root rt-btn rt-btn--primary"
-            disabled={loading}
-          >
-            Apply filters
-          </button>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--outline"
-            disabled={loading || (!entityType && !entityId)}
-            onClick={clearFilters}
-          >
-            Clear filters
-          </button>
-        </div>
-      </form>
-      <ApiResponsePanel
-        title="Audit Records"
-        data={data}
+      <PageHeader title="Audit logs" description="Review audit records returned for your account." />
+      <section className={`rt-root rt-card ${styles.panel}`}>
+        <h2>Audit record filters</h2>
+        <p className={styles.notice}>The backend applies supplied filters using OR logic. Leave a field empty to omit that filter.</p>
+        <form onSubmit={submitFilters}>
+          <div className={styles.grid}>
+            <label className={styles.field} htmlFor="audit-user-id"><span>User ID</span><input id="audit-user-id" inputMode="numeric" value={filters.userId ?? ""} onChange={(event) => setFilters({ ...filters, userId: event.target.value })} /></label>
+            <label className={styles.field} htmlFor="audit-action-type"><span>Action type</span><input id="audit-action-type" value={filters.actionType ?? ""} onChange={(event) => setFilters({ ...filters, actionType: event.target.value })} /></label>
+            <label className={styles.field} htmlFor="audit-entity-type"><span>Entity type</span><input id="audit-entity-type" value={filters.entityType ?? ""} onChange={(event) => setFilters({ ...filters, entityType: event.target.value })} /></label>
+            <label className={styles.field} htmlFor="audit-date"><span>Date</span><input id="audit-date" type="date" value={filters.date ?? ""} onChange={(event) => setFilters({ ...filters, date: event.target.value })} /></label>
+            <label className={styles.field} htmlFor="audit-time"><span>Time</span><input id="audit-time" type="time" value={filters.time ?? ""} onChange={(event) => setFilters({ ...filters, time: event.target.value })} /></label>
+          </div>
+          <div className={styles.actions}>
+            <button type="submit" className="rt-root rt-btn rt-btn--primary" disabled={loading}>Apply filters</button>
+            <button type="button" className="rt-root rt-btn rt-btn--outline" disabled={loading} onClick={() => { setFilters({}); void loadAuditLogs({}); }}>Clear filters</button>
+          </div>
+        </form>
+      </section>
+      <DataTable
+        title="Audit records"
+        columns={columns}
+        rows={rows}
+        rowKey="__row"
         loading={loading}
         error={error}
-        expandableRecords
+        onRetry={() => void loadAuditLogs(filters)}
+        emptyTitle={hasResponseRecords ? "Audit records returned in an unsupported format" : "No audit records found"}
+        emptyDescription={hasResponseRecords ? "The backend returned data that this table cannot safely interpret. The response schema is not specified in Swagger." : "No audit records were returned for the selected filters."}
+        itemLabel="audit record"
       />
     </section>
   );

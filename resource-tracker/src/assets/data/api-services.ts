@@ -19,10 +19,49 @@ export const assignableUserRoles: {
 ];
 
 export interface CreateUserInput {
-  fullName: string;
+  firstName: string;
+  middleName?: string;
+  surname: string;
   email: string;
   role: AssignableUserRole;
-  initialPassword: string;
+}
+
+export interface CreatedUser {
+  id: string;
+  fullName: string;
+  email: string;
+  role: AssignableUserRole | "SYSTEM_ADMIN";
+  isActive: boolean;
+}
+
+export interface CreateUserResponse {
+  user: CreatedUser;
+}
+
+export type PreferredPronoun = "Mr." | "Mrs." | "Miss";
+
+export interface UpdateMyProfileInput {
+  action: "update_profile";
+  phoneNumber?: string;
+  address?: string;
+  dateOfBirth?: string;
+  preferredPronoun?: PreferredPronoun;
+}
+
+export interface ChangeMyPasswordInput {
+  action: "change_password";
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type ManageMyAccountInput = UpdateMyProfileInput | ChangeMyPasswordInput;
+
+export interface AuditLogFilters {
+  userId?: string;
+  actionType?: string;
+  entityType?: string;
+  date?: string;
+  time?: string;
 }
 
 export interface DepartmentInput {
@@ -57,6 +96,8 @@ export interface ResourceInput {
   batchNumber?: string;
 }
 
+export type ResourceType = "insourced" | "outsourced";
+
 export type ApiRequestStatus =
   | "DRAFT"
   | "SUBMITTED"
@@ -65,23 +106,25 @@ export type ApiRequestStatus =
   | "REJECTED";
 
 export interface CreateResourceRequestInput {
+  resourceId: string;
   itemDescription: string;
   batchNumber: string;
   quantity: number;
   expectedDurationDays: number;
-  projectName: string;
+  projectId: number;
   lineManagerName: string;
-  teamName: string;
+  teamId: number;
 }
 
 export interface UpdateResourceRequestInput {
+  resourceId?: string;
   itemDescription?: string;
   batchNumber?: string;
   quantity?: number;
   expectedDurationDays?: number;
-  projectName?: string;
+  projectId?: number;
   lineManagerName?: string;
-  teamName?: string;
+  teamId?: number;
   status?: Exclude<ApiRequestStatus, "DRAFT">;
   note?: string;
 }
@@ -117,8 +160,19 @@ function withQuery(
 
 export const usersApi = {
   list: () => apiRequest<unknown>("/api/v1/users"),
+  lineManagers: () => apiRequest<unknown>("/api/v1/users/line-managers"),
+  myProfile: () => apiRequest<unknown>("/api/v1/users/me"),
+  updateMyAccount: (input: ManageMyAccountInput) =>
+    apiRequest<unknown>("/api/v1/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  deleteMyAccount: () =>
+    apiRequest<{ message: string }>("/api/v1/users/me/delete", {
+      method: "DELETE",
+    }),
   create: (input: CreateUserInput) =>
-    apiRequest<void>(
+    apiRequest<CreateUserResponse>(
       "/api/v1/users",
       { method: "POST", body: JSON.stringify(input) },
     ),
@@ -253,12 +307,47 @@ export const resourcesApi = {
     ),
   get: (id: string) =>
     apiRequest<unknown>(`/api/v1/resources/${encodeURIComponent(id)}`),
-  create: (input: ResourceInput) => {
-    const { type, ...body } = input;
+  create: (input: Record<string, unknown>) => {
+    const type = input.type;
+    const name = typeof input.name === "string" ? input.name.trim() : "";
+    const quantity = Number(input.quantity);
     if (type !== "insourced" && type !== "outsourced") {
       throw new Error("Select a supported resource type.");
     }
-    return apiRequest<unknown>(`/api/v1/resources/${type}`, {
+    if (!name || !Number.isFinite(quantity) || quantity < 1) {
+      throw new Error("Enter a resource name and a quantity of at least one.");
+    }
+
+    const body: Record<string, unknown> = { type, name, quantity };
+    if (type === "insourced") {
+      const description = typeof input.description === "string" ? input.description.trim() : "";
+      const departmentName = typeof input.departmentName === "string" ? input.departmentName.trim() : "";
+      if (!description || !departmentName) {
+        throw new Error("Insourced resources require a description and department name.");
+      }
+      body.description = description;
+      body.departmentName = departmentName;
+    } else {
+      const rawPrice = input.price;
+      const price = Number(rawPrice);
+      const label = typeof input.label === "string" ? input.label.trim() : "";
+      const batchNumber = typeof input.batchNumber === "string" ? input.batchNumber.trim() : "";
+      const vendor = typeof input.vendor === "string" ? input.vendor.trim() : "";
+      if (
+        (typeof rawPrice !== "number" && typeof rawPrice !== "string") ||
+        String(rawPrice).trim() === "" ||
+        !Number.isFinite(price) ||
+        price < 0 ||
+        !label ||
+        !batchNumber ||
+        !vendor
+      ) {
+        throw new Error("Outsourced resources require a non-negative price, label, batch number, and vendor.");
+      }
+      Object.assign(body, { price, label, batchNumber, vendor });
+    }
+
+    return apiRequest<unknown>("/api/v1/resources", {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -420,9 +509,14 @@ export interface AuditLogFilters {
 }
 
 export const auditLogsApi = {
-  list: () => apiRequest<unknown>("/api/v1/audit-logs"),
-  filter: (filters: AuditLogFilters) =>
+  list: (filters: AuditLogFilters = {}) =>
     apiRequest<unknown>(
-      withQuery("/api/v1/audit-logs/filter", filters),
+      withQuery("/api/v1/audit-logs", {
+        userId: filters.userId,
+        actionType: filters.actionType,
+        entityType: filters.entityType,
+        date: filters.date,
+        time: filters.time,
+      }),
     ),
 };

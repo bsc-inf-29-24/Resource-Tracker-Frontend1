@@ -462,12 +462,14 @@ export default function ApiManagementPage({
       )}
 
       <section className={`rt-root rt-card ${styles.panel}`}>
-        <div className={styles.panelHeading}>
-          <h2>{recordsTitle}</h2>
-          {/* <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => void reload()}>
-            Refresh
-          </button> */}
-        </div>
+        {recordsTitle && (
+          <div className={styles.panelHeading}>
+            <h2>{recordsTitle}</h2>
+            {/* <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => void reload()}>
+              Refresh
+            </button> */}
+          </div>
+        )}
         {loading ? (
           <LoadingState message="Loading backend records..." />
         ) : records.length > 0 && columns.length > 0 ? (

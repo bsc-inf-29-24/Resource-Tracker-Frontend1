@@ -411,6 +411,18 @@ export const reportsApi = {
     ),
 };
 
+export interface AuditLogFilters {
+  userId?: string;
+  actionType?: string;
+  entityType?: string;
+  date?: string;
+  time?: string;
+}
+
 export const auditLogsApi = {
   list: () => apiRequest<unknown>("/api/v1/audit-logs"),
+  filter: (filters: AuditLogFilters) =>
+    apiRequest<unknown>(
+      withQuery("/api/v1/audit-logs/filter", filters),
+    ),
 };

@@ -1,7 +1,29 @@
 import { useLayoutEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import {
+  BarChart3,
+  Bell,
+  ClipboardList,
+  FileText,
+  FolderKanban,
+  LayoutDashboard,
+  Package,
+  UsersRound,
+} from "lucide-react";
 import { navigationConfig, type UserRole } from "../../config/navigation";
 import styles from "./AppSidebar.module.css";
+
+function navigationIcon(label: string) {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("dashboard")) return LayoutDashboard;
+  if (normalized.includes("notification")) return Bell;
+  if (normalized.includes("team")) return UsersRound;
+  if (normalized.includes("project")) return FolderKanban;
+  if (normalized.includes("resource") || normalized.includes("allocation")) return Package;
+  if (normalized.includes("report") || normalized.includes("spending")) return BarChart3;
+  if (normalized.includes("audit")) return FileText;
+  return ClipboardList;
+}
 
 interface AppSidebarProps {
   role: UserRole | null;
@@ -71,8 +93,8 @@ export default function AppSidebar({
         ref={sidebarRef}
         className={`${styles.sidebar} ${
           collapsible
-            ? `${styles.departmentHeadSidebar} ${
-                open ? styles.departmentHeadSidebarOpen : ""
+            ? `${styles.drawer} ${
+                open ? styles.drawerOpen : ""
               }`
             : open
               ? styles.sidebarOpen
@@ -86,7 +108,10 @@ export default function AppSidebar({
             }
           : {})}
       >
-        {/* {role !== "TEAM_LEAD" && <p className={styles.label}>MAIN MENU</p>} */}
+        <div className={styles.brand} aria-label="Resource Tracker">
+          <span className={styles.brandMark} aria-hidden="true">RT</span>
+          <span className={styles.brandName}>Resource<br />Tracker</span>
+        </div>
         <nav className={styles.navigation} aria-label="Main navigation">
           {navigationItems.map((item) => {
             const isExact = pathname === item.path;
@@ -104,6 +129,7 @@ export default function AppSidebar({
               );
             const isActive =
               isExact || (isNested && !item.path.endsWith("/dashboard"));
+            const Icon = item.icon ?? navigationIcon(item.label);
 
             return (
               <Link
@@ -113,11 +139,16 @@ export default function AppSidebar({
                 aria-current={isActive ? "page" : undefined}
                 onClick={onClose}
               >
+                <Icon aria-hidden="true" size={19} strokeWidth={1.8} />
                 {item.label}
               </Link>
             );
           })}
         </nav>
+        <footer className={styles.footer}>
+          <p className={styles.footerText}>Smarter resources<br />Better decisions.</p>
+          <div className={styles.footerWaves} aria-hidden="true" />
+        </footer>
       </aside>
     </>
   );

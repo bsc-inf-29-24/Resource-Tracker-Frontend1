@@ -1,13 +1,16 @@
 .page {
   display: grid;
+  width: 100%;
+  max-width: none;
   gap: 1.25rem;
-  max-width: 1100px;
-  margin: 0 auto;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .panel {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
+  padding: 1.5rem;
 }
 
 .panel h2 {
@@ -15,11 +18,68 @@
   color: var(--rt-green-900);
 }
 
+.panelHeading {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  text-align: left;
+}
+
+.panelHeading > div {
+  width: 100%;
+  text-align: left;
+}
+
 .identity,
 .note,
 .panel > p {
   margin: 0;
   color: var(--rt-text-muted);
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--rt-border);
+}
+
+.detail {
+  min-width: 0;
+  padding: 1rem 1rem 1rem 0;
+  border-bottom: 1px solid var(--rt-border);
+}
+
+.detail dt {
+  margin-bottom: 0.35rem;
+  color: var(--rt-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.detail dd {
+  margin: 0;
+  color: var(--rt-text);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.operations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.operation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .form {
@@ -105,16 +165,76 @@
   background: var(--rt-green-50);
 }
 
-.danger {
-  border-color: #e6b7b7;
+.dialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(720px, calc(100vw - 2rem));
+  max-height: min(calc(100vh - 2rem), 760px);
+  overflow-y: auto;
+  border: 1px solid var(--rt-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  color: var(--rt-text);
+  background: var(--rt-surface);
+  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 24%);
 }
 
-.danger h2 {
-  color: #8f1d1d;
+.dialog::backdrop {
+  background: rgb(0 0 0 / 48%);
 }
 
-.page > header {
-  padding-inline: 20px;
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.dialogHeader h2 {
+  margin: 0;
+  color: var(--rt-green-900);
+}
+
+.closeButton {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-sm);
+  color: var(--rt-text);
+  background: var(--rt-surface);
+  cursor: pointer;
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .panel {
+    padding: 1rem;
+  }
+
+  .operations > button {
+    flex: 1 1 100%;
+  }
+
+  .dialog {
+    padding: 1rem;
+  }
+
+  .dialogActions > button {
+    flex: 1 1 auto;
+  }
 }
 
 

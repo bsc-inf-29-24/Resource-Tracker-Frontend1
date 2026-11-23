@@ -11,6 +11,7 @@ import {
   formatApiValue,
   getApiRecords,
   humanizeApiKey,
+  isApiRecord,
 } from "../../data/api-response";
 import ApiDataView from "./ApiDataView";
 import { dashboardApi, departmentsApi, teamsApi, usersApi } from "../../data/api-services";
@@ -70,6 +71,8 @@ interface ApiManagementPageProps {
   assignmentsInDialog?: boolean;
   recordsTitle?: string;
   headingAction?: React.ReactNode;
+  selectionLabel?: string;
+  selectionDetailsInDialog?: boolean;
   createHeading?: string;
   createButtonLabel?: string;
 }
@@ -80,6 +83,19 @@ function textValue(value: unknown): string {
 
 function formatValue(value: unknown): string {
   return formatApiValue(value);
+}
+
+function formatCreatedAt(value: unknown): string {
+  if (typeof value !== "string" && !(value instanceof Date)) {
+    return formatValue(value);
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? formatValue(value)
+    : new Intl.DateTimeFormat(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date);
 }
 
 function getRecordDisplayName(record: ApiRecord): string {
@@ -113,6 +129,8 @@ export default function ApiManagementPage({
   assignmentsInDialog = false,
   recordsTitle = "Users records",
   headingAction,
+  selectionLabel = "Select",
+  selectionDetailsInDialog = false,
   createHeading,
   createButtonLabel,
 }: ApiManagementPageProps) {
@@ -236,7 +254,9 @@ export default function ApiManagementPage({
         fields.map((field) => [field.name, textValue(record[field.name])]),
       ),
     );
-    setDetail(assignmentsInDialog ? null : record);
+    setDetail(
+      assignmentsInDialog && !selectionDetailsInDialog ? null : record,
+    );
     setRelatedData(null);
     setError("");
     setNotice("");
@@ -245,17 +265,25 @@ export default function ApiManagementPage({
 
   const records = useMemo(() => getApiRecords(data), [data]);
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
+    const isUserAccounts = recordsTitle === "User accounts";
     const keys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
       ),
-    );
-    const result: DataTableColumn<ApiRecord>[] = keys.map((key) => ({
-      key,
-      header: humanizeApiKey(key.replaceAll(".", " ")),
-      render: (record: ApiRecord) =>
-        formatValue(flattenApiRecord(record)[key]),
-    }));
+    ).filter((key) => !(isUserAccounts && key.toLowerCase() === "id"));
+    const result: DataTableColumn<ApiRecord>[] = keys.map((key) => {
+      const normalizedKey = key.toLowerCase().replace(/[_.\s-]/g, "");
+      return {
+        key,
+        header: humanizeApiKey(key.replaceAll(".", " ")),
+        render: (record: ApiRecord) => {
+          const value = flattenApiRecord(record)[key];
+          return isUserAccounts && normalizedKey === "createdat"
+            ? formatCreatedAt(value)
+            : formatValue(value);
+        },
+      };
+    });
     if (get || update || remove || assignments.length > 0) {
       result.push({
         key: "actions",
@@ -269,9 +297,10 @@ export default function ApiManagementPage({
             <button
               type="button"
               className="rt-root rt-btn rt-btn--outline"
+              aria-label={`${selectionLabel} ${getRecordDisplayName(record)}`}
               onClick={() => selectRecord(record)}
             >
-              Select
+              {selectionLabel}
             </button>
           );
         },
@@ -764,7 +793,7 @@ export default function ApiManagementPage({
         </section>
       )}
 
-      {(detail !== null || relatedData !== null) && (
+        {(detail !== null || relatedData !== null) && !selectionDetailsInDialog && (
         <section className={`rt-root rt-card ${styles.panel}`}>
           <h2>
             {relatedData !== null ? "Related records" : "Record details"}
@@ -781,7 +810,9 @@ export default function ApiManagementPage({
           onClose={() => setAssignmentDialogOpen(false)}
         >
           <div className={styles.dialogHeading}>
-            <h2 id="user-actions-title">User actions</h2>
+            <h2 id="user-actions-title">
+              {selectionDetailsInDialog ? "User details" : "User actions"}
+            </h2>
             <button
               type="button"
               className="rt-root rt-btn rt-btn--outline"
@@ -792,8 +823,28 @@ export default function ApiManagementPage({
             </button>
           </div>
           <p className={styles.assignmentIntro}>
-            Choose an action for {selectedUserName}.
+            {selectionDetailsInDialog
+              ? `User information and available account actions for ${selectedUserName}.`
+              : `Choose an action for ${selectedUserName}.`}
           </p>
+          {selectionDetailsInDialog && isApiRecord(detail) && (
+            <div className={styles.dialogDetails}>
+              <ApiDataView
+                fieldIcons={selectionDetailsInDialog}
+                data={Object.fromEntries(
+                  Object.entries(detail)
+                    .filter(([key]) => !["id", "userid"].includes(key.toLowerCase().replace(/[_-]/g, "")))
+                    .map(([key, value]) => [
+                      key,
+                      key.toLowerCase().replace(/[_-]/g, "") === "createdat"
+                        ? formatCreatedAt(value)
+                        : value,
+                    ]),
+                )}
+              />
+            </div>
+          )}
+          <div className={selectionDetailsInDialog ? styles.userActionRow : undefined}>
           {assignments
             .filter((operation) => operation.requiresValue !== false)
             .map((operation) => (
@@ -842,7 +893,7 @@ export default function ApiManagementPage({
                 </label>
                 <button
                   type="button"
-                  className="rt-root rt-btn rt-btn--outline"
+                  className={`rt-root rt-btn ${selectionDetailsInDialog ? "rt-btn--primary" : "rt-btn--outline"}`}
                   disabled={
                     busy ||
                     !selectedId.trim() ||
@@ -864,10 +915,19 @@ export default function ApiManagementPage({
           <div className={styles.dialogActions}>
             {assignments
               .filter((operation) => operation.requiresValue === false)
+              .filter((operation) => {
+                if (!selectionDetailsInDialog || !isApiRecord(detail)) {
+                  return true;
+                }
+                const action = operation.field.toLowerCase();
+                if (action === "deactivate") return detail.isActive !== false;
+                if (action === "reactivate") return detail.isActive === false;
+                return true;
+              })
               .map((operation) => (
                 <button
                   type="button"
-                  className="rt-root rt-btn rt-btn--outline"
+                  className={`rt-root rt-btn ${selectionDetailsInDialog ? operation.field.toLowerCase() === "deactivate" ? "rt-btn--danger" : "rt-btn--primary" : "rt-btn--outline"}`}
                   key={operation.field}
                   disabled={busy || !selectedId.trim()}
                   onClick={() => {
@@ -882,6 +942,7 @@ export default function ApiManagementPage({
                   {operation.label}
                 </button>
               ))}
+          </div>
           </div>
         </dialog>
       )}

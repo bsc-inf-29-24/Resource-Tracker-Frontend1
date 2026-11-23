@@ -5,7 +5,7 @@
   display: flex;
   min-height: 68px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   padding: 8px 24px;
   border-bottom: 1px solid var(--color-border);
@@ -19,6 +19,7 @@
 .brand {
   display: inline-flex;
   min-width: 0;
+  margin-right: auto;
   align-items: center;
   gap: 11px;
   color: var(--color-text);
@@ -80,6 +81,30 @@
   white-space: nowrap;
 }
 
+.notificationsLink {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  text-decoration: none;
+}
+
+.notificationsLink:hover,
+.notificationsLink[aria-current="page"] {
+  color: var(--rt-green-900);
+  background: var(--rt-green-50);
+}
+
+.notificationsLink:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
+}
+
 .brand:focus-visible {
   outline: 3px solid var(--rt-green-600);
   outline-offset: 3px;
@@ -106,6 +131,11 @@
 
   .menuToggle {
     display: grid;
+  }
+
+  .notificationsLink {
+    width: 36px;
+    height: 36px;
   }
 
   .pageContext {

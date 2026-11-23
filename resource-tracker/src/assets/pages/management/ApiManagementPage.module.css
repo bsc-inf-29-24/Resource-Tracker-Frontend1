@@ -222,6 +222,12 @@
   font-weight: 600;
 }
 
+.apiDataFieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .apiDataField dd,
 .apiDataValue {
   margin: 0;
@@ -257,7 +263,7 @@
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
   margin: 0;
-  width: min(34rem, calc(100vw - 2rem));
+  width: min(52rem, calc(100vw - 2rem));
   max-height: 85vh;
   overflow-y: auto;
   border: 1px solid var(--rt-border);
@@ -266,6 +272,27 @@
   color: var(--rt-text);
   background: var(--rt-surface);
   box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 24%);
+}
+
+.assignmentDialog[open] {
+  animation: userDialogIn 220ms ease-out both;
+}
+
+@keyframes userDialogIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.dialogDetails {
+  max-height: min(35vh, 18rem);
+  margin: 0.75rem 0 1rem;
+  overflow-y: auto;
 }
 
 .assignmentDialog::backdrop {
@@ -291,9 +318,34 @@
 
 .dialogActions {
   display: flex;
-  /* justify-content: space-between; */
+  align-items: flex-end;
+  justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 1rem;
+}
+
+.userActionRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.userActionRow .assignment {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: flex-end;
+  border-top: 0;
+  padding-top: 0;
+}
+
+.userActionRow .field {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
+.userActionRow .dialogActions {
+  flex: 0 0 auto;
+  margin: 0;
 }
 
 @media (max-width: 600px) {
@@ -301,5 +353,20 @@
   .panelHeading > button,
   .assignment > button {
     width: 100%;
+  }
+
+  .userActionRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .userActionRow .dialogActions {
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assignmentDialog[open] {
+    animation: none;
   }
 }

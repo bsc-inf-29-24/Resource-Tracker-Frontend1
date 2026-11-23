@@ -1,0 +1,6 @@
+.viewport { position: fixed; z-index: 1000; top: 76px; right: 16px; display: grid; gap: 10px; width: min(24rem, calc(100vw - 32px)); pointer-events: none; }
+.toast { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--color-border); border-left: 4px solid; border-radius: var(--rt-radius-sm); background: var(--color-surface); color: var(--color-text); box-shadow: var(--rt-shadow); pointer-events: auto; overflow-wrap: anywhere; }
+.toast button { flex: 0 0 auto; border: 0; background: transparent; color: inherit; font-size: 1.1rem; cursor: pointer; }
+.success { border-left-color: var(--rt-green-700); }
+.error { border-left-color: var(--color-danger); }
+@media (max-width: 480px) { .viewport { top: 66px; right: 8px; width: calc(100vw - 16px); } }

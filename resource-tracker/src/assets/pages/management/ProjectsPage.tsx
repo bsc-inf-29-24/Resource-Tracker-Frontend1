@@ -8,7 +8,7 @@ const projectFields: ApiField[] = [
   { name: "description", label: "Description", kind: "textarea" },
   { name: "startDate", label: "Start date", kind: "date", required: true },
   { name: "endDate", label: "End date", kind: "date", required: true },
-  { name: "teamIds", label: "Team IDs", kind: "number-list" },
+  { name: "teamIds", label: "Teams", kind: "multi-select-number", optionSource: "teams" },
 ];
 
 const projectUpdateFields: ApiField[] = projectFields.filter(
@@ -18,7 +18,7 @@ const projectUpdateFields: ApiField[] = projectFields.filter(
 export default function ProjectsPage() {
   return (
     <ApiManagementPage
-      title=""
+      title="Projects"
       description=""
       list={projectsApi.list}
       get={projectsApi.get}

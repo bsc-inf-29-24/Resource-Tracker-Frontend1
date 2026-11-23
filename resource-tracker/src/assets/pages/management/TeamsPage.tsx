@@ -5,9 +5,9 @@ import ApiManagementPage, {
 import styles from "./TeamsPage.module.css";
 
 const teamFields: ApiField[] = [
-  { name: "name", label: "Team name", required: true,  },
+  { name: "name", label: "Team name", required: true },
   { name: "description", label: "Team Description", kind: "textarea" },
-  { name: "departmentId", label: "Department ID", kind: "number", required: true },
+  { name: "departmentId", label: "Department", kind: "select-number", optionSource: "departments", required: true },
 ];
 
 const teamUpdateFields: ApiField[] = [

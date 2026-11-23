@@ -15,6 +15,7 @@ import {
   humanizeApiKey,
   unwrapApiResponse,
 } from "../../data/api-response";
+import { ApiError } from "../../data/api-client";
 import {
   resourceRequestsApi,
   type ApiRequestStatus,
@@ -24,10 +25,9 @@ import styles from "./TeamLeadDashboard.module.css";
 type RequestRecord = Record<string, unknown>;
 
 const requestStatuses: ApiRequestStatus[] = [
-  "DRAFT",
   "SUBMITTED",
-  "QUERIED",
   "APPROVED",
+  "QUERIED",
   "REJECTED",
 ];
 
@@ -57,7 +57,9 @@ export default function TeamLeadDashboard() {
     } catch (loadError) {
       setRequests(undefined);
       setError(
-        loadError instanceof Error ? loadError.message : "Requests could not be loaded.",
+        loadError instanceof ApiError
+          ? `${loadError.message} (HTTP ${loadError.status}; response: ${JSON.stringify(loadError.responseBody)})`
+          : loadError instanceof Error ? loadError.message : "Requests could not be loaded.",
       );
     } finally {
       setLoading(false);
@@ -101,15 +103,15 @@ export default function TeamLeadDashboard() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      {/* <PageHeader
+      <PageHeader
         title="Team Lead Dashboard"
         description={user ? `Requests for ${user.fullName}` : "Your resource requests"}
         supplementary={
           <Link className="rt-root rt-btn rt-btn--primary" to="/team-lead/requests/new">
-            
+            New request
           </Link>
         }
-      /> */}
+      />
       {error && (
         <ErrorMessage
           title="Request data unavailable"
@@ -117,21 +119,21 @@ export default function TeamLeadDashboard() {
           onRetry={() => void loadRequests()}
         />
       )}
+      <StatusCardGrid>
+        {requestStatuses.map((status) => (
+          <StatusCard
+            key={status}
+            label={humanizeApiKey(status)}
+            value={requests === undefined ? "Unavailable" : counts[status]}
+            loading={loading}
+            onClick={requests !== undefined ? () => navigate(`/team-lead/requests?status=${status}`) : undefined}
+          />
+        ))}
+      </StatusCardGrid>
       {!error && loading ? (
         <LoadingState message="Loading your requests from the backend..." />
       ) : !error ? (
         <>
-          <StatusCardGrid>
-            <StatusCard label="All requests" value={rows.length} onClick={() => navigate("/team-lead/requests")} />
-            {requestStatuses.map((status) => (
-              <StatusCard
-                key={status}
-                label={humanizeApiKey(status)}
-                value={counts[status]}
-                onClick={() => navigate(`/team-lead/requests?status=${status}`)}
-              />
-            ))}
-          </StatusCardGrid>
           {rows.length ? (
             <DataTable
               title="Recent requests"

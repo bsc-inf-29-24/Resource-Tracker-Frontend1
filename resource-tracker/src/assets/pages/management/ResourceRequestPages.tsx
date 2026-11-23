@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import DataTable from "../../components/tables/DataTable";
@@ -230,7 +230,7 @@ export function ResourceRequestsPage({
 
       <section className={`rt-root rt-card ${styles.panel}`}>
         <div className={styles.panelHeading}>
-          <h2>Backend requests</h2>
+          <h2>Requests {!loading && !error ? `(${records.length})` : ""}</h2>
           <button
             type="button"
             className="rt-root rt-btn rt-btn--outline"
@@ -438,3 +438,4 @@ export function ManagingDirectorRequestDetailsPage() {
     />
   );
 }
+

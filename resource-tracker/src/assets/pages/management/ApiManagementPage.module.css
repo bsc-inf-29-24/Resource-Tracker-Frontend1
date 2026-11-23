@@ -52,6 +52,59 @@
  font-size: 14px;
 }
 
+.departmentForm {
+  display: grid;
+  gap: 1rem;
+  max-width: 760px;
+}
+
+.departmentField {
+  display: grid;
+  gap: 0.4rem;
+  text-align: left;
+  color: var(--rt-text);
+  font-weight: 600;
+}
+
+.departmentField input,
+.departmentField textarea {
+  width: 100%;
+  min-height: 2.6rem;
+  border: 1px solid var(--rt-border);
+  border-radius: var(--rt-radius-sm);
+  padding: 0.6rem 0.7rem;
+  color: var(--rt-text);
+  background: var(--rt-surface);
+  font: inherit;
+}
+
+.departmentField textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.departmentField small {
+  color: var(--rt-text-muted);
+  font-weight: 400;
+}
+
+.error,
+.success {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--rt-radius-sm);
+}
+
+.error {
+  color: var(--rt-danger-800, #8f1d1d);
+  background: var(--rt-danger-50, #fff0f0);
+}
+
+.success {
+  color: var(--rt-green-950);
+  background: var(--rt-green-50);
+}
+
 
 .panelHeading,
 .actions,
@@ -90,6 +143,7 @@
   display: grid;
   gap: 0.4rem;
   min-width: min(100%, 220px);
+  text-align: left;
   color: var(--rt-text);
   font-weight: 400;
 }

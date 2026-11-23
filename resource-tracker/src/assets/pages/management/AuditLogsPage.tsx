@@ -96,9 +96,9 @@ export default function AuditLogsPage() {
         <p className={styles.notice}>The backend applies supplied filters using OR logic. Leave a field empty to omit that filter.</p>
         <form onSubmit={submitFilters}>
           <div className={styles.grid}>
-            <label className={styles.field} htmlFor="audit-user-id"><span>User ID</span><input id="audit-user-id" inputMode="numeric" value={filters.userId ?? ""} onChange={(event) => setFilters({ ...filters, userId: event.target.value })} /></label>
-            <label className={styles.field} htmlFor="audit-action-type"><span>Action type</span><input id="audit-action-type" value={filters.actionType ?? ""} onChange={(event) => setFilters({ ...filters, actionType: event.target.value })} /></label>
-            <label className={styles.field} htmlFor="audit-entity-type"><span>Entity type</span><input id="audit-entity-type" value={filters.entityType ?? ""} onChange={(event) => setFilters({ ...filters, entityType: event.target.value })} /></label>
+            <label className={styles.field} htmlFor="audit-user-id"><span>User ID</span><input id="audit-user-id" inputMode="numeric" placeholder="Enter a user ID" value={filters.userId ?? ""} onChange={(event) => setFilters({ ...filters, userId: event.target.value })} /></label>
+            <label className={styles.field} htmlFor="audit-action-type"><span>Action type</span><input id="audit-action-type" placeholder="e.g. create, update, delete" value={filters.actionType ?? ""} onChange={(event) => setFilters({ ...filters, actionType: event.target.value })} /></label>
+            <label className={styles.field} htmlFor="audit-entity-type"><span>Entity type</span><input id="audit-entity-type" placeholder="e.g. user, resource, request" value={filters.entityType ?? ""} onChange={(event) => setFilters({ ...filters, entityType: event.target.value })} /></label>
             <label className={styles.field} htmlFor="audit-date"><span>Date</span><input id="audit-date" type="date" value={filters.date ?? ""} onChange={(event) => setFilters({ ...filters, date: event.target.value })} /></label>
             <label className={styles.field} htmlFor="audit-time"><span>Time</span><input id="audit-time" type="time" value={filters.time ?? ""} onChange={(event) => setFilters({ ...filters, time: event.target.value })} /></label>
           </div>

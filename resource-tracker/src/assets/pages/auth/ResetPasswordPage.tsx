@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { resetPassword } from "../../data/auth-store";
 import styles from "./AuthPage.module.css";
@@ -11,6 +12,8 @@ export default function ResetPasswordPage() {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -61,19 +64,19 @@ export default function ResetPasswordPage() {
       <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
         <div className={styles.field}>
           <label htmlFor="reset-email">Email</label>
-          <input id="reset-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <input id="reset-email" type="email" autoComplete="email" placeholder="Enter your email" value={email} onChange={(event) => setEmail(event.target.value)} required />
         </div>
         <div className={styles.field}>
           <label htmlFor="reset-code">Reset code</label>
-          <input id="reset-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 6))} required />
+          <input id="reset-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="Enter the 6-digit code" value={code} onChange={(event) => setCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 6))} required />
         </div>
         <div className={styles.field}>
           <label htmlFor="reset-password">New password</label>
-          <input id="reset-password" type="password" autoComplete="new-password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <div className={styles.passwordControl}><input id="reset-password" type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} placeholder="Enter a new password" value={password} onChange={(event) => setPassword(event.target.value)} required /><button type="button" aria-label={showPassword ? "Hide new password" : "Show new password"} aria-pressed={showPassword} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOff /> : <Eye />}</button></div>
         </div>
         <div className={styles.field}>
           <label htmlFor="reset-confirm-password">Confirm new password</label>
-          <input id="reset-confirm-password" type="password" autoComplete="new-password" minLength={8} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required />
+          <div className={styles.passwordControl}><input id="reset-confirm-password" type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" minLength={8} placeholder="Confirm your new password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /><button type="button" aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"} aria-pressed={showConfirmPassword} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOff /> : <Eye />}</button></div>
         </div>
         <button className={styles.submit} type="submit" disabled={busy}>{busy ? "Resetting password..." : "Reset password"}</button>
       </form>

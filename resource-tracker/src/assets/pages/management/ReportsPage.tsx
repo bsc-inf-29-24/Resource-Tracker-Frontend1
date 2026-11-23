@@ -201,7 +201,7 @@ export default function ReportsPage({
         </button>
       </section>
       <ApiResponsePanel
-        title="Backend report response"
+        title="Report Responses"
         data={data}
         loading={loading}
         error={error}

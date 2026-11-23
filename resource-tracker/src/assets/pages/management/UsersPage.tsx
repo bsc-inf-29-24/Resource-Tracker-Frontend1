@@ -8,7 +8,7 @@ function isAssignableUserRole(value: string): value is AssignableUserRole {
   return assignableUserRoles.some((role) => role.value === value);
 }
 
-export default function UsersPage() {
+export default function UsersPage({ dashboard = false }: { dashboard?: boolean }) {
   return (
     <div className={`rt-root ${styles.page}`}>
       <ApiManagementPage
@@ -17,6 +17,7 @@ export default function UsersPage() {
         list={usersApi.list}
         assignmentsInDialog
         recordsTitle="User accounts"
+        headingAction={dashboard ? <Link className="rt-root rt-btn rt-btn--primary" to="/system-admin/users/new">Create User</Link> : undefined}
         assignments={[
           {
             label: "Assign role",

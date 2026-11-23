@@ -5,6 +5,7 @@ import StatusCard, {
 import { auditLogsApi, usersApi } from "../../data/api-services";
 import { getApiRecords } from "../../data/api-response";
 import styles from "./ApiManagementPage.module.css";
+import UsersPage from "./UsersPage";
 
 type DashboardData = {
   users?: unknown;
@@ -69,6 +70,7 @@ export default function SystemAdminDashboard() {
           loading={loading}
         />
       </StatusCardGrid>
+      <UsersPage dashboard />
     </section>
   );
 }

@@ -65,6 +65,7 @@ export default function ResourcesPage() {
   return (
     <ApiManagementPage
       title="Resources"
+      recordsTitle="Resource records"
       description="Create and update resources using the documented insourced and outsourced field requirements."
       list={resourcesApi.list}
       get={resourcesApi.get}

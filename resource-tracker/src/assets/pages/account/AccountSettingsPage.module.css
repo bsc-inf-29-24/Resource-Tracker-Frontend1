@@ -36,6 +36,7 @@
 .field {
   display: grid;
   gap: 0.4rem;
+  text-align: left;
   color: var(--rt-text);
   font-weight: 600;
 }
@@ -50,6 +51,35 @@
   color: var(--rt-text);
   background: var(--rt-surface);
   font: inherit;
+}
+
+.passwordControl {
+  position: relative;
+  display: flex;
+}
+
+.passwordControl input {
+  min-width: 0;
+  padding-right: 2.8rem;
+}
+
+.passwordControl button {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  display: grid;
+  place-items: center;
+  padding: 0.25rem;
+  border: 0;
+  color: var(--rt-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.passwordControl button:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
 }
 
 .field small,
@@ -82,3 +112,9 @@
 .danger h2 {
   color: #8f1d1d;
 }
+
+.page > header {
+  padding-inline: 20px;
+}
+
+

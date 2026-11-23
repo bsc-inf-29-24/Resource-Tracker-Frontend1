@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+﻿import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import PageHeader from "../../components/layout/PageHeader";
 import { useAuth } from "../../context/AuthContext";
@@ -44,6 +45,7 @@ export default function AccountSettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [visiblePasswords, setVisiblePasswords] = useState({ current: false, next: false, confirm: false });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -97,7 +99,7 @@ export default function AccountSettingsPage() {
     setPasswordError("");
     setPasswordSuccess("");
     if (newPassword.length < 8 || newPassword.length > 12 || !/\d/.test(newPassword)) {
-      setPasswordError("The new password must be 8–12 characters and include a digit.");
+      setPasswordError("The new password must be 8â€“12 characters and include a digit.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -138,19 +140,19 @@ export default function AccountSettingsPage() {
 
   return (
     <main className={`rt-root ${styles.page}`}>
-      <PageHeader title="My account" description="Manage your profile and account security." />
+      <PageHeader title="My account" description="" />
       <section className={`rt-root rt-card ${styles.panel}`}>
         <h2>Profile information</h2>
-        <p className={styles.identity}>{user?.fullName} · {user?.email}</p>
+        <p className={styles.identity}>{user?.fullName} Â· {user?.email}</p>
         <form className={styles.form} onSubmit={submitProfile}>
           <div className={styles.grid}>
             <label className={styles.field}>
               <span>Phone number</span>
-              <input maxLength={30} value={profile.phoneNumber} onChange={(event) => setProfile({ ...profile, phoneNumber: event.target.value })} />
+              <input type="tel" maxLength={30} placeholder="Enter your phone number" value={profile.phoneNumber} onChange={(event) => setProfile({ ...profile, phoneNumber: event.target.value })} />
             </label>
             <label className={styles.field}>
               <span>Address</span>
-              <input maxLength={255} value={profile.address} onChange={(event) => setProfile({ ...profile, address: event.target.value })} />
+              <input maxLength={255} placeholder="Enter your address" value={profile.address} onChange={(event) => setProfile({ ...profile, address: event.target.value })} />
             </label>
             <label className={styles.field}>
               <span>Date of birth</span>
@@ -166,10 +168,10 @@ export default function AccountSettingsPage() {
               </select>
             </label>
           </div>
-          <p className={styles.note}>The backend profile lookup does not currently return these editable fields, so they may not be prefilled after signing in again.</p>
+          {/* <p className={styles.note}>The backend profile lookup does not currently return these editable fields, so they may not be prefilled after signing in again.</p> */}
           {profileError && <p className={styles.error} role="alert">{profileError}</p>}
           {profileSuccess && <p className={styles.success} role="status">{profileSuccess}</p>}
-          <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={profileLoading}>{profileLoading ? "Saving…" : "Save profile"}</button>
+          <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={profileLoading}>{profileLoading ? "Savingâ€¦" : "Save profile"}</button>
         </form>
       </section>
 
@@ -177,13 +179,13 @@ export default function AccountSettingsPage() {
         <h2>Change password</h2>
         <form className={styles.form} onSubmit={submitPassword}>
           <div className={styles.grid}>
-            <label className={styles.field}><span>Current password</span><input type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
-            <label className={styles.field}><span>New password</span><input type="password" autoComplete="new-password" minLength={8} maxLength={12} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /><small>8–12 characters and at least one digit.</small></label>
-            <label className={styles.field}><span>Confirm new password</span><input type="password" autoComplete="new-password" minLength={8} maxLength={12} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} /></label>
+            <label className={styles.field}><span>Current password</span><div className={styles.passwordControl}><input type={visiblePasswords.current ? "text" : "password"} placeholder="Enter your current password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /><button type="button" aria-label={visiblePasswords.current ? "Hide current password" : "Show current password"} aria-pressed={visiblePasswords.current} onClick={() => setVisiblePasswords((visible) => ({ ...visible, current: !visible.current }))}>{visiblePasswords.current ? <EyeOff /> : <Eye />}</button></div></label>
+            <label className={styles.field}><span>New password</span><div className={styles.passwordControl}><input type={visiblePasswords.next ? "text" : "password"} placeholder="Enter a new password" autoComplete="new-password" minLength={8} maxLength={12} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /><button type="button" aria-label={visiblePasswords.next ? "Hide new password" : "Show new password"} aria-pressed={visiblePasswords.next} onClick={() => setVisiblePasswords((visible) => ({ ...visible, next: !visible.next }))}>{visiblePasswords.next ? <EyeOff /> : <Eye />}</button></div><small>Use 8 to 12 characters and include a digit.</small></label>
+            <label className={styles.field}><span>Confirm new password</span><div className={styles.passwordControl}><input type={visiblePasswords.confirm ? "text" : "password"} placeholder="Confirm your new password" autoComplete="new-password" minLength={8} maxLength={12} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} /><button type="button" aria-label={visiblePasswords.confirm ? "Hide confirmation password" : "Show confirmation password"} aria-pressed={visiblePasswords.confirm} onClick={() => setVisiblePasswords((visible) => ({ ...visible, confirm: !visible.confirm }))}>{visiblePasswords.confirm ? <EyeOff /> : <Eye />}</button></div></label>
           </div>
           {passwordError && <p className={styles.error} role="alert">{passwordError}</p>}
           {passwordSuccess && <p className={styles.success} role="status">{passwordSuccess}</p>}
-          <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={passwordLoading}>{passwordLoading ? "Updating…" : "Change password"}</button>
+          <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={passwordLoading}>{passwordLoading ? "Updatingâ€¦" : "Change password"}</button>
         </form>
       </section>
 

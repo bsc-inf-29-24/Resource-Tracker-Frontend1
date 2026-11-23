@@ -3,7 +3,8 @@ import type { FormEvent } from "react";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
 import PageHeader from "../../components/layout/PageHeader";
-import { resourcesApi } from "../../data/api-services";
+import { resourcesApi, teamsApi, projectsApi, resourceRequestsApi } from "../../data/api-services";
+import { getApiRecords } from "../../data/api-response";
 import type {
   CreateResourceAllocationInput,
   TransferResourceAllocationInput,
@@ -51,6 +52,13 @@ export default function ResourceAllocationsPage() {
   const [requestId, setRequestId] = useState("");
   const [returnNote, setReturnNote] = useState("");
   const [transferNote, setTransferNote] = useState("");
+  const [resources, setResources] = useState<Record<string, unknown>[]>([]);
+  const [teams, setTeams] = useState<Record<string, unknown>[]>([]);
+  const [projects, setProjects] = useState<Record<string, unknown>[]>([]);
+  const [leads, setLeads] = useState<Record<string, unknown>[]>([]);
+  const [requests, setRequests] = useState<Record<string, unknown>[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  const [optionsError, setOptionsError] = useState("");
 
   const loadAvailable = useCallback(async () => {
     setLoading(true);
@@ -116,6 +124,27 @@ export default function ResourceAllocationsPage() {
   useEffect(() => {
     void loadAvailable();
   }, [loadAvailable]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([resourcesApi.available(), teamsApi.list(), projectsApi.list(), teamsApi.unassignedUsers(), resourceRequestsApi.list()])
+      .then(([r, t, p, u, q]) => {
+        if (!active) return;
+        setResources(getApiRecords(r)); setTeams(getApiRecords(t)); setProjects(getApiRecords(p));
+        setLeads(getApiRecords(u).filter((entry) => entry.role === "TEAM_LEAD")); setRequests(getApiRecords(q));
+      })
+      .catch((error) => { if (active) setOptionsError(error instanceof Error ? error.message : "Allocation options could not be loaded."); })
+      .finally(() => { if (active) setOptionsLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  const allocationOptions = getApiRecords(data.allocations);
+  const select = (label: string, value: string, onChange: (value: string) => void, options: Record<string, unknown>[], required = true) => (
+    <label className={styles.field}>{label}<select value={value} onChange={(event) => onChange(event.target.value)} required={required} disabled={optionsLoading || Boolean(optionsError)}>
+      <option value="">{optionsLoading ? "Loading options…" : `Select ${label.toLowerCase()}`}</option>
+      {options.map((item, i) => { const id = item.id; const name = item.name ?? item.fullName; if (typeof id !== "string" && typeof id !== "number") return null; return <option key={`${id}-${i}`} value={String(id)}>{typeof name === "string" ? `${name} (${id})` : String(id)}</option>; })}
+    </select></label>
+  );
 
   async function allocate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -221,6 +250,7 @@ export default function ResourceAllocationsPage() {
         description="Manage available inventory and allocations using the documented Line Manager endpoints."
       />
       {notice && <p className={styles.notice} role="status">{notice}</p>}
+      {optionsError && <ErrorMessage title="Dropdown options could not be loaded" message={optionsError} />}
       <section className={`rt-root rt-card ${styles.panel}`}>
         <div className={styles.panelHeading}>
           <h2>Available resources</h2>
@@ -258,32 +288,27 @@ export default function ResourceAllocationsPage() {
         <form className={styles.form} onSubmit={(event) => void allocate(event)}>
           <div className={styles.grid}>
             <label className={styles.field}>
-              Resource ID
-              <input value={resourceId} onChange={(event) => setResourceId(event.target.value)} required />
+              {select("Resource", resourceId, setResourceId, resources)}
             </label>
             <label className={styles.field}>
               Quantity
               <input type="number" min="1" step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required />
             </label>
             <label className={styles.field}>
-              Team ID
-              <input type="number" min="1" step="1" value={teamId} onChange={(event) => setTeamId(event.target.value)} required />
+              {select("Team", teamId, setTeamId, teams)}
             </label>
             <label className={styles.field}>
-              Project ID
-              <input type="number" min="1" step="1" value={projectId} onChange={(event) => setProjectId(event.target.value)} required />
+              {select("Project", projectId, setProjectId, projects)}
             </label>
             <label className={styles.field}>
-              Assigned user UUID
-              <input value={assignedToUserId} onChange={(event) => setAssignedToUserId(event.target.value)} required />
+              {select("Team Lead", assignedToUserId, setAssignedToUserId, leads)}
             </label>
             <label className={styles.field}>
               Expected return
               <input type="datetime-local" value={expectedReturnAt} onChange={(event) => setExpectedReturnAt(event.target.value)} />
             </label>
             <label className={styles.field}>
-              Resource request UUID (optional)
-              <input value={requestId} onChange={(event) => setRequestId(event.target.value)} />
+              {select("Resource request (optional)", requestId, setRequestId, requests, false)}
             </label>
           </div>
           <button type="submit" className="rt-root rt-btn rt-btn--primary" disabled={busy}>
@@ -295,8 +320,7 @@ export default function ResourceAllocationsPage() {
       <section className={`rt-root rt-card ${styles.panel}`}>
         <h2>Active allocations and movement history</h2>
         <label className={styles.field}>
-          Resource ID
-          <input value={resourceId} onChange={(event) => setResourceId(event.target.value)} />
+          {select("Resource", resourceId, setResourceId, resources)}
         </label>
         <button
           type="button"
@@ -332,8 +356,7 @@ export default function ResourceAllocationsPage() {
         <h2>Return or transfer an allocation</h2>
         <div className={styles.grid}>
           <label className={styles.field}>
-            Allocation ID
-            <input value={allocationId} onChange={(event) => setAllocationId(event.target.value)} required />
+            <label className={styles.field}>Allocation ID<select value={allocationId} onChange={(event) => setAllocationId(event.target.value)} required><option value="">Select allocation</option>{allocationOptions.map((item, i) => <option key={String(item.id ?? i)} value={String(item.id ?? "")}>{String(item.resourceName ?? item.name ?? "Allocation")} — {String(item.id ?? "")}</option>)}</select></label>
           </label>
           <label className={styles.field}>
             Return note
@@ -348,16 +371,13 @@ export default function ResourceAllocationsPage() {
         <form className={styles.form} onSubmit={(event) => void transferAllocation(event)}>
           <div className={styles.grid}>
             <label className={styles.field}>
-              Receiving team ID
-              <input type="number" min="1" step="1" value={teamId} onChange={(event) => setTeamId(event.target.value)} required />
+              {select("Receiving team", teamId, setTeamId, teams)}
             </label>
             <label className={styles.field}>
-              Receiving project ID
-              <input type="number" min="1" step="1" value={projectId} onChange={(event) => setProjectId(event.target.value)} required />
+              {select("Receiving project", projectId, setProjectId, projects)}
             </label>
             <label className={styles.field}>
-              Receiving user UUID
-              <input value={assignedToUserId} onChange={(event) => setAssignedToUserId(event.target.value)} required />
+              {select("Receiving Team Lead", assignedToUserId, setAssignedToUserId, leads)}
             </label>
             <label className={styles.field}>
               Expected return

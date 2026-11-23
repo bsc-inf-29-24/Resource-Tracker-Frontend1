@@ -139,6 +139,7 @@ export default function ResourceRequestsDashboard({
 
   return (
     <section className={`rt-root ${styles.page}`}>
+      {error && <ErrorMessage title="Requests could not be loaded" message={error} onRetry={() => void loadRequests()} />}
       {/* <PageHeader title={title} description={description} /> */}
    
    

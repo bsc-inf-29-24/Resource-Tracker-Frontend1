@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
-import PageHeader from "../../components/layout/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { notificationsApi } from "../../data/api-services";
 import { getFrontendRoleFromBackendRole } from "../../data/auth-store";
+import { getApiRecords, formatApiValue } from "../../data/api-response";
 import ApiResponsePanel from "./ApiResponsePanel";
 import styles from "./ApiManagementPage.module.css";
 
@@ -13,12 +11,10 @@ export default function NotificationsPage() {
   const isTeamLead =
     getFrontendRoleFromBackendRole(user?.role) === "TEAM_LEAD";
   const [data, setData] = useState<unknown>();
-  const [notificationId, setNotificationId] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const loadNotifications = useCallback(async () => {
     setLoading(true);
@@ -39,6 +35,9 @@ export default function NotificationsPage() {
   useEffect(() => {
     void loadNotifications();
   }, [loadNotifications]);
+
+  const notifications = getApiRecords(data);
+  const unreadCount = notifications.filter((notification) => notification.isRead === false).length;
 
   async function mutate(
     operation: () => Promise<unknown>,
@@ -64,10 +63,6 @@ export default function NotificationsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      {/* <PageHeader
-        title="Notifications"
-        description=""
-      /> */}
       {notice && (
         <p className={styles.notice} role="status">
           {notice}
@@ -78,67 +73,21 @@ export default function NotificationsPage() {
         data={data}
         loading={loading}
         error={error}
-        // onRefresh={() => void loadNotifications()}
+        onRefresh={() => void loadNotifications()}
       />
-      <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Notification actions</h2>
-        <label className={styles.field} htmlFor="notification-id">
-          <span>Notification ID</span>
-          <input
-            id="notification-id"
-            value={notificationId}
-            placeholder="Enter the notification ID"
-            onChange={(event) => setNotificationId(event.target.value)}
-          />
-        </label>
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--outline"
-            disabled={busy || !notificationId.trim() || !user?.id}
-            onClick={() =>
-              void mutate(
-                () =>
-                  notificationsApi.markRead(
-                    notificationId.trim(),
-                    user?.id ?? "",
-                  ),
-                "The read operation completed.",
-              )
-            }
-          >
-            Mark as read
-          </button>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--danger"
-            disabled={busy || !notificationId.trim() || !user?.id}
-            onClick={() => setConfirmDelete(true)}
-          >
-            Delete
-          </button>
-        </div>
+      <section className={`rt-root rt-card ${styles.panel}`} aria-label="Notifications">
+        <h2>{unreadCount} unread of {notifications.length} notifications</h2>
+        {notifications.map((notification, index) => {
+          const id = notification.id;
+          const isRead = notification.isRead === true || notification.read === true;
+          return <article className={styles.apiDataField} key={String(id ?? index)}>
+            <h3>{String(notification.title ?? notification.name ?? "Notification")}</h3>
+            <p>{formatApiValue(notification.description ?? notification.message)}</p>
+            <small>{formatApiValue(notification.createdAt ?? notification.created_at ?? notification.date)} · {isRead ? "Read" : "Unread"}</small>
+            {typeof id === "string" && !isRead && <button type="button" className="rt-root rt-btn rt-btn--outline" disabled={busy} onClick={() => void mutate(() => notificationsApi.markRead(id, user?.id ?? ""), "Notification marked as read.")}>Mark as read</button>}
+          </article>;
+        })}
       </section>
-      <ConfirmDialog
-        open={confirmDelete}
-        title="Delete this notification?"
-        message="This action will be sent to the backend and may not be reversible."
-        confirmLabel="Delete notification"
-        cancelLabel="Cancel"
-        destructive
-        onCancel={() => setConfirmDelete(false)}
-        onConfirm={() => {
-          setConfirmDelete(false);
-          void mutate(
-            () =>
-              notificationsApi.remove(
-                user?.id ?? "",
-                notificationId.trim(),
-              ),
-            "The delete operation completed.",
-          );
-        }}
-      />
     </section>
   );
 }

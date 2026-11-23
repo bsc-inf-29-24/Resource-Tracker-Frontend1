@@ -60,6 +60,7 @@
   z-index: 31;
   top: 68px;
   left: 0;
+  flex: none;
   width: min(300px, calc(100vw - 32px));
   max-height: calc(100vh - 84px);
   overflow-y: auto;

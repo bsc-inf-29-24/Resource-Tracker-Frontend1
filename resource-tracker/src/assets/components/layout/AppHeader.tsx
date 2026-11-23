@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 import type { RefObject } from "react";
-import { Bell } from "lucide-react";
 import {
   navigationConfig,
   roleDisplayNames,
@@ -111,16 +110,6 @@ export default function AppHeader({
       {/* <span className={styles.pageContext} aria-current="page">
         {getPageContext(pathname, role)}
       </span> */}
-      <Link
-        className={styles.notificationsLink}
-        to="/notifications"
-        aria-label="Notifications"
-        aria-current={pathname === "/notifications" ? "page" : undefined}
-        title="Notifications"
-        inert={mobileNavigationOpen}
-      >
-        <Bell aria-hidden="true" size={20} strokeWidth={1.8} />
-      </Link>
       <UserProfileMenu
         userName={userName}
         email={email}

@@ -46,7 +46,6 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
   ],
   SYSTEM_ADMIN: [
     { label: "Dashboard", path: "/system-admin/dashboard" },
-    { label: "Manage Users", path: "/system-admin/users" },
     { label: "Audit logs", path: "/system-admin/audit-logs" },
     { label: "Notifications", path: "/notifications" },
   ],

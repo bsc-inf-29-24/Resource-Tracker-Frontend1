@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Eye, EyeOff, KeyRound, PencilLine, Trash2, X } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import PageHeader from "../../components/layout/PageHeader";
 import { useAuth } from "../../context/AuthContext";
@@ -21,8 +21,6 @@ const emptyProfile: ProfileFields = {
   preferredPronoun: "",
 };
 
-type AccountDialog = "profile" | "password" | null;
-
 function messageFrom(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
@@ -34,31 +32,9 @@ function responseMessage(value: unknown, fallback: string) {
     : fallback;
 }
 
-function displayValue(value?: string | null) {
-  return value?.trim() || "Not provided";
-}
-
-function displayDate(value?: string | null) {
-  if (!value) return "Not provided";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value
-    : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
-}
-
-function displayRole(value?: string | null) {
-  return value
-    ? value
-        .replace(/_/g, " ")
-        .toLowerCase()
-        .replace(/\b[a-z]/g, (letter) => letter.toUpperCase())
-    : "Not provided";
-}
-
 export default function AccountSettingsPage() {
   const { user, refreshSession } = useAuth();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [activeDialog, setActiveDialog] = useState<AccountDialog>(null);
+  const initializedProfile = useRef(false);
   const [profile, setProfile] = useState<ProfileFields>(emptyProfile);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState("");
@@ -76,51 +52,20 @@ export default function AccountSettingsPage() {
   const [deleteMessage, setDeleteMessage] = useState("");
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (activeDialog && !dialog.open) dialog.showModal();
-    else if (!activeDialog && dialog.open) dialog.close();
-  }, [activeDialog]);
-
-  useEffect(() => {
-    if (!activeDialog) return;
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      setActiveDialog(null);
-    }
-
-    document.addEventListener("keydown", closeOnEscape, true);
-    return () => document.removeEventListener("keydown", closeOnEscape, true);
-  }, [activeDialog]);
-
-  function openProfileDialog() {
+    if (!user || initializedProfile.current) return;
+    initializedProfile.current = true;
     setProfile({
-      phoneNumber: user?.phoneNumber ?? "",
-      address: user?.address ?? "",
-      dateOfBirth: user?.dateOfBirth?.slice(0, 10) ?? "",
+      phoneNumber: user.phoneNumber ?? "",
+      address: user.address ?? "",
+      dateOfBirth: user.dateOfBirth?.slice(0, 10) ?? "",
       preferredPronoun:
-        user?.preferredPronoun === "Mr." ||
-        user?.preferredPronoun === "Mrs." ||
-        user?.preferredPronoun === "Miss"
+        user.preferredPronoun === "Mr." ||
+        user.preferredPronoun === "Mrs." ||
+        user.preferredPronoun === "Miss"
           ? user.preferredPronoun
           : "",
     });
-    setProfileError("");
-    setProfileSuccess("");
-    setActiveDialog("profile");
-  }
-
-  function openPasswordDialog() {
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setPasswordError("");
-    setPasswordSuccess("");
-    setVisiblePasswords({ current: false, next: false, confirm: false });
-    setActiveDialog("password");
-  }
+  }, [user]);
 
   async function submitProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -142,7 +87,6 @@ export default function AccountSettingsPage() {
       const result = await usersApi.updateMyAccount(input);
       await refreshSession();
       setProfileSuccess(responseMessage(result, "Profile updated successfully."));
-      setActiveDialog(null);
     } catch (error) {
       setProfileError(messageFrom(error, "Your profile could not be updated."));
     } finally {
@@ -155,7 +99,7 @@ export default function AccountSettingsPage() {
     setPasswordError("");
     setPasswordSuccess("");
     if (newPassword.length < 8 || newPassword.length > 12 || !/\d/.test(newPassword)) {
-      setPasswordError("The new password must be 8-12 characters and include a digit.");
+      setPasswordError("The new password must be 8â€“12 characters and include a digit.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -173,7 +117,6 @@ export default function AccountSettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setActiveDialog(null);
     } catch (error) {
       setPasswordError(messageFrom(error, "Your password could not be changed."));
     } finally {
@@ -186,7 +129,7 @@ export default function AccountSettingsPage() {
     setDeleteLoading(true);
     try {
       const result = await usersApi.deleteMyAccount();
-      setDeleteMessage(result.message || "Account deletion was scheduled.");
+      setDeleteMessage(result.message);
       setDeleteOpen(false);
     } catch (error) {
       setDeleteError(messageFrom(error, "Account deletion could not be scheduled."));
@@ -197,168 +140,63 @@ export default function AccountSettingsPage() {
 
   return (
     <main className={`rt-root ${styles.page}`}>
-      <PageHeader title="My account" description="View and manage your account details." />
+      <PageHeader title="My account" description="" />
       <section className={`rt-root rt-card ${styles.panel}`}>
-        <div className={styles.panelHeading}>
-          <div>
-            <h2>User details</h2>
-            <p className={styles.identity}>Your account information and security settings.</p>
+        <h2>Profile information</h2>
+        <p className={styles.identity}>{user?.fullName} Â· {user?.email}</p>
+        <form className={styles.form} onSubmit={submitProfile}>
+          <div className={styles.grid}>
+            <label className={styles.field}>
+              <span>Phone number</span>
+              <input type="tel" maxLength={30} placeholder="Enter your phone number" value={profile.phoneNumber} onChange={(event) => setProfile({ ...profile, phoneNumber: event.target.value })} />
+            </label>
+            <label className={styles.field}>
+              <span>Address</span>
+              <input maxLength={255} placeholder="Enter your address" value={profile.address} onChange={(event) => setProfile({ ...profile, address: event.target.value })} />
+            </label>
+            <label className={styles.field}>
+              <span>Date of birth</span>
+              <input type="date" value={profile.dateOfBirth} onChange={(event) => setProfile({ ...profile, dateOfBirth: event.target.value })} />
+            </label>
+            <label className={styles.field}>
+              <span>Preferred pronoun</span>
+              <select value={profile.preferredPronoun} onChange={(event) => setProfile({ ...profile, preferredPronoun: event.target.value as PreferredPronoun | "" })}>
+                <option value="">Select</option>
+                <option value="Mr.">Mr.</option>
+                <option value="Mrs.">Mrs.</option>
+                <option value="Miss">Miss</option>
+              </select>
+            </label>
           </div>
-        </div>
-        {(profileSuccess || passwordSuccess || deleteMessage) && (
-          <p className={styles.success} role="status">
-            {profileSuccess || passwordSuccess || deleteMessage}
-          </p>
-        )}
-        <dl className={styles.details}>
-          <div className={styles.detail}>
-            <dt>Full name</dt>
-            <dd>{displayValue(user?.fullName)}</dd>
-          </div>
-          <div className={styles.detail}>
-            <dt>Email</dt>
-            <dd>{displayValue(user?.email)}</dd>
-          </div>
-          <div className={styles.detail}>
-            <dt>Role</dt>
-            <dd>{displayRole(user?.role)}</dd>
-          </div>
-          <div className={styles.detail}>
-            <dt>Phone number</dt>
-            <dd>{displayValue(user?.phoneNumber)}</dd>
-          </div>
-          <div className={styles.detail}>
-            <dt>Address</dt>
-            <dd>{displayValue(user?.address)}</dd>
-          </div>
-          <div className={styles.detail}>
-            <dt>Date of birth</dt>
-            <dd>{displayDate(user?.dateOfBirth)}</dd>
-          </div>
-          <div className={styles.detail}>
-            <dt>Preferred pronoun</dt>
-            <dd>{displayValue(user?.preferredPronoun)}</dd>
-          </div>
-          {user?.department && (
-            <div className={styles.detail}>
-              <dt>Department</dt>
-              <dd>{user.department}</dd>
-            </div>
-          )}
-          {user?.team && (
-            <div className={styles.detail}>
-              <dt>Team</dt>
-              <dd>{user.team}</dd>
-            </div>
-          )}
-        </dl>
-        <div className={styles.operations} aria-label="Account operations">
-          <button type="button" className={`rt-root rt-btn rt-btn--outline ${styles.operation}`} onClick={openProfileDialog}>
-            <PencilLine aria-hidden="true" size={17} />
-            Edit user info
-          </button>
-          <button type="button" className={`rt-root rt-btn rt-btn--outline ${styles.operation}`} onClick={openPasswordDialog}>
-            <KeyRound aria-hidden="true" size={17} />
-            Change password
-          </button>
-          <button type="button" className={`rt-root rt-btn rt-btn--danger ${styles.operation}`} onClick={() => { setDeleteError(""); setDeleteOpen(true); }} disabled={Boolean(deleteMessage)}>
-            <Trash2 aria-hidden="true" size={17} />
-            Delete account
-          </button>
-        </div>
+          {/* <p className={styles.note}>The backend profile lookup does not currently return these editable fields, so they may not be prefilled after signing in again.</p> */}
+          {profileError && <p className={styles.error} role="alert">{profileError}</p>}
+          {profileSuccess && <p className={styles.success} role="status">{profileSuccess}</p>}
+          <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={profileLoading}>{profileLoading ? "Savingâ€¦" : "Save profile"}</button>
+        </form>
       </section>
 
-      <dialog
-        ref={dialogRef}
-        className={styles.dialog}
-        aria-labelledby="account-dialog-title"
-        onCancel={() => setActiveDialog(null)}
-        onClose={() => setActiveDialog(null)}
-      >
-        <div className={styles.dialogHeader}>
-          <h2 id="account-dialog-title">
-            {activeDialog === "profile" ? "Edit user info" : "Change password"}
-          </h2>
-          <button type="button" className={styles.closeButton} aria-label="Close dialog" onClick={() => setActiveDialog(null)}>
-            <X aria-hidden="true" size={20} />
-          </button>
-        </div>
-        {activeDialog === "profile" && (
-          <form className={styles.form} onSubmit={submitProfile}>
-            <div className={styles.grid}>
-              <label className={styles.field}>
-                <span>Phone number</span>
-                <input type="tel" maxLength={30} placeholder="Enter your phone number" value={profile.phoneNumber} onChange={(event) => setProfile({ ...profile, phoneNumber: event.target.value })} />
-              </label>
-              <label className={styles.field}>
-                <span>Address</span>
-                <input maxLength={255} placeholder="Enter your address" value={profile.address} onChange={(event) => setProfile({ ...profile, address: event.target.value })} />
-              </label>
-              <label className={styles.field}>
-                <span>Date of birth</span>
-                <input type="date" value={profile.dateOfBirth} onChange={(event) => setProfile({ ...profile, dateOfBirth: event.target.value })} />
-              </label>
-              <label className={styles.field}>
-                <span>Preferred pronoun</span>
-                <select value={profile.preferredPronoun} onChange={(event) => setProfile({ ...profile, preferredPronoun: event.target.value as PreferredPronoun | "" })}>
-                  <option value="">Select</option>
-                  <option value="Mr.">Mr.</option>
-                  <option value="Mrs.">Mrs.</option>
-                  <option value="Miss">Miss</option>
-                </select>
-              </label>
-            </div>
-            {profileError && <p className={styles.error} role="alert">{profileError}</p>}
-            <div className={styles.dialogActions}>
-              <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => setActiveDialog(null)} disabled={profileLoading}>Cancel</button>
-              <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={profileLoading}>{profileLoading ? "Saving..." : "Save changes"}</button>
-            </div>
-          </form>
-        )}
-        {activeDialog === "password" && (
-          <form className={styles.form} onSubmit={submitPassword}>
-            <label className={styles.field}>
-              <span>Current password</span>
-              <div className={styles.passwordControl}>
-                <input type={visiblePasswords.current ? "text" : "password"} placeholder="Enter your current password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} />
-                <button type="button" aria-label={visiblePasswords.current ? "Hide current password" : "Show current password"} aria-pressed={visiblePasswords.current} onClick={() => setVisiblePasswords((visible) => ({ ...visible, current: !visible.current }))}>{visiblePasswords.current ? <EyeOff /> : <Eye />}</button>
-              </div>
-            </label>
-            <label className={styles.field}>
-              <span>New password</span>
-              <div className={styles.passwordControl}>
-                <input type={visiblePasswords.next ? "text" : "password"} placeholder="Enter a new password" autoComplete="new-password" minLength={8} maxLength={12} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
-                <button type="button" aria-label={visiblePasswords.next ? "Hide new password" : "Show new password"} aria-pressed={visiblePasswords.next} onClick={() => setVisiblePasswords((visible) => ({ ...visible, next: !visible.next }))}>{visiblePasswords.next ? <EyeOff /> : <Eye />}</button>
-              </div>
-              <small>Use 8 to 12 characters and include a digit.</small>
-            </label>
-            <label className={styles.field}>
-              <span>Confirm new password</span>
-              <div className={styles.passwordControl}>
-                <input type={visiblePasswords.confirm ? "text" : "password"} placeholder="Confirm your new password" autoComplete="new-password" minLength={8} maxLength={12} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-                <button type="button" aria-label={visiblePasswords.confirm ? "Hide confirmation password" : "Show confirmation password"} aria-pressed={visiblePasswords.confirm} onClick={() => setVisiblePasswords((visible) => ({ ...visible, confirm: !visible.confirm }))}>{visiblePasswords.confirm ? <EyeOff /> : <Eye />}</button>
-              </div>
-            </label>
-            {passwordError && <p className={styles.error} role="alert">{passwordError}</p>}
-            <div className={styles.dialogActions}>
-              <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => setActiveDialog(null)} disabled={passwordLoading}>Cancel</button>
-              <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={passwordLoading}>{passwordLoading ? "Updating..." : "Change password"}</button>
-            </div>
-          </form>
-        )}
-      </dialog>
+      <section className={`rt-root rt-card ${styles.panel}`}>
+        <h2>Change password</h2>
+        <form className={styles.form} onSubmit={submitPassword}>
+          <div className={styles.grid}>
+            <label className={styles.field}><span>Current password</span><div className={styles.passwordControl}><input type={visiblePasswords.current ? "text" : "password"} placeholder="Enter your current password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /><button type="button" aria-label={visiblePasswords.current ? "Hide current password" : "Show current password"} aria-pressed={visiblePasswords.current} onClick={() => setVisiblePasswords((visible) => ({ ...visible, current: !visible.current }))}>{visiblePasswords.current ? <EyeOff /> : <Eye />}</button></div></label>
+            <label className={styles.field}><span>New password</span><div className={styles.passwordControl}><input type={visiblePasswords.next ? "text" : "password"} placeholder="Enter a new password" autoComplete="new-password" minLength={8} maxLength={12} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /><button type="button" aria-label={visiblePasswords.next ? "Hide new password" : "Show new password"} aria-pressed={visiblePasswords.next} onClick={() => setVisiblePasswords((visible) => ({ ...visible, next: !visible.next }))}>{visiblePasswords.next ? <EyeOff /> : <Eye />}</button></div><small>Use 8 to 12 characters and include a digit.</small></label>
+            <label className={styles.field}><span>Confirm new password</span><div className={styles.passwordControl}><input type={visiblePasswords.confirm ? "text" : "password"} placeholder="Confirm your new password" autoComplete="new-password" minLength={8} maxLength={12} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} /><button type="button" aria-label={visiblePasswords.confirm ? "Hide confirmation password" : "Show confirmation password"} aria-pressed={visiblePasswords.confirm} onClick={() => setVisiblePasswords((visible) => ({ ...visible, confirm: !visible.confirm }))}>{visiblePasswords.confirm ? <EyeOff /> : <Eye />}</button></div></label>
+          </div>
+          {passwordError && <p className={styles.error} role="alert">{passwordError}</p>}
+          {passwordSuccess && <p className={styles.success} role="status">{passwordSuccess}</p>}
+          <button className="rt-root rt-btn rt-btn--primary" type="submit" disabled={passwordLoading}>{passwordLoading ? "Updatingâ€¦" : "Change password"}</button>
+        </form>
+      </section>
 
-      <ConfirmDialog
-        open={deleteOpen}
-        title="Delete your account?"
-        message={deleteError || "Account deletion is scheduled five days after you request it. Logging in during that period cancels the request."}
-        confirmLabel="Delete account"
-        cancelLabel="Keep account"
-        destructive
-        loading={deleteLoading}
-        onConfirm={() => void deleteAccount()}
-        onCancel={() => !deleteLoading && setDeleteOpen(false)}
-      />
+      <section className={`rt-root rt-card ${styles.panel} ${styles.danger}`}>
+        <h2>Delete account</h2>
+        <p>Account deletion is scheduled five days after you request it. Logging in during that period cancels the request.</p>
+        {deleteMessage && <p className={styles.success} role="status">{deleteMessage}</p>}
+        {deleteError && <p className={styles.error} role="alert">{deleteError}</p>}
+        <button type="button" className="rt-root rt-btn rt-btn--danger" onClick={() => setDeleteOpen(true)} disabled={Boolean(deleteMessage)}>Request account deletion</button>
+      </section>
+      <ConfirmDialog open={deleteOpen} title="Schedule account deletion?" message="The backend schedules deletion after five days. Logging in during that period cancels the request." confirmLabel="Schedule deletion" cancelLabel="Keep account" destructive loading={deleteLoading} onConfirm={() => void deleteAccount()} onCancel={() => !deleteLoading && setDeleteOpen(false)} />
     </main>
   );
 }

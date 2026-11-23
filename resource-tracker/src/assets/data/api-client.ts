@@ -14,9 +14,10 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || "")
-  .replace(/\/api\/v1\/?$/, "")
-  .replace(/\/+$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || "").replace(
+  /\/$/,
+  "",
+);
 const TOKEN_STORAGE_KEY = "resource-tracker.tokens.v1";
 const USER_STORAGE_KEY = "resource-tracker.user.v1";
 

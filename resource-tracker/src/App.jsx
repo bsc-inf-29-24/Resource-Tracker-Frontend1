@@ -225,7 +225,7 @@ function App() {
               />
               <Route
                 path="/system-admin/users"
-                element={<UserManagementPage />}
+                element={<Navigate to="/system-admin/dashboard" replace />}
               />
               <Route
                 path="/system-admin/users/new"

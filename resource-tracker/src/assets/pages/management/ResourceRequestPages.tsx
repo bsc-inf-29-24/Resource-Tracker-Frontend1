@@ -209,6 +209,12 @@ export function ResourceRequestsPage({
   return (
     <section className={`rt-root ${styles.page}`}>
       <PageHeader title={title} description={description} />
+      {mode === "query-response" && (
+        <p className={styles.notice} role="note">
+          Swagger does not document a Team Lead query-response operation or
+          payload. Request details are available, but no response will be sent.
+        </p>
+      )}
       {error && (
         <ErrorMessage
           title="Request operation failed"

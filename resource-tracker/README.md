@@ -1,9 +1,17 @@
 # Resource Tracker Frontend
 
-## Sign-in
+## Demo sign-in
 
-Sign-in uses the backend `POST /api/v1/auth` endpoint. The frontend does not
-seed demo accounts; use an account provisioned in the backend.
+The sign-in and registration screens use browser-local demonstration data; they are not a production authentication service. Seeded mock accounts use the password `Demo123!`:
+
+| Role | Email |
+| --- | --- |
+| Team Lead | `chikondi@example.com` |
+| Line Manager | `tamandani@example.com` |
+| Department Manager | `grace@example.com` |
+| System Administrator | `admin@example.com` |
+
+Use **Create a test account** on the sign-in page to add a browser-local account. Registered account records and password hashes are stored in this browser only. Do not use real credentials or sensitive information. Clearing this browser's site data removes registered demo accounts.
 
 ## Team Lead teams and projects
 
@@ -37,14 +45,6 @@ npm run dev
 If the backend is already running, verify that `http://localhost:3000` is
 reachable. Do not change the Vite proxy target to resolve `ECONNREFUSED` when
 the backend service is stopped.
-
-The Vite development server proxies API calls to the local backend, so leave
-`VITE_API_BASE_URL` unset during local development. For deployment, serve the
-frontend and API on the same origin with a reverse proxy forwarding `/api` and
-`/resource-requests` to the backend. The currently packaged backend does not
-allow cross-origin browser requests by default. Set `VITE_API_BASE_URL` to an
-API origin only for deployments where backend CORS is configured; otherwise,
-leave it unset and route the API through the same-origin reverse proxy.
 
 ## React + Vite
 

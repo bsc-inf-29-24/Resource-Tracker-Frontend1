@@ -195,10 +195,12 @@
 }
 .rt-statcard__value {
   display: block;
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 2.5vw, 2rem);
   font-weight: 800;
   line-height: 1.1;
   color: var(--rt-green-800);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .rt-statcard__note {
   display: block;

@@ -5,8 +5,8 @@ import { getFrontendRoleFromBackendRole } from "../../data/auth-store";
 
 const dashboardRoutes: Record<UserRole, string> = {
   TEAM_LEAD: "/team-lead/dashboard",
-  LINE_MANAGER: "/line-manager/dashboard",
-  DEPARTMENT_MANAGER: "/department-manager/dashboard",
+  LINE_MANAGER: "/line-manager/requests",
+  DEPARTMENT_MANAGER: "/department-manager/requests",
   MANAGING_DIRECTOR: "/managing-director/dashboard",
   SYSTEM_ADMIN: "/system-admin/dashboard",
   TEAM_MEMBER: "/team-member/dashboard",

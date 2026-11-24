@@ -5,7 +5,8 @@ export default function ManagingDirectorProjectsPage() {
   return (
     <ApiManagementPage
       title="Projects"
-      description=""
+      description="Projects returned by the projects endpoint for your account."
+      recordsTitle="Project records"
       list={projectsApi.list}
     />
   );

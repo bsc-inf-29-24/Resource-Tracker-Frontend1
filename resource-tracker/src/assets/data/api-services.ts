@@ -240,6 +240,7 @@ export const departmentsApi = {
 
 export const teamsApi = {
   list: () => apiRequest<unknown>("/api/v1/teams"),
+  unassignedUsers: () => apiRequest<unknown>("/api/v1/teams/unassigned-users"),
   get: (id: string) =>
     apiRequest<unknown>(`/api/v1/teams/${encodeURIComponent(id)}`),
   create: (input: TeamInput) =>

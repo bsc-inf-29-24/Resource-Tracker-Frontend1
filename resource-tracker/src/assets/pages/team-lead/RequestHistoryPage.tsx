@@ -180,6 +180,12 @@ export default function RequestHistoryPage() {
         >
           Refresh
         </button>
+        <Link
+          className={`rt-root rt-btn rt-btn--primary ${styles.createRequest}`}
+          to="/team-lead/requests/new"
+        >
+          Create a request
+        </Link>
       </div>
       <DataTable
         title={requestedId ? "Selected request" : "All requests"}

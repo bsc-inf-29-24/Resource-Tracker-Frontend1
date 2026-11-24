@@ -127,9 +127,6 @@ const ResourceRequestsDashboard = page(
 const UserManagementPage = page(
   () => import("./assets/pages/management/UsersPage"),
 );
-const ManagingDirectorUsersPage = page(
-  () => import("./assets/pages/management/ManagingDirectorUsersPage"),
-);
 const CreateUserPage = page(
   () => import("./assets/pages/system-admin/CreateUserPage"),
 );
@@ -175,11 +172,6 @@ const LineManagerReviewQueuePage = page(() =>
 const LineManagerReviewDetailsPage = page(() =>
   import("./assets/pages/management/ResourceRequestPages").then((module) => ({
     default: module.LineManagerReviewDetailsPage,
-  })),
-);
-const LineManagerDecisionHistoryPage = page(() =>
-  import("./assets/pages/management/ResourceRequestPages").then((module) => ({
-    default: module.LineManagerDecisionHistoryPage,
   })),
 );
 const DepartmentRequestListPage = page(() =>
@@ -257,7 +249,7 @@ function App() {
               />
               <Route
                 path="/managing-director/users"
-                element={<ManagingDirectorUsersPage />}
+                element={<Navigate to="/managing-director/dashboard" replace />}
               />
               <Route
                 path="/managing-director/departments"
@@ -333,13 +325,7 @@ function App() {
               {/* Line Manager */}
               <Route
                 path="/line-manager/dashboard"
-                element={
-                  <ResourceRequestsDashboard
-                    title="Line Manager Dashboard"
-                    description="Request totals and recent requests are loaded from the authenticated backend assignment scope."
-                    detailsPath="/line-manager/requests"
-                  />
-                }
+                element={<Navigate to="/line-manager/requests" replace />}
               />
               <Route
                 path="/line-manager/requests"
@@ -350,10 +336,6 @@ function App() {
                 element={<LineManagerReviewDetailsPage />}
               />
               <Route
-                path="/line-manager/decisions"
-                element={<LineManagerDecisionHistoryPage />}
-              />
-              <Route
                 path="/line-manager/allocations"
                 element={<LineManagerResourceAllocationsPage />}
               />
@@ -361,13 +343,7 @@ function App() {
               {/* Department Head */}
               <Route
                 path="/department-manager/dashboard"
-                element={
-                  <ResourceRequestsDashboard
-                    title="Department Head Dashboard"
-                    description="Department-head request counts and recent requests are loaded from the backend role scope."
-                    detailsPath="/department-manager/requests"
-                  />
-                }
+                element={<Navigate to="/department-manager/requests" replace />}
               />
               <Route
                 path="/department-manager/requests"

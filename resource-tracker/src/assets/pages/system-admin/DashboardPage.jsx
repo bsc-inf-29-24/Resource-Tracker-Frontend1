@@ -67,7 +67,7 @@ export default function DashboardPage() {
         <div className={styles.sectionHeading}>
           <div>
             <h2 id="department-title">Department overview</h2>
-            <p>Account totals are calculated from the current user records.</p>
+            {/* <p>Account totals are calculated from the current user records.</p> */}
           </div>
         </div>
         {departments.length === 0 ? (

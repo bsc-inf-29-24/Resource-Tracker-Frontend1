@@ -39,7 +39,7 @@ export default function TeamLeadProjectsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader title="Projects" description="Review projects returned by the backend for your account." />
+      <PageHeader title="Projects" description="Review projects." />
       {error && <ErrorMessage title="Projects could not be loaded" message={error} onRetry={() => void loadProjects()} />}
       <DataTable title="Projects" columns={columns} rows={records} loading={loading} itemLabel="project" emptyTitle="No projects found" emptyDescription="The backend returned no projects for this account." />
     </section>

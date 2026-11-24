@@ -301,7 +301,6 @@ export default function NewApiRequestPage() {
       <PageHeader
         title="Submit a resource request"
         description="Choose a resource, team, and project from backend records. Projects are limited to those assigned to the selected team."
-        supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
       {submitError && <ErrorMessage title="Request not submitted" message={submitError} />}
       {success && <p className={styles.notice} role="status">{success}</p>}
@@ -356,14 +355,14 @@ export default function NewApiRequestPage() {
                 {([ ["itemDescription", "Item description"], ["batchNumber", "Batch number"] ] as const).map(([field, label]) => (
                   <div className={formStyles.field} key={field}>
                     <label htmlFor={`request-${field}`}>{label} *</label>
-                    <input id={`request-${field}`} value={form[field]} onChange={(event) => updateField(field, event.target.value)} aria-invalid={Boolean(fieldErrors[field])} required />
+                    <input id={`request-${field}`} value={form[field]} placeholder={field === "itemDescription" ? "Describe the requested item" : "Enter the batch number"} onChange={(event) => updateField(field, event.target.value)} aria-invalid={Boolean(fieldErrors[field])} required />
                     {fieldErrors[field] && <p className={formStyles.fieldError} role="alert">{fieldErrors[field]}</p>}
                   </div>
                 ))}
                 {([ ["quantity", "Quantity"], ["expectedDurationDays", "Expected duration (days)"] ] as const).map(([field, label]) => (
                   <div className={formStyles.field} key={field}>
                     <label htmlFor={`request-${field}`}>{label} *</label>
-                    <input id={`request-${field}`} type="number" min="1" step="1" value={form[field]} onChange={(event) => updateField(field, event.target.value)} aria-invalid={Boolean(fieldErrors[field])} required />
+                    <input id={`request-${field}`} type="number" min="1" step="1" value={form[field]} placeholder={field === "quantity" ? "Enter quantity" : "Enter number of days"} onChange={(event) => updateField(field, event.target.value)} aria-invalid={Boolean(fieldErrors[field])} required />
                     {fieldErrors[field] && <p className={formStyles.fieldError} role="alert">{fieldErrors[field]}</p>}
                   </div>
                 ))}

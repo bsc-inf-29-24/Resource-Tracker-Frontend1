@@ -323,6 +323,54 @@
   gap: 0.75rem;
 }
 
+.requestRowActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.requestRowActions a,
+.requestRowActions button {
+  white-space: nowrap;
+}
+
+.rejectBackdrop {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(16 24 20 / 58%);
+}
+
+.rejectDialog {
+  width: min(100%, 34rem);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 1.5rem;
+  border: 1px solid var(--rt-green-200);
+  border-radius: var(--rt-radius-md);
+  background: var(--rt-surface);
+  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 24%);
+}
+
+.rejectDialog h2 {
+  margin: 0 0 0.5rem;
+  color: var(--rt-green-900);
+}
+
+.rejectDialog > p {
+  margin: 0 0 1rem;
+  color: var(--rt-text-muted);
+}
+
+.rejectForm {
+  display: grid;
+  gap: 1rem;
+}
+
 .userActionRow {
   display: flex;
   align-items: flex-end;

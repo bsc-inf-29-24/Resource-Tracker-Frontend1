@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import DataTable from "../../components/tables/DataTable";
 import type { DataTableColumn } from "../../components/tables/type";
 import EmptyState from "../../components/feedback/EmptyState";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
 import PageHeader from "../../components/layout/PageHeader";
+import StatusLabel from "../../components/status/StatusLabel";
 import {
   resourceRequestsApi,
   type ApiRequestStatus,
@@ -16,6 +18,7 @@ import {
   formatApiValue,
   getApiRecords,
   humanizeApiKey,
+  isApiRecord,
 } from "../../data/api-response";
 import ApiDataView from "./ApiDataView";
 import styles from "./ApiManagementPage.module.css";
@@ -39,6 +42,7 @@ interface ResourceRequestsPageProps {
   mode?: PageMode;
   includeAudit?: boolean;
   initialStatus?: ApiRequestStatus | "";
+  lineManagerActions?: boolean;
 }
 
 function formatValue(value: unknown): string {
@@ -53,12 +57,35 @@ function isReviewStatus(value: string): value is ReviewStatus {
   return reviewStatuses.some((status) => status === value);
 }
 
+function getRequestId(record: ApiRecord): string | undefined {
+  const id = record.id ?? record.requestId;
+  return typeof id === "string" || typeof id === "number" ? String(id) : undefined;
+}
+
+function firstValue(...values: unknown[]): unknown {
+  return values.find((value) => value !== undefined && value !== null && value !== "");
+}
+
+function formatRequestDate(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString();
+  }
+  return formatApiValue(value);
+}
+
+function isAwaitingManagerDecision(record: ApiRecord): boolean {
+  const status = String(record.status ?? "").toUpperCase();
+  return status === "SUBMITTED" || status === "PENDING";
+}
+
 export function ResourceRequestsPage({
   title,
   description,
   mode = "history",
   includeAudit = false,
   initialStatus = "",
+  lineManagerActions = false,
 }: ResourceRequestsPageProps) {
   const { id: routeId } = useParams();
   const [searchParams] = useSearchParams();
@@ -77,6 +104,10 @@ export function ResourceRequestsPage({
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [pendingApproval, setPendingApproval] = useState<ApiRecord | null>(null);
+  const [pendingRejection, setPendingRejection] = useState<ApiRecord | null>(null);
+  const [rejectionNote, setRejectionNote] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
@@ -136,6 +167,164 @@ export function ResourceRequestsPage({
     [data],
   );
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
+    if (lineManagerActions) {
+      return [
+        {
+          key: "requester",
+          header: "Requester",
+          render: (record) => formatValue(firstValue(
+            record.requesterName,
+            record.requestedByName,
+            record.requester,
+            record.requestedBy,
+            record.submittedBy,
+            record.createdBy,
+          )),
+        },
+        {
+          key: "department",
+          header: "Department",
+          render: (record) => {
+            const requester = firstValue(
+              record.requester,
+              record.requestedBy,
+              record.submittedBy,
+              record.createdBy,
+            );
+            const team = record.team;
+            return formatValue(firstValue(
+              record.departmentName,
+              record.department,
+              record.requesterDepartment,
+              record.requestedByDepartment,
+              isApiRecord(requester)
+                ? firstValue(requester.departmentName, requester.department)
+                : undefined,
+              isApiRecord(team)
+                ? firstValue(team.departmentName, team.department)
+                : undefined,
+            ));
+          },
+        },
+        {
+          key: "team",
+          header: "Team",
+          render: (record) => formatValue(firstValue(
+            record.teamName,
+            record.team,
+            record.requestingTeam,
+            record.teamId,
+          )),
+        },
+        {
+          key: "resource",
+          header: "Resource",
+          render: (record) => formatValue(firstValue(
+            record.resourceName,
+            record.itemDescription,
+            record.resource,
+          )),
+        },
+        {
+          key: "category",
+          header: "Category",
+          render: (record) => {
+            const resource = record.resource;
+            return formatValue(firstValue(
+              record.category,
+              record.resourceCategory,
+              record.resourceType,
+              isApiRecord(resource)
+                ? firstValue(resource.category, resource.type)
+                : undefined,
+              record.type,
+            ));
+          },
+        },
+        {
+          key: "quantity",
+          header: "Quantity",
+          render: (record) => formatValue(record.quantity),
+        },
+        {
+          key: "submittedAt",
+          header: "Date Submitted",
+          render: (record) => formatRequestDate(firstValue(
+            record.submittedAt,
+            record.dateSubmitted,
+            record.createdAt,
+            record.submissionDate,
+          )),
+        },
+        {
+          key: "requiredDate",
+          header: "Required Date",
+          render: (record) => formatRequestDate(firstValue(
+            record.requiredDate,
+            record.requiredAt,
+            record.requiredByDate,
+            record.dateRequired,
+            record.dateNeeded,
+            record.neededBy,
+          )),
+        },
+        {
+          key: "status",
+          header: "Status",
+          render: (record) => (
+            <StatusLabel
+              status={typeof record.status === "string" ? record.status : undefined}
+            />
+          ),
+        },
+        {
+          key: "actions",
+          header: "Actions",
+          render: (record) => {
+            const requestId = getRequestId(record);
+            if (!requestId) return "Request ID not provided";
+            return (
+              <div className={styles.requestRowActions}>
+                <Link
+                  className="rt-root rt-btn rt-btn--outline"
+                  to={`/line-manager/requests/${encodeURIComponent(requestId)}`}
+                >
+                  View
+                </Link>
+                {isAwaitingManagerDecision(record) && (
+                  <>
+                    <button
+                      type="button"
+                      className="rt-root rt-btn rt-btn--primary"
+                      disabled={actionBusy}
+                      onClick={() => {
+                        setError("");
+                        setPendingApproval(record);
+                      }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      className="rt-root rt-btn rt-btn--danger"
+                      disabled={actionBusy}
+                      onClick={() => {
+                        setError("");
+                        setRejectionNote("");
+                        setPendingRejection(record);
+                      }}
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
+              </div>
+            );
+          },
+        },
+      ];
+    }
+
     const keys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
@@ -166,7 +355,7 @@ export function ResourceRequestsPage({
       },
     });
     return result;
-  }, [loadDetail, records]);
+  }, [actionBusy, lineManagerActions, loadDetail, records]);
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -201,6 +390,47 @@ export function ResourceRequestsPage({
       );
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function submitRowDecision(
+    record: ApiRecord,
+    status: "APPROVED" | "REJECTED",
+    decisionNote?: string,
+  ) {
+    const requestId = getRequestId(record);
+    if (!requestId) {
+      setError("The selected request has no ID and cannot be updated.");
+      return;
+    }
+    if (status === "REJECTED" && !decisionNote?.trim()) {
+      setError("A rejection reason is required.");
+      return;
+    }
+    setActionBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await resourceRequestsApi.update(requestId, {
+        status,
+        ...(decisionNote?.trim() ? { note: decisionNote.trim() } : {}),
+      });
+      setPendingApproval(null);
+      setPendingRejection(null);
+      setRejectionNote("");
+      setNotice(
+        `Request ${requestId} was ${status === "APPROVED" ? "approved" : "rejected"}.`,
+      );
+      await loadRequests();
+      if (selectedId === requestId) await loadDetail(requestId);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : `The request could not be ${status === "APPROVED" ? "approved" : "rejected"}.`,
+      );
+    } finally {
+      setActionBusy(false);
     }
   }
 
@@ -254,13 +484,16 @@ export function ResourceRequestsPage({
         </label>
         {loading ? (
           <LoadingState message="Loading backend requests..." />
-        ) : records.length > 0 ? (
+        ) : records.length > 0 || (lineManagerActions && data !== undefined) ? (
           <DataTable
+            title={lineManagerActions ? `Requests (${records.length})` : undefined}
             columns={columns}
             rows={records}
+            rowKey={(record, index) => getRequestId(record) ?? index}
             itemLabel="request"
+            showEmptyTable={lineManagerActions}
             emptyTitle="No requests"
-            emptyDescription="no requests."
+            emptyDescription="No requests are currently available for the selected filter."
           />
         ) : data !== undefined ? (
           <EmptyState
@@ -352,6 +585,89 @@ export function ResourceRequestsPage({
             </form>
           )}
       </section>
+
+      <ConfirmDialog
+        open={Boolean(pendingApproval)}
+        title="Approve this request?"
+        message={
+          pendingApproval
+            ? `Confirm approval of request ${getRequestId(pendingApproval) ?? ""}.`
+            : ""
+        }
+        confirmLabel="Approve"
+        onCancel={() => {
+          if (!actionBusy) setPendingApproval(null);
+        }}
+        onConfirm={() => {
+          if (pendingApproval) {
+            void submitRowDecision(pendingApproval, "APPROVED");
+          }
+        }}
+        loading={actionBusy}
+      />
+
+      {pendingRejection && (
+        <div
+          className={styles.rejectBackdrop}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !actionBusy) {
+              setPendingRejection(null);
+            }
+          }}
+        >
+          <section
+            className={styles.rejectDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="request-rejection-title"
+          >
+            <h2 id="request-rejection-title">Reject request</h2>
+            <p>
+              Request {getRequestId(pendingRejection)}. Provide a reason to continue.
+            </p>
+            <form
+              className={styles.rejectForm}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submitRowDecision(
+                  pendingRejection,
+                  "REJECTED",
+                  rejectionNote,
+                );
+              }}
+            >
+              <label className={styles.field} htmlFor="request-rejection-note">
+                <span>Rejection reason</span>
+                <textarea
+                  id="request-rejection-note"
+                  rows={4}
+                  required
+                  value={rejectionNote}
+                  onChange={(event) => setRejectionNote(event.target.value)}
+                />
+              </label>
+              <div className={styles.dialogActions}>
+                <button
+                  type="button"
+                  className="rt-root rt-btn rt-btn--outline"
+                  disabled={actionBusy}
+                  onClick={() => setPendingRejection(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rt-root rt-btn rt-btn--danger"
+                  disabled={actionBusy || !rejectionNote.trim()}
+                >
+                  {actionBusy ? "Rejecting…" : "Confirm reject"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
@@ -392,6 +708,16 @@ export function LineManagerReviewDetailsPage() {
       title="Review resource request"
       description="Inspect the selected request and submit a documented Line Manager decision."
       mode="review"
+    />
+  );
+}
+
+export function LineManagerAllRequestsPage() {
+  return (
+    <ResourceRequestsPage
+      title="All resource requests"
+      description="Browse backend requests available to the authenticated Line Manager."
+      lineManagerActions
     />
   );
 }

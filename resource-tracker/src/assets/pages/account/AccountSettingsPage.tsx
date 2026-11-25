@@ -1,5 +1,5 @@
-﻿import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Eye, EyeOff, KeyRound, PencilLine, Trash2, X } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { CalendarDays, Eye, EyeOff, KeyRound, Mail, MapPin, PencilLine, Phone, Shield, UsersRound, UserRound, VenusAndMars, Trash2, X } from "lucide-react";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import PageHeader from "../../components/layout/PageHeader";
 import { useAuth } from "../../context/AuthContext";
@@ -212,42 +212,42 @@ export default function AccountSettingsPage() {
         )}
         <dl className={styles.details}>
           <div className={styles.detail}>
-            <dt>Full name</dt>
+            <dt><UserRound aria-hidden="true" size={15} />Full name</dt>
             <dd>{displayValue(user?.fullName)}</dd>
           </div>
           <div className={styles.detail}>
-            <dt>Email</dt>
+            <dt><Mail aria-hidden="true" size={15} />Email</dt>
             <dd>{displayValue(user?.email)}</dd>
           </div>
           <div className={styles.detail}>
-            <dt>Role</dt>
+            <dt><Shield aria-hidden="true" size={15} />Role</dt>
             <dd>{displayRole(user?.role)}</dd>
           </div>
           <div className={styles.detail}>
-            <dt>Phone number</dt>
-            <dd>{displayValue(user?.phoneNumber)}</dd>
+            <dt><Phone aria-hidden="true" size={15} />Phone number</dt>
+            <dd className={styles.indentedValue}>{displayValue(user?.phoneNumber)}</dd>
           </div>
           <div className={styles.detail}>
-            <dt>Address</dt>
-            <dd>{displayValue(user?.address)}</dd>
+            <dt><MapPin aria-hidden="true" size={15} />Address</dt>
+            <dd className={styles.indentedValue}>{displayValue(user?.address)}</dd>
           </div>
           <div className={styles.detail}>
-            <dt>Date of birth</dt>
+            <dt><CalendarDays aria-hidden="true" size={15} />Date of birth</dt>
             <dd>{displayDate(user?.dateOfBirth)}</dd>
           </div>
           <div className={styles.detail}>
-            <dt>Preferred pronoun</dt>
-            <dd>{displayValue(user?.preferredPronoun)}</dd>
+            <dt><VenusAndMars aria-hidden="true" size={15} />Preferred pronoun</dt>
+            <dd className={styles.indentedValue}>{displayValue(user?.preferredPronoun)}</dd>
           </div>
           {user?.department && (
             <div className={styles.detail}>
-              <dt>Department</dt>
+              <dt><UsersRound aria-hidden="true" size={15} />Department</dt>
               <dd>{user.department}</dd>
             </div>
           )}
           {user?.team && (
             <div className={styles.detail}>
-              <dt>Team</dt>
+              <dt><UsersRound aria-hidden="true" size={15} />Team</dt>
               <dd>{user.team}</dd>
             </div>
           )}

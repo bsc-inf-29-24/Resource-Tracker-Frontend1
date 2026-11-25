@@ -105,7 +105,6 @@ export default function AppHeader({
         <span className={styles.brandText}>Resource Tracker</span>
         {role === "TEAM_LEAD" && <span className={styles.workspaceLabel}>Team Lead</span>}
         {role === "MANAGING_DIRECTOR" && <span className={styles.workspaceLabel}>Managing Director</span>}
-        {role === "LINE_MANAGER" && <span className={styles.workspaceLabel}>Line Manager</span>}
         {role === "DEPARTMENT_MANAGER" && <span className={styles.workspaceLabel}>Department Head</span>}
       </Link>
       {/* <span className={styles.pageContext} aria-current="page">

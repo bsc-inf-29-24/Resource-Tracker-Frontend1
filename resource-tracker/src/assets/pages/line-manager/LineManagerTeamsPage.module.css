@@ -1,0 +1,71 @@
+.page {
+  display: grid;
+  gap: 20px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 4px;
+}
+
+.membersPanel {
+  margin: 0;
+  min-width: 0;
+}
+
+.panelHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.panelHeading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.panelHeading p {
+  margin: 5px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.panelHeading select {
+  min-height: 40px;
+  min-width: 180px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+  background: var(--color-surface, #fff);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.inlineButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rt-green-800);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 600px) {
+  .panelHeading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

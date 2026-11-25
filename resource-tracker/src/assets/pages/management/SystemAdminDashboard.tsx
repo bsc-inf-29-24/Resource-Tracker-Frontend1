@@ -157,7 +157,6 @@ export default function SystemAdminDashboard() {
     <section className={`rt-root ${styles.page}`}>
       <header className={styles.welcome}>
         <div>
-          <p className={styles.eyebrow}>System Administrator</p>
           <h1>{greetingForHour(now.getHours())}, {firstName}</h1>
           <p className={styles.welcomeText}>Here is your system overview for today.</p>
         </div>

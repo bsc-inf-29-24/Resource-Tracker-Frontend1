@@ -44,6 +44,7 @@ function DataTable<Row extends object>({
   loading = false,
   error,
   onRetry,
+  showEmptyTable = false,
   emptyTitle = "No records found",
   emptyDescription = "There are no records to display.",
   emptyActionLabel,
@@ -97,7 +98,7 @@ function DataTable<Row extends object>({
         onRetry={onRetry}
       />
     );
-  } else if (rows.length === 0) {
+  } else if (rows.length === 0 && !showEmptyTable) {
     content = (
       <EmptyState
         title={emptyTitle}
@@ -120,34 +121,45 @@ function DataTable<Row extends object>({
             </tr>
           </thead>
           <tbody>
-            {visibleRows.map((row, index) => (
-              <tr
-                key={getRowKey(row, rowKey, index)}
-                {...(onRowClick
-                  ? {
-                      tabIndex: 0,
-                      onClick: (event) => activateRow(row, event.target),
-                      onKeyDown: (event) => {
-                        if (
-                          event.target === event.currentTarget &&
-                          (event.key === "Enter" || event.key === " ")
-                        ) {
-                          event.preventDefault();
-                          onRowClick(row);
-                        }
-                      },
-                    }
-                  : {})}
-              >
-                {columns.map((column) => (
-                  <td key={column.key}>
-                    {column.render
-                      ? column.render(row)
-                      : getCellValue(row, column.key)}
-                  </td>
-                ))}
+            {visibleRows.length === 0 ? (
+              <tr>
+                <td className={styles.emptyCell} colSpan={columns.length}>
+                  <EmptyState
+                    title={emptyTitle}
+                    description={emptyDescription}
+                    actionLabel={emptyActionLabel}
+                    onAction={onEmptyAction}
+                  />
+                </td>
               </tr>
-            ))}
+            ) : visibleRows.map((row, index) => (
+                <tr
+                  key={getRowKey(row, rowKey, index)}
+                  {...(onRowClick
+                    ? {
+                        tabIndex: 0,
+                        onClick: (event) => activateRow(row, event.target),
+                        onKeyDown: (event) => {
+                          if (
+                            event.target === event.currentTarget &&
+                            (event.key === "Enter" || event.key === " ")
+                          ) {
+                            event.preventDefault();
+                            onRowClick(row);
+                          }
+                        },
+                      }
+                    : {})}
+                >
+                  {columns.map((column) => (
+                    <td key={column.key}>
+                      {column.render
+                        ? column.render(row)
+                        : getCellValue(row, column.key)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

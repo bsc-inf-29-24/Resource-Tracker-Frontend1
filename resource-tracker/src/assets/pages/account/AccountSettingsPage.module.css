@@ -54,6 +54,9 @@
 }
 
 .detail dt {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-bottom: 0.35rem;
   color: var(--rt-text-muted);
   font-size: 0.85rem;
@@ -62,6 +65,8 @@
 
 .detail dd {
   margin: 0;
+  padding-left: 0;
+  text-align: left;
   color: var(--rt-text);
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -238,3 +243,7 @@
 }
 
 
+
+.detail .indentedValue {
+  padding-left: calc(15px + 0.4rem);
+}

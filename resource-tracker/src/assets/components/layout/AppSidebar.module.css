@@ -73,15 +73,24 @@
   color: #f3fff8;
   background: linear-gradient(160deg, #08794c 0%, #043222 23%, #03281d 100%);
   box-shadow: var(--shadow-card);
-  transform: translateX(-105%);
-  visibility: hidden;
-  pointer-events: none;
   transition:
     transform 180ms ease,
     visibility 180ms ease;
 }
 
+.drawer:not(.drawerOpen) {
+  transform: translateX(-105%);
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .drawerOpen {
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.drawer.drawerOpen {
   transform: translateX(0);
   visibility: visible;
   pointer-events: auto;
@@ -245,16 +254,8 @@
     bottom: 0;
     max-height: 100vh;
     border-radius: 0 var(--rt-radius-md) var(--rt-radius-md) 0;
-    transform: translateX(-105%);
-    visibility: hidden;
-    pointer-events: none;
   }
 
-  .drawer.drawerOpen {
-    transform: translateX(0);
-    visibility: visible;
-    pointer-events: auto;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

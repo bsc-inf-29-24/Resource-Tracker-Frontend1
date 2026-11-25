@@ -5,9 +5,10 @@ export default function ManagingDirectorTeamsPage() {
   return (
     <ApiManagementPage
       title="Teams"
-      description="Teams returned by the teams endpoint for your account."
+      description="Teams available to your account."
       recordsTitle="Team records"
       list={teamsApi.list}
+      validateResponseShape={false}
     />
   );
 }

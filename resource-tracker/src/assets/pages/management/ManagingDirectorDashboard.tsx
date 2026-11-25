@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import StatusCard, {
   StatusCardGrid,
-} from "../../components/cards/StatusCard";
+} from "../../components/cards/statusCard";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import {
@@ -13,7 +13,6 @@ import {
   usersApi,
 } from "../../data/api-services";
 import { getApiRecords } from "../../data/api-response";
-import { ApiError } from "../../data/api-client";
 import ApiResponsePanel from "./ApiResponsePanel";
 import styles from "./ApiManagementPage.module.css";
 
@@ -37,10 +36,6 @@ export default function ManagingDirectorDashboard() {
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
   const [departmentName, setDepartmentName] = useState("");
-  const [departmentCreatedAt, setDepartmentCreatedAt] = useState(() => {
-    const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  });
   const [departmentDescription, setDepartmentDescription] = useState("");
   const [departmentCreating, setDepartmentCreating] = useState(false);
   const [departmentError, setDepartmentError] = useState("");
@@ -71,9 +66,8 @@ export default function ManagingDirectorDashboard() {
       if (result.status === "fulfilled") nextData[key] = result.value;
       else {
         const reason = result.reason;
-        nextErrors[key] = reason instanceof ApiError
-          ? `${reason.message} (HTTP ${reason.status}; response: ${JSON.stringify(reason.responseBody)})`
-          : reason instanceof Error ? reason.message : "The request failed.";
+        console.error(`Managing Director ${key} data could not be loaded`, reason);
+        nextErrors[key] = `${key} data could not be loaded. Please try again.`;
       }
     });
     setData(nextData);
@@ -89,7 +83,8 @@ export default function ManagingDirectorDashboard() {
       const users = await usersApi.list();
       setData((current) => ({ ...current, users }));
     } catch (error) {
-      setErrors((current) => ({ ...current, users: error instanceof Error ? error.message : "Users could not be loaded." }));
+      console.error("Managing Director users could not be loaded", error);
+      setErrors((current) => ({ ...current, users: "User data could not be loaded. Please try again." }));
     } finally {
       setUsersLoading(false);
     }
@@ -126,7 +121,7 @@ export default function ManagingDirectorDashboard() {
         title="Managing Director"
         description=""
       />
-      {Object.values(errors).some(Boolean) && <ErrorMessage title="Some dashboard data could not be loaded" message={Object.entries(errors).filter(([, message]) => Boolean(message)).map(([key, message]) => `${key}: ${message}`).join("; ")} onRetry={() => void loadDashboard()} />}
+      {Object.entries(errors).some(([key, message]) => key !== "users" && Boolean(message)) && <ErrorMessage title="Dashboard data unavailable" message={Object.entries(errors).filter(([key, message]) => key !== "users" && Boolean(message)).map(([, message]) => message).join(" ")} onRetry={() => void loadDashboard()} />}
       <StatusCardGrid>
         <StatusCard
           label="Users returned"
@@ -182,11 +177,6 @@ export default function ManagingDirectorDashboard() {
             <input required maxLength={255} value={departmentName} onChange={(event) => setDepartmentName(event.target.value)} placeholder="Enter department name" />
           </label>
           <label className={styles.departmentField}>
-            <span>Date created</span>
-            <input type="date" value={departmentCreatedAt} onChange={(event) => setDepartmentCreatedAt(event.target.value)} />
-            <small>The department endpoint does not store this field; it is not included in the request.</small>
-          </label>
-          <label className={styles.departmentField}>
             <span>Description</span>
             <textarea required maxLength={500} rows={3} value={departmentDescription} onChange={(event) => setDepartmentDescription(event.target.value)} placeholder="Describe the department" />
           </label>
@@ -197,7 +187,7 @@ export default function ManagingDirectorDashboard() {
           </div>
         </form>
       </section>
-      <ApiResponsePanel title="Users" data={data.users} loading={loading || usersLoading} error={errors.users} onRefresh={() => void loadUsers()} />
+      <ApiResponsePanel title="Users" data={data.users} loading={loading || usersLoading} error={errors.users} errorTitle="Users unavailable" onRefresh={() => void loadUsers()} />
     </section>
   );
 }

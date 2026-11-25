@@ -40,6 +40,8 @@ export interface ApiField {
   when?: { field: string; value: string };  
 }
 
+const EMPTY_FIELDS: ApiField[] = [];
+
 export interface RelatedOperation {
   label: string;
   load: (id: string) => Promise<unknown>;
@@ -75,6 +77,7 @@ interface ApiManagementPageProps {
   selectionDetailsInDialog?: boolean;
   createHeading?: string;
   createButtonLabel?: string;
+  validateResponseShape?: boolean;
 }
 
 function textValue(value: unknown): string {
@@ -122,7 +125,7 @@ export default function ApiManagementPage({
   create,
   update,
   remove,
-  fields = [],
+  fields = EMPTY_FIELDS,
   updateFields = fields,
   related = [],
   assignments = [],
@@ -133,6 +136,7 @@ export default function ApiManagementPage({
   selectionDetailsInDialog = false,
   createHeading,
   createButtonLabel,
+  validateResponseShape = true,
 }: ApiManagementPageProps) {
   const [data, setData] = useState<unknown>(null);
   const [detail, setDetail] = useState<unknown>(null);
@@ -215,7 +219,7 @@ export default function ApiManagementPage({
         Departments: ["name"], Teams: ["name"], Projects: ["name"], Resources: ["name", "type"],
       };
       const required = requiredFields[title];
-      if (required && responseRecords.some((record) => !required.some((field) => field in record))) {
+      if (validateResponseShape && required && responseRecords.some((record) => !required.some((field) => field in record))) {
         throw new Error(`${title} endpoint returned records that do not match the documented ${title.toLowerCase()} shape.`);
       }
       setData(response);

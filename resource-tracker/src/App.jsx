@@ -164,6 +164,9 @@ const AccountSettingsPage = page(
 const TeamMemberDashboard = page(
   () => import("./assets/pages/team-member/TeamMemberDashboard"),
 );
+const LineManagerDashboardPage = page(
+  () => import("./assets/pages/line-manager/LineManagerDashboard"),
+);
 const LineManagerReviewQueuePage = page(() =>
   import("./assets/pages/management/ResourceRequestPages").then((module) => ({
     default: module.LineManagerReviewQueuePage,
@@ -173,6 +176,28 @@ const LineManagerReviewDetailsPage = page(() =>
   import("./assets/pages/management/ResourceRequestPages").then((module) => ({
     default: module.LineManagerReviewDetailsPage,
   })),
+);
+const LineManagerAllRequestsPage = page(() =>
+  import("./assets/pages/management/ResourceRequestPages").then((module) => ({
+    default: module.LineManagerAllRequestsPage,
+  })),
+);
+const LineManagerDecisionHistoryPage = page(() =>
+  import("./assets/pages/management/ResourceRequestPages").then((module) => ({
+    default: module.LineManagerDecisionHistoryPage,
+  })),
+);
+const LineManagerTeamsPage = page(
+  () => import("./assets/pages/line-manager/LineManagerTeamsPage"),
+);
+const LineManagerReportsPage = page(
+  () => import("./assets/pages/line-manager/LineManagerReportsPage"),
+);
+const LineManagerActivityPage = page(
+  () => import("./assets/pages/line-manager/LineManagerActivityPage"),
+);
+const LineManagerResourceAllocationDetailsPage = page(
+  () => import("./assets/pages/line-manager/ResourceAllocationDetailsPage"),
 );
 const DepartmentRequestListPage = page(() =>
   import("./assets/pages/management/ResourceRequestPages").then((module) => ({
@@ -325,7 +350,7 @@ function App() {
               {/* Line Manager */}
               <Route
                 path="/line-manager/dashboard"
-                element={<Navigate to="/line-manager/requests" replace />}
+                element={<LineManagerDashboardPage />}
               />
               <Route
                 path="/line-manager/requests"
@@ -336,8 +361,32 @@ function App() {
                 element={<LineManagerReviewDetailsPage />}
               />
               <Route
+                path="/line-manager/all-requests"
+                element={<LineManagerAllRequestsPage />}
+              />
+              <Route
+                path="/line-manager/decisions"
+                element={<LineManagerDecisionHistoryPage />}
+              />
+              <Route
+                path="/line-manager/teams"
+                element={<LineManagerTeamsPage />}
+              />
+              <Route
+                path="/line-manager/reports"
+                element={<LineManagerReportsPage />}
+              />
+              <Route
+                path="/line-manager/activity"
+                element={<LineManagerActivityPage />}
+              />
+              <Route
                 path="/line-manager/allocations"
                 element={<LineManagerResourceAllocationsPage />}
+              />
+              <Route
+                path="/line-manager/allocations/:id"
+                element={<LineManagerResourceAllocationDetailsPage />}
               />
 
               {/* Department Head */}

@@ -58,9 +58,9 @@ export default function LoginPage() {
   }
 
   return (
-    <section className={`rt-root ${styles.card}`} aria-labelledby="login-title">
-      <p className={styles.eyebrow}>Welcome Back!</p>
-      <h1 id="login-title" className={styles.title}>
+    <section className={`rt-root ${styles.card} ${styles.loginCard}`} aria-labelledby="login-title">
+      <p className={`${styles.eyebrow} ${styles.loginEyebrow}`}>Welcome Back!</p>
+      <h1 id="login-title" className={`${styles.title} ${styles.loginTitle}`}>
         Sign in
       </h1>
 
@@ -135,6 +135,9 @@ export default function LoginPage() {
             </p>
           )}
         </div>
+        <div className={`${styles.links} ${styles.loginLinks}`}>
+          <Link to="/forgot-password">Forgot your password?</Link>
+        </div>
         <button
           className={styles.submit}
           type="submit"
@@ -144,9 +147,7 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className={styles.links}>
-        <Link to="/forgot-password">Forgot your password?</Link>
-      </div>
+      <p className={styles.staffNotice}>Staff access only!</p>
     </section>
   );
 }

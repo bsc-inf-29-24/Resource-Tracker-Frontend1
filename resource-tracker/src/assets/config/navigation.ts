@@ -24,8 +24,9 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
     { label: "Notifications", path: "/notifications" },
   ],
   LINE_MANAGER: [
-    { label: "Requests to Review", path: "/line-manager/requests" },
-    { label: "Resource Allocations", path: "/line-manager/allocations" },
+    { label: "Dashboard", path: "/line-manager/dashboard" },
+    { label: "Requests", path: "/line-manager/requests" },
+    { label: "Allocations", path: "/line-manager/allocations" },
     { label: "Notifications", path: "/notifications" },
   ],
   DEPARTMENT_MANAGER: [

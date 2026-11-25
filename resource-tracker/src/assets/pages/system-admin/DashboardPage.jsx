@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
 import EmptyState from "../../components/feedback/EmptyState";
 import PageHeader from "../../components/layout/PageHeader";
@@ -8,7 +7,7 @@ import { availableDepartments, useUsers } from "../../data/user-store";
 import styles from "./AdminDashboard.module.css";
 
 export default function DashboardPage() {
-  const { users, persistenceWarning } = useUsers();
+  const { users } = useUsers();
   const activeUsers = users.filter((user) => user.status === "Active");
   const inactiveUsers = users.filter((user) => user.status === "Inactive");
   const departments = availableDepartments.map((department) => ({
@@ -37,9 +36,6 @@ export default function DashboardPage() {
         title="System Administrator"
         description="Manage account records and review department membership."
       />
-
-      {persistenceWarning && (
-      )}
 
       <StatusCardGrid>
         <StatusCard

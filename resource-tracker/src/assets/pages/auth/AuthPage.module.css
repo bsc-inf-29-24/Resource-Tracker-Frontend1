@@ -206,3 +206,58 @@
   grid-template-columns: minmax(320px, 42%) 1fr;
   background: var(--color-background);
 }
+
+.loginCard {
+  display: flex;
+  min-height: calc(100vh - 96px);
+  flex-direction: column;
+  text-align: center;
+}
+
+.loginEyebrow {
+  font-size: 1.9rem;
+}
+
+.loginTitle {
+  margin-top: 1.5rem;
+  font-size: 2.5rem;
+}
+
+.loginCard .form {
+  width: 100%;
+  gap: 1.5rem;
+}
+
+.loginLinks {
+  justify-content: flex-end;
+  margin-top: -0.8rem;
+  margin-bottom: -0.2rem;
+}
+
+.staffNotice {
+  margin: auto 0 0;
+  color: var(--rt-green-800);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .loginCard {
+    min-height: auto;
+  }
+
+  .staffNotice {
+    margin-top: 2rem;
+  }
+}
+
+.loginCard .field input {
+  min-height: 68px;
+  font-size: 1.1rem;
+}
+
+.loginCard .submit {
+  min-height: 68px;
+  font-size: 1.15rem;
+}

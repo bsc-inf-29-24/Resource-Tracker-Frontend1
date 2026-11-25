@@ -88,7 +88,7 @@ export function getDashboardPathForRole(role?: string | null): string {
     case "team_lead":
       return "/team-lead/dashboard";
     case "line_manager":
-      return "/line-manager/requests";
+      return "/line-manager/dashboard";
     case "department_head":
       return "/department-manager/requests";
     case "managing_director":

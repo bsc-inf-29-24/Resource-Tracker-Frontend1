@@ -136,7 +136,7 @@ export default function LoginPage() {
           )}
         </div>
         <div className={`${styles.links} ${styles.loginLinks}`}>
-          <Link to="/forgot-password">Forgot your password?</Link>
+          <Link to="/forgot-password">Reset Password</Link>
         </div>
         <button
           className={styles.submit}

@@ -40,9 +40,15 @@
 }
 
 .filters select:focus-visible,
-.filters button:focus-visible {
+.filters button:focus-visible,
+.filters a:focus-visible {
   outline: 3px solid var(--rt-green-600);
   outline-offset: 2px;
+}
+
+.createRequest {
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .link {

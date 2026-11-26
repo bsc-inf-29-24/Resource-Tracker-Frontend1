@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import type { RefObject } from "react";
+import { Bell } from "lucide-react";
 import {
   navigationConfig,
   roleDisplayNames,
@@ -42,7 +43,7 @@ function getDashboardPath(role: UserRole | null | undefined) {
         {
           TEAM_LEAD: "/team-lead/dashboard",
           LINE_MANAGER: "/line-manager/dashboard",
-          DEPARTMENT_MANAGER: "/department-manager/dashboard",
+          DEPARTMENT_MANAGER: "/department-manager/requests",
           MANAGING_DIRECTOR: "/managing-director/dashboard",
           SYSTEM_ADMIN: "/system-admin/dashboard",
           TEAM_MEMBER: "/team-member/dashboard",
@@ -68,15 +69,28 @@ export default function AppHeader({
         <button
           ref={menuToggleRef}
           type="button"
-          className={`${styles.menuToggle} ${
-            role === "DEPARTMENT_MANAGER" ? styles.departmentHeadMenuToggle : ""
-          }`}
+          className={styles.menuToggle}
           aria-label={mobileNavigationOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={mobileNavigationOpen}
           aria-controls="application-sidebar"
           onClick={onToggleMobileNavigation}
         >
-          <span aria-hidden="true">{mobileNavigationOpen ? "×" : "☰"}</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            {mobileNavigationOpen ? (
+              <path d="m18 6-12 12M6 6l12 12" />
+            ) : (
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
         </button>
       )}
       <Link
@@ -88,11 +102,24 @@ export default function AppHeader({
         <span className={styles.brandMark} aria-hidden="true">
           RT
         </span>
-        <span>Resource Tracker</span>
+        <span className={styles.brandText}>Resource Tracker</span>
+        {role === "TEAM_LEAD" && <span className={styles.workspaceLabel}>Team Lead</span>}
+        {role === "MANAGING_DIRECTOR" && <span className={styles.workspaceLabel}>Managing Director</span>}
+        {role === "DEPARTMENT_MANAGER" && <span className={styles.workspaceLabel}>Department Head</span>}
       </Link>
       {/* <span className={styles.pageContext} aria-current="page">
         {getPageContext(pathname, role)}
       </span> */}
+      <Link
+        className={styles.notificationsLink}
+        to="/notifications"
+        aria-label="Notifications"
+        aria-current={pathname === "/notifications" ? "page" : undefined}
+        title="Notifications"
+        inert={mobileNavigationOpen}
+      >
+        <Bell aria-hidden="true" size={20} strokeWidth={1.8} />
+      </Link>
       <UserProfileMenu
         userName={userName}
         email={email}

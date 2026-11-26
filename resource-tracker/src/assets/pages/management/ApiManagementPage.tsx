@@ -11,8 +11,10 @@ import {
   formatApiValue,
   getApiRecords,
   humanizeApiKey,
+  isApiRecord,
 } from "../../data/api-response";
 import ApiDataView from "./ApiDataView";
+import { dashboardApi, departmentsApi, teamsApi, usersApi } from "../../data/api-services";
 import styles from "./ApiManagementPage.module.css";
 
 type ApiRecord = Record<string, unknown>;
@@ -23,6 +25,9 @@ type InputKind =
   | "date"
   | "textarea"
   | "select"
+  | "select-number"
+  | "multi-select-number"
+  | "select-options"
   | "list";
 
 export interface ApiField {
@@ -31,6 +36,7 @@ export interface ApiField {
   kind?: InputKind;
   required?: boolean;
   options?: { value: string; label: string }[];
+  optionSource?: "departments" | "teams";
   when?: { field: string; value: string };  
 }
 
@@ -65,6 +71,11 @@ interface ApiManagementPageProps {
   assignmentsInDialog?: boolean;
   expandableRecords?: boolean;
   recordsTitle?: string;
+  headingAction?: React.ReactNode;
+  selectionLabel?: string;
+  selectionDetailsInDialog?: boolean;
+  createHeading?: string;
+  createButtonLabel?: string;
 }
 
 function textValue(value: unknown): string {
@@ -73,6 +84,19 @@ function textValue(value: unknown): string {
 
 function formatValue(value: unknown): string {
   return formatApiValue(value);
+}
+
+function formatCreatedAt(value: unknown): string {
+  if (typeof value !== "string" && !(value instanceof Date)) {
+    return formatValue(value);
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? formatValue(value)
+    : new Intl.DateTimeFormat(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date);
 }
 
 function getRecordDisplayName(record: ApiRecord): string {
@@ -106,6 +130,11 @@ export default function ApiManagementPage({
   assignmentsInDialog = false,
   expandableRecords = false,
   recordsTitle = "Users records",
+  headingAction,
+  selectionLabel = "Select",
+  selectionDetailsInDialog = false,
+  createHeading,
+  createButtonLabel,
 }: ApiManagementPageProps) {
   const [data, setData] = useState<unknown>(null);
   const [detail, setDetail] = useState<unknown>(null);
@@ -125,12 +154,73 @@ export default function ApiManagementPage({
   const assignmentDialogRef = useRef<HTMLDialogElement>(null);
   const [pendingAssignment, setPendingAssignment] =
     useState<AssignmentOperation | null>(null);
+  const [optionRecords, setOptionRecords] = useState<Record<string, ApiRecord[]>>({});
+  const [optionLoading, setOptionLoading] = useState<Record<string, boolean>>({});
+  const [optionErrors, setOptionErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const sources = Array.from(new Set(fields.map((field) => field.optionSource).filter((source): source is "departments" | "teams" => Boolean(source))));
+    if (title === "Teams" && !sources.includes("departments")) sources.push("departments");
+    if (title === "Projects" && !sources.includes("teams")) sources.push("teams");
+    let active = true;
+    for (const source of sources) {
+      setOptionLoading((current) => ({ ...current, [source]: true }));
+      setOptionErrors((current) => ({ ...current, [source]: "" }));
+      const request = source === "departments"
+        ? departmentsApi.list().catch(() => dashboardApi.departments())
+        : teamsApi.list();
+      void request.then((response) => {
+        if (active) {
+          const records = getApiRecords(response).map((record) => ({
+            ...record,
+            id: record.id ?? record.departmentId,
+            name: record.name ?? record.departmentName,
+          }));
+          setOptionRecords((current) => ({ ...current, [source]: records }));
+        }
+      }).catch((loadError) => {
+        if (active) setOptionErrors((current) => ({ ...current, [source]: loadError instanceof Error ? loadError.message : "Options could not be loaded." }));
+      }).finally(() => {
+        if (active) setOptionLoading((current) => ({ ...current, [source]: false }));
+      });
+    }
+    if (title === "Teams" && assignments.length) {
+      setOptionLoading((current) => ({ ...current, teamLeads: true }));
+      void teamsApi.unassignedUsers().then((response) => {
+        const eligible = getApiRecords(response).filter((user) => user.role === "TEAM_LEAD");
+        const options = eligible.filter((user) => typeof user.id === "string").map((user) => ({ value: String(user.id), label: `${typeof user.fullName === "string" ? user.fullName : user.id}${typeof user.email === "string" ? ` (${user.email})` : ""}` }));
+        if (active) setAssignmentValues((current) => ({ ...current, teamLeadOptions: JSON.stringify(options) }));
+      }).catch((loadError) => {
+        if (active) setOptionErrors((current) => ({ ...current, teamLeads: loadError instanceof Error ? loadError.message : "Team leads could not be loaded." }));
+      }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, teamLeads: false })); });
+    }
+    if (title === "Departments" && assignments.length) {
+      setOptionLoading((current) => ({ ...current, departmentHeads: true }));
+      void usersApi.list().then((response) => {
+        const eligible = getApiRecords(response).filter((user) => user.role === "DEPARTMENT_HEAD" && user.isActive !== false);
+        const options = eligible.filter((user) => typeof user.id === "string").map((user) => ({ value: String(user.id), label: `${typeof user.fullName === "string" ? user.fullName : user.id}${typeof user.email === "string" ? ` (${user.email})` : ""}` }));
+        if (active) setAssignmentValues((current) => ({ ...current, departmentHeadOptions: JSON.stringify(options) }));
+      }).catch((loadError) => {
+        if (active) setOptionErrors((current) => ({ ...current, departmentHeads: loadError instanceof Error ? loadError.message : "Department heads could not be loaded." }));
+      }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, departmentHeads: false })); });
+    }
+    return () => { active = false; };
+  }, [assignments.length, fields, title]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      setData(await list());
+      const response = await list();
+      const responseRecords = getApiRecords(response);
+      const requiredFields: Record<string, string[]> = {
+        Departments: ["name"], Teams: ["name"], Projects: ["name"], Resources: ["name", "type"],
+      };
+      const required = requiredFields[title];
+      if (required && responseRecords.some((record) => !required.some((field) => field in record))) {
+        throw new Error(`${title} endpoint returned records that do not match the documented ${title.toLowerCase()} shape.`);
+      }
+      setData(response);
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -140,7 +230,7 @@ export default function ApiManagementPage({
     } finally {
       setLoading(false);
     }
-  }, [list]);
+  }, [list, title]);
 
   useEffect(() => {
     void reload();
@@ -166,7 +256,9 @@ export default function ApiManagementPage({
         fields.map((field) => [field.name, textValue(record[field.name])]),
       ),
     );
-    setDetail(assignmentsInDialog ? null : record);
+    setDetail(
+      assignmentsInDialog && !selectionDetailsInDialog ? null : record,
+    );
     setRelatedData(null);
     setError("");
     setNotice("");
@@ -175,17 +267,25 @@ export default function ApiManagementPage({
 
   const records = useMemo(() => getApiRecords(data), [data]);
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
+    const isUserAccounts = recordsTitle === "User accounts";
     const keys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
       ),
-    );
-    const result: DataTableColumn<ApiRecord>[] = keys.map((key) => ({
-      key,
-      header: humanizeApiKey(key.replaceAll(".", " ")),
-      render: (record: ApiRecord) =>
-        formatValue(flattenApiRecord(record)[key]),
-    }));
+    ).filter((key) => !(isUserAccounts && key.toLowerCase() === "id"));
+    const result: DataTableColumn<ApiRecord>[] = keys.map((key) => {
+      const normalizedKey = key.toLowerCase().replace(/[_.\s-]/g, "");
+      return {
+        key,
+        header: humanizeApiKey(key.replaceAll(".", " ")),
+        render: (record: ApiRecord) => {
+          const value = flattenApiRecord(record)[key];
+          return isUserAccounts && normalizedKey === "createdat"
+            ? formatCreatedAt(value)
+            : formatValue(value);
+        },
+      };
+    });
     if (get || update || remove || assignments.length > 0) {
       result.push({
         key: "actions",
@@ -199,9 +299,10 @@ export default function ApiManagementPage({
             <button
               type="button"
               className="rt-root rt-btn rt-btn--outline"
+              aria-label={`${selectionLabel} ${getRecordDisplayName(record)}`}
               onClick={() => selectRecord(record)}
             >
-              Select
+              {selectionLabel}
             </button>
           );
         },
@@ -230,7 +331,15 @@ export default function ApiManagementPage({
     for (const field of visibleFields(fieldList)) {
       const value = form[field.name]?.trim() ?? "";
       if (!value) continue;
-      if (field.kind === "number") {
+      if (field.kind === "select-number") {
+        const id = Number(value);
+        if (!Number.isInteger(id) || id < 1) throw new Error(`Select a valid ${field.label.toLowerCase()}.`);
+        body[field.name] = id;
+      } else if (field.kind === "multi-select-number") {
+        const ids = value.split(",").filter(Boolean).map(Number);
+        if (ids.some((id) => !Number.isInteger(id) || id < 1)) throw new Error(`${field.label} must contain valid selections.`);
+        if (ids.length) body[field.name] = ids;
+      } else if (field.kind === "number") {
         const numericValue = Number(value);
         if (!Number.isFinite(numericValue)) {
           throw new Error(`${field.label} must be a valid number.`);
@@ -398,6 +507,7 @@ export default function ApiManagementPage({
             rows={3}
             value={value}
             required={field.required}
+            placeholder={`Enter ${field.label.toLowerCase()}`}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -405,6 +515,29 @@ export default function ApiManagementPage({
               }))
             }
           />
+        ) : field.kind === "select-options" ? (
+          <>
+            <select id={id} value={value} required={field.required} disabled={optionLoading[field.optionSource ?? ""] || Boolean(optionErrors[field.optionSource ?? ""])} onChange={(event) => setForm((current) => ({ ...current, [field.name]: event.target.value }))}>
+              <option value="">{optionLoading[field.optionSource ?? ""] ? "Loading departments…" : "Choose a department"}</option>
+              {(optionRecords[field.optionSource ?? ""] ?? []).filter((record) => (typeof record.id === "number" || (typeof record.id === "string" && record.id.trim() !== "")) && typeof record.name === "string" && record.name.trim() !== "").map((record) => <option key={String(record.id)} value={String(record.id)}>{String(record.name)}</option>)}
+            </select>
+            {optionErrors[field.optionSource ?? ""] && <small role="alert">Departments could not be loaded: {optionErrors[field.optionSource ?? ""]}</small>}
+            {!optionLoading[field.optionSource ?? ""] && !optionErrors[field.optionSource ?? ""] && (optionRecords[field.optionSource ?? ""] ?? []).length === 0 && <small>No departments are available.</small>}
+          </>
+        ) : field.kind === "select-number" || field.kind === "multi-select-number" ? (
+          <>
+            <select id={id} multiple={field.kind === "multi-select-number"} value={field.kind === "multi-select-number" ? undefined : value} required={field.required} disabled={optionLoading[field.optionSource ?? ""] || Boolean(optionErrors[field.optionSource ?? ""])} onChange={(event) => {
+              const selected = field.kind === "multi-select-number" ? Array.from(event.currentTarget.selectedOptions, (option) => option.value).join(",") : event.target.value;
+              setForm((current) => ({ ...current, [field.name]: selected }));
+            }}>
+              {field.kind !== "multi-select-number" && <option value="">{optionLoading[field.optionSource ?? ""] ? "Loading departments..." : optionErrors[field.optionSource ?? ""] ? "Departments unavailable" : (optionRecords[field.optionSource ?? ""] ?? []).length === 0 ? "No departments available" : "Select a department"}</option>}
+              {(optionRecords[field.optionSource ?? ""] ?? []).filter((record) => (typeof record.id === "number" || (typeof record.id === "string" && record.id.trim() !== "")) && typeof record.name === "string" && record.name.trim() !== "").map((record) => <option key={String(record.id)} value={String(record.id)}>{String(record.name)}</option>)}
+            </select>
+            {optionLoading[field.optionSource ?? ""] && <small>Loading departments...</small>}
+            {!optionLoading[field.optionSource ?? ""] && !optionErrors[field.optionSource ?? ""] && (optionRecords[field.optionSource ?? ""] ?? []).length === 0 && <small>No departments are available. Create a department first.</small>}
+            {optionErrors[field.optionSource ?? ""] && <small role="alert">Departments could not be loaded: {optionErrors[field.optionSource ?? ""]}</small>}
+            {field.kind === "multi-select-number" && <small>Hold Ctrl or Command to select multiple teams.</small>}
+          </>
         ) : field.kind === "select" ? (
           <select
             id={id}
@@ -433,6 +566,7 @@ export default function ApiManagementPage({
                 : "text"
             }
             value={value}
+            placeholder={`Enter ${field.label.toLowerCase()}`}
             required={field.required}
             onChange={(event) =>
               setForm((current) => ({
@@ -443,7 +577,7 @@ export default function ApiManagementPage({
           />
         )}
         {(field.kind === "list" || field.kind === "number-list") && (
-          <small>Enter the documented IDs separated by commas.</small>
+          <small>Select related records using their available IDs.</small>
         )}
       </label>
     );
@@ -462,14 +596,13 @@ export default function ApiManagementPage({
       )}
 
       <section className={`rt-root rt-card ${styles.panel}`}>
-        {recordsTitle && (
-          <div className={styles.panelHeading}>
-            <h2>{recordsTitle}</h2>
-            {/* <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => void reload()}>
-              Refresh
-            </button> */}
+        <div className={styles.panelHeading}>
+          <h2>{recordsTitle}</h2>
+          <div className={styles.actions}>
+            {headingAction}
+            <button type="button" className="rt-root rt-btn rt-btn--outline" disabled={loading || busy} onClick={() => void reload()}>{loading ? "Refreshing…" : "Refresh"}</button>
           </div>
-        )}
+        </div>
         {loading ? (
           <LoadingState message="Loading backend records..." />
         ) : records.length > 0 && columns.length > 0 ? (
@@ -503,7 +636,7 @@ export default function ApiManagementPage({
         related.length > 0 ||
         (assignments.length > 0 && !assignmentsInDialog)) && (
         <section className={`rt-root rt-card ${styles.panel}`}>
-          <h2>Record actions</h2>
+          <h2>{title === "Teams" ? "Team actions" : title === "Projects" ? "Project actions" : "Record actions"}</h2>
           <label className={styles.field} htmlFor="api-record-id">
             <span>Record ID</span>
             <input
@@ -544,7 +677,7 @@ export default function ApiManagementPage({
                 if (create) void createRecord();
               }}
             >
-              <h3>{create ? "Create a record" : "Record fields"}</h3>
+              <h3>{create ? createHeading ?? `Create a ${title === "Teams" ? "team" : title === "Projects" ? "project" : "record"}` : "Record fields"}</h3>
               <div className={styles.grid}>{fields.map(renderField)}</div>
               <div className={styles.actions}>
                 {create && (
@@ -553,17 +686,17 @@ export default function ApiManagementPage({
                     className="rt-root rt-btn rt-btn--primary"
                     disabled={busy}
                   >
-                    {busy ? "Saving..." : "Create"}
+                    {busy ? "Saving..." : createButtonLabel ?? `Create ${title === "Teams" ? "Team" : title === "Projects" ? "Project" : "Record"}`}
                   </button>
                 )}
                 {update && (
                   <button
                     type="button"
                     className="rt-root rt-btn rt-btn--primary"
-                    disabled={busy || !selectedId.trim()}
-                    onClick={() => void updateRecord()}
+                    disabled={busy}
+                    onClick={() => setForm(Object.fromEntries(fields.map((field) => [field.name, ""])))}
                   >
-                    {busy ? "Saving..." : "Save changes"}
+                    Reset
                   </button>
                 )}
               </div>
@@ -578,7 +711,16 @@ export default function ApiManagementPage({
                   htmlFor={`assignment-${operation.field}`}
                 >
                   <span>{operation.label}</span>
-                  {operation.options ? (
+                  {operation.field === "teamLeadId" || operation.field === "headUserId" ? (
+                    <>
+                      <select id={`assignment-${operation.field}`} value={assignmentValues[operation.field] ?? ""} onChange={(event) => setAssignmentValues((current) => ({ ...current, [operation.field]: event.target.value }))} disabled={optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] || Boolean(optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"])}>
+                        <option value="">{optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] ? "Loading eligible users…" : operation.field === "teamLeadId" ? "Select a team lead" : "Select a department head"}</option>
+                        {(JSON.parse(assignmentValues[operation.field === "teamLeadId" ? "teamLeadOptions" : "departmentHeadOptions"] ?? "[]") as { value: string; label: string }[]).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                      {optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] && <small role="alert">{optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"]}</small>}
+                      {!optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] && !optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] && JSON.parse(assignmentValues[operation.field === "teamLeadId" ? "teamLeadOptions" : "departmentHeadOptions"] ?? "[]").length === 0 && <small>No eligible users are available.</small>}
+                    </>
+                  ) : operation.options ? (
                     <select
                       id={`assignment-${operation.field}`}
                       value={assignmentValues[operation.field] ?? ""}
@@ -656,7 +798,7 @@ export default function ApiManagementPage({
         </section>
       )}
 
-      {(detail !== null || relatedData !== null) && (
+        {(detail !== null || relatedData !== null) && !selectionDetailsInDialog && (
         <section className={`rt-root rt-card ${styles.panel}`}>
           <h2>
             {relatedData !== null ? "Related records" : "Record details"}
@@ -673,7 +815,9 @@ export default function ApiManagementPage({
           onClose={() => setAssignmentDialogOpen(false)}
         >
           <div className={styles.dialogHeading}>
-            <h2 id="user-actions-title">User actions</h2>
+            <h2 id="user-actions-title">
+              {selectionDetailsInDialog ? "User details" : "User actions"}
+            </h2>
             <button
               type="button"
               className="rt-root rt-btn rt-btn--outline"
@@ -684,8 +828,28 @@ export default function ApiManagementPage({
             </button>
           </div>
           <p className={styles.assignmentIntro}>
-            Choose an action for {selectedUserName}.
+            {selectionDetailsInDialog
+              ? `User information and available account actions for ${selectedUserName}.`
+              : `Choose an action for ${selectedUserName}.`}
           </p>
+          {selectionDetailsInDialog && isApiRecord(detail) && (
+            <div className={styles.dialogDetails}>
+              <ApiDataView
+                fieldIcons={selectionDetailsInDialog}
+                data={Object.fromEntries(
+                  Object.entries(detail)
+                    .filter(([key]) => !["id", "userid"].includes(key.toLowerCase().replace(/[_-]/g, "")))
+                    .map(([key, value]) => [
+                      key,
+                      key.toLowerCase().replace(/[_-]/g, "") === "createdat"
+                        ? formatCreatedAt(value)
+                        : value,
+                    ]),
+                )}
+              />
+            </div>
+          )}
+          <div className={selectionDetailsInDialog ? styles.userActionRow : undefined}>
           {assignments
             .filter((operation) => operation.requiresValue !== false)
             .map((operation) => (
@@ -734,7 +898,7 @@ export default function ApiManagementPage({
                 </label>
                 <button
                   type="button"
-                  className="rt-root rt-btn rt-btn--outline"
+                  className={`rt-root rt-btn ${selectionDetailsInDialog ? "rt-btn--primary" : "rt-btn--outline"}`}
                   disabled={
                     busy ||
                     !selectedId.trim() ||
@@ -756,10 +920,19 @@ export default function ApiManagementPage({
           <div className={styles.dialogActions}>
             {assignments
               .filter((operation) => operation.requiresValue === false)
+              .filter((operation) => {
+                if (!selectionDetailsInDialog || !isApiRecord(detail)) {
+                  return true;
+                }
+                const action = operation.field.toLowerCase();
+                if (action === "deactivate") return detail.isActive !== false;
+                if (action === "reactivate") return detail.isActive === false;
+                return true;
+              })
               .map((operation) => (
                 <button
                   type="button"
-                  className="rt-root rt-btn rt-btn--outline"
+                  className={`rt-root rt-btn ${selectionDetailsInDialog ? operation.field.toLowerCase() === "deactivate" ? "rt-btn--danger" : "rt-btn--primary" : "rt-btn--outline"}`}
                   key={operation.field}
                   disabled={busy || !selectedId.trim()}
                   onClick={() => {
@@ -774,6 +947,7 @@ export default function ApiManagementPage({
                   {operation.label}
                 </button>
               ))}
+          </div>
           </div>
         </dialog>
       )}
@@ -807,3 +981,5 @@ export default function ApiManagementPage({
     </section>
   );
 }
+
+

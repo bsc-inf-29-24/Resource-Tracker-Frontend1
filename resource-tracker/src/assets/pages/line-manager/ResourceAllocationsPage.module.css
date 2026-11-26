@@ -1,0 +1,44 @@
+.page {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 4px;
+}
+
+.page :global(.rt-table) {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 1px solid var(--rt-green-200);
+}
+
+.page :global(.rt-table th),
+.page :global(.rt-table td) {
+  border: 1px solid var(--rt-green-200);
+}
+
+.page :global(.rt-table td) {
+  box-shadow: none;
+}
+
+.viewAction {
+  border-color: var(--rt-green-700);
+  color: var(--rt-green-800);
+}
+
+.viewAction:hover {
+  border-color: var(--rt-green-800);
+  background: var(--rt-green-50);
+  color: var(--rt-green-900);
+}
+
+.resourceName {
+  display: grid;
+  gap: 3px;
+}
+
+.resourceName small {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}

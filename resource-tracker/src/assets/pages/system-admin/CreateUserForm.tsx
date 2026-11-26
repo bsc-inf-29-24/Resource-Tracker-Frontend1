@@ -92,7 +92,7 @@ export default function CreateUserForm({
         noValidate
       >
         <p className={styles.accountNote}>
-          The backend will email the user a generated temporary password.
+          Email will be sent to the user after creation.
         </p>
         <h2>User Details</h2>
         <div className={styles.field}>

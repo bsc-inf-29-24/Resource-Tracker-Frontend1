@@ -15,6 +15,7 @@ export interface DataTableProps<Row extends object> {
   loading?: boolean;
   error?: string;
   onRetry?: () => void;
+  showEmptyTable?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
   emptyActionLabel?: string;

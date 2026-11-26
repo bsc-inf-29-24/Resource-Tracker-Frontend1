@@ -81,13 +81,13 @@
   min-width: 0;
   min-height: calc(100vh - 24px);
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   padding: 56px clamp(48px, 7vw, 100px);
   background: #fff;
 }
 
 .formPanel > * {
-  width: min(100%, 510px);
+  width: min(100%, 600px);
 }
 
 @media (max-width: 900px) {

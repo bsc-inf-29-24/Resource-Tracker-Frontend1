@@ -1,378 +1,302 @@
-import { useCallback, useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import DataTable from "../../components/tables/DataTable";
+import type { DataTableColumn } from "../../components/tables/type";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
 import PageHeader from "../../components/layout/PageHeader";
+import StatusLabel from "../../components/status/StatusLabel";
+import {
+  formatApiValue,
+  getApiRecords,
+  isApiRecord,
+  unwrapApiResponse,
+} from "../../data/api-response";
 import { resourcesApi } from "../../data/api-services";
-import type {
-  CreateResourceAllocationInput,
-  TransferResourceAllocationInput,
-} from "../../data/api-services";
-import ApiDataView from "../management/ApiDataView";
-import styles from "../management/ApiManagementPage.module.css";
+import styles from "./ResourceAllocationsPage.module.css";
 
-type ResourceData = {
-  available?: unknown;
-  allocations?: unknown;
-  movements?: unknown;
-};
-type ResourceErrors = Partial<Record<keyof ResourceData, string>>;
+type ResourceRecord = Record<string, unknown>;
 
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+interface AllocationRow extends ResourceRecord {
+  resourceId: string;
+  resourceName: string;
+  resourceDepartment: unknown;
 }
 
-function positiveInteger(value: string, label: string): number {
-  if (!/^[1-9]\d*$/.test(value.trim())) {
-    throw new Error(`${label} must be a positive whole number.`);
+function getResourceId(resource: ResourceRecord): string | undefined {
+  const id = resource.id ?? resource.resourceId;
+  return typeof id === "string" || typeof id === "number" ? String(id) : undefined;
+}
+
+function getResourceName(resource: ResourceRecord): string {
+  const name = resource.name ?? resource.resourceName ?? resource.itemDescription;
+  return typeof name === "string" ? name : "Unnamed resource";
+}
+
+function recordsFromResponse(response: unknown, label: string): ResourceRecord[] {
+  const value = unwrapApiResponse(response);
+  if (!Array.isArray(value)) {
+    throw new Error(`The ${label} endpoint did not return its documented list response.`);
   }
-  return Number(value);
+  const records = getApiRecords(value);
+  if (records.length !== value.length) {
+    throw new Error(`The ${label} endpoint returned an item with an unexpected response shape.`);
+  }
+  return records;
 }
 
-function optionalDate(value: string) {
-  return value ? new Date(value).toISOString() : undefined;
+function relatedName(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (!isApiRecord(value)) return "—";
+  const name = value.fullName ?? value.name ?? value.email ?? value.id;
+  return name === undefined ? "—" : String(name);
+}
+
+function assignedToLabel(allocation: AllocationRow): string {
+  const assignee = relatedName(
+    allocation.assignedTo ?? allocation.assignedToUser ?? allocation.user,
+  );
+  const team = relatedName(allocation.team);
+  if (assignee !== "—" && team !== "—") return `${assignee} (${team})`;
+  return assignee !== "—" ? assignee : team;
+}
+
+function allocationTimestamp(allocation: AllocationRow): number {
+  const value = allocation.allocatedAt ?? allocation.allocationDate ?? allocation.createdAt;
+  if (typeof value !== "string" && typeof value !== "number") return 0;
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function allocationDateLabel(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString();
+  }
+  return formatApiValue(value);
+}
+
+function getAllocationId(allocation: AllocationRow): string | undefined {
+  const id = allocation.id ?? allocation.allocationId;
+  return typeof id === "string" || typeof id === "number" ? String(id) : undefined;
 }
 
 export default function ResourceAllocationsPage() {
-  const [data, setData] = useState<ResourceData>({});
-  const [errors, setErrors] = useState<ResourceErrors>({});
+  const [allocations, setAllocations] = useState<AllocationRow[]>([]);
+  const [resources, setResources] = useState<ResourceRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("");
-  const [resourceId, setResourceId] = useState("");
-  const [allocationId, setAllocationId] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [teamId, setTeamId] = useState("");
-  const [projectId, setProjectId] = useState("");
-  const [assignedToUserId, setAssignedToUserId] = useState("");
-  const [expectedReturnAt, setExpectedReturnAt] = useState("");
-  const [requestId, setRequestId] = useState("");
-  const [returnNote, setReturnNote] = useState("");
-  const [transferNote, setTransferNote] = useState("");
+  const [error, setError] = useState("");
 
-  const loadAvailable = useCallback(async () => {
+  const loadAllocations = useCallback(async () => {
     setLoading(true);
-    setErrors((current) => ({ ...current, available: undefined }));
+    setError("");
     try {
-      const available = await resourcesApi.available();
-      setData((current) => ({ ...current, available }));
-    } catch (requestError) {
-      setErrors((current) => ({
-        ...current,
-        available:
-          requestError instanceof Error
-            ? requestError.message
-            : "Available resources could not be loaded.",
+      const resources = recordsFromResponse(
+        await resourcesApi.available(),
+        "resources",
+      );
+      setResources(resources);
+      const results = await Promise.all(resources.map(async (resource) => {
+        const resourceId = getResourceId(resource);
+        if (!resourceId) {
+          throw new Error(`The resource "${getResourceName(resource)}" has no ID.`);
+        }
+        const resourceAllocations = recordsFromResponse(
+          await resourcesApi.allocations(resourceId),
+          `allocations for ${getResourceName(resource)}`,
+        );
+        return resourceAllocations.map((allocation) => ({
+          ...allocation,
+          resourceId,
+          resourceName: getResourceName(resource),
+          resourceDepartment: resource.departmentName ?? resource.department,
+        }));
       }));
+      setAllocations(results.flat().sort(
+        (left, right) => allocationTimestamp(right) - allocationTimestamp(left),
+      ));
+    } catch (requestError) {
+      setAllocations([]);
+      setResources([]);
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Recent allocations could not be loaded.",
+      );
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const loadResourceHistory = useCallback(async () => {
-    const id = resourceId.trim();
-    if (!id) return;
-    setErrors((current) => ({
-      ...current,
-      allocations: undefined,
-      movements: undefined,
-    }));
-    const [allocationsResult, movementsResult] = await Promise.allSettled([
-      resourcesApi.allocations(id),
-      resourcesApi.movements(id),
-    ]);
-    setData((current) => ({
-      ...current,
-      ...(allocationsResult.status === "fulfilled"
-        ? { allocations: allocationsResult.value }
-        : {}),
-      ...(movementsResult.status === "fulfilled"
-        ? { movements: movementsResult.value }
-        : {}),
-    }));
-    setErrors((current) => ({
-      ...current,
-      ...(allocationsResult.status === "rejected"
-        ? {
-            allocations:
-              allocationsResult.reason instanceof Error
-                ? allocationsResult.reason.message
-                : "Allocations could not be loaded.",
-          }
-        : {}),
-      ...(movementsResult.status === "rejected"
-        ? {
-            movements:
-              movementsResult.reason instanceof Error
-                ? movementsResult.reason.message
-                : "Resource movements could not be loaded.",
-          }
-        : {}),
-    }));
-  }, [resourceId]);
-
   useEffect(() => {
-    void loadAvailable();
-  }, [loadAvailable]);
+    void loadAllocations();
+  }, [loadAllocations]);
 
-  async function allocate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setErrors((current) => ({ ...current, allocations: undefined }));
-    setNotice("");
-    try {
-      if (!resourceId.trim()) throw new Error("Enter a resource ID.");
-      if (!isUuid(assignedToUserId.trim())) {
-        throw new Error("Enter the assigned user's UUID.");
-      }
-      const input: CreateResourceAllocationInput = {
-        quantity: positiveInteger(quantity, "Quantity"),
-        teamId: positiveInteger(teamId, "Team ID"),
-        projectId: positiveInteger(projectId, "Project ID"),
-        assignedToUserId: assignedToUserId.trim(),
-        ...(expectedReturnAt
-          ? { expectedReturnAt: optionalDate(expectedReturnAt) }
-          : {}),
-        ...(requestId.trim() ? { requestId: requestId.trim() } : {}),
-      };
-      if (requestId.trim() && !isUuid(requestId.trim())) {
-        throw new Error("Resource request ID must be a UUID.");
-      }
-      await resourcesApi.allocate(resourceId.trim(), input);
-      setNotice("Resource allocation created.");
-      await Promise.all([loadAvailable(), loadResourceHistory()]);
-    } catch (operationError) {
-      setErrors((current) => ({
-        ...current,
-        allocations:
-          operationError instanceof Error
-            ? operationError.message
-            : "The resource allocation could not be created.",
-      }));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const columns = useMemo<DataTableColumn<AllocationRow>[]>(() => [
+    {
+      key: "resourceName",
+      header: "Resource",
+      render: (allocation) => (
+        <span className={styles.resourceName}>
+          <strong>{allocation.resourceName}</strong>
+          <small>{getAllocationId(allocation) ? `Allocation ${getAllocationId(allocation)}` : "Allocation ID unavailable"}</small>
+        </span>
+      ),
+    },
+    {
+      key: "assignedTo",
+      header: "Assigned To",
+      render: assignedToLabel,
+    },
+    {
+      key: "department",
+      header: "Department",
+      render: (allocation) => {
+        const team = isApiRecord(allocation.team) ? allocation.team : {};
+        return formatApiValue(
+          allocation.resourceDepartment ??
+          allocation.departmentName ??
+          allocation.department ??
+          team.departmentName ??
+          team.department,
+        );
+      },
+    },
+    {
+      key: "quantity",
+      header: "Quantity",
+      render: (allocation) => formatApiValue(allocation.quantity),
+    },
+    {
+      key: "allocatedAt",
+      header: "Allocation Date",
+      render: (allocation) => allocationDateLabel(
+        allocation.allocatedAt ?? allocation.allocationDate ?? allocation.createdAt,
+      ),
+    },
+    {
+      key: "expectedReturnAt",
+      header: "Expected Return",
+      render: (allocation) => allocationDateLabel(allocation.expectedReturnAt),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (allocation) => (
+        <StatusLabel
+          status={typeof allocation.status === "string" ? allocation.status : undefined}
+        />
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (allocation) => {
+        const allocationId = getAllocationId(allocation);
+        return allocationId ? (
+          <Link
+            className={`rt-root rt-btn rt-btn--outline ${styles.viewAction}`}
+            to={`/line-manager/allocations/${encodeURIComponent(allocation.resourceId)}?allocationId=${encodeURIComponent(allocationId)}`}
+          >
+            View
+          </Link>
+        ) : (
+          <span>View unavailable</span>
+        );
+      },
+    },
+  ], []);
 
-  async function returnAllocation(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setErrors((current) => ({ ...current, allocations: undefined }));
-    setNotice("");
-    try {
-      if (!allocationId.trim()) throw new Error("Enter an allocation ID.");
-      await resourcesApi.returnAllocation(allocationId.trim(), returnNote.trim());
-      setNotice("Resource return recorded.");
-      await Promise.all([loadAvailable(), loadResourceHistory()]);
-    } catch (operationError) {
-      setErrors((current) => ({
-        ...current,
-        allocations:
-          operationError instanceof Error
-            ? operationError.message
-            : "The resource return could not be recorded.",
-      }));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function transferAllocation(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setErrors((current) => ({ ...current, allocations: undefined }));
-    setNotice("");
-    try {
-      if (!allocationId.trim()) throw new Error("Enter an allocation ID.");
-      if (!isUuid(assignedToUserId.trim())) {
-        throw new Error("Enter the receiving user's UUID.");
-      }
-      const input: TransferResourceAllocationInput = {
-        teamId: positiveInteger(teamId, "Team ID"),
-        projectId: positiveInteger(projectId, "Project ID"),
-        assignedToUserId: assignedToUserId.trim(),
-        ...(expectedReturnAt
-          ? { expectedReturnAt: optionalDate(expectedReturnAt) }
-          : {}),
-        ...(transferNote.trim() ? { note: transferNote.trim() } : {}),
-      };
-      await resourcesApi.transferAllocation(allocationId.trim(), input);
-      setNotice("Resource allocation transferred.");
-      await Promise.all([loadAvailable(), loadResourceHistory()]);
-    } catch (operationError) {
-      setErrors((current) => ({
-        ...current,
-        allocations:
-          operationError instanceof Error
-            ? operationError.message
-            : "The resource allocation could not be transferred.",
-      }));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const resourceColumns = useMemo<DataTableColumn<ResourceRecord>[]>(() => [
+    {
+      key: "resourceName",
+      header: "Resource",
+      render: (resource) => (
+        <span className={styles.resourceName}>
+          <strong>{getResourceName(resource)}</strong>
+          <small>{formatApiValue(resource.type)}</small>
+        </span>
+      ),
+    },
+    {
+      key: "department",
+      header: "Department",
+      render: (resource) => formatApiValue(
+        resource.departmentName ?? resource.department,
+      ),
+    },
+    {
+      key: "quantity",
+      header: "Available / Total",
+      render: (resource) => formatApiValue(
+        resource.availableQuantity ?? resource.available ?? resource.quantity,
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (resource) => {
+        const resourceId = getResourceId(resource);
+        return resourceId ? (
+          <Link
+            className={`rt-root rt-btn rt-btn--outline ${styles.viewAction}`}
+            to={`/line-manager/allocations/${encodeURIComponent(resourceId)}`}
+          >
+            View
+          </Link>
+        ) : (
+          <span>View unavailable</span>
+        );
+      },
+    },
+  ], []);
 
   return (
     <section className={`rt-root ${styles.page}`}>
       <PageHeader
-        title="Resource Allocations"
-        description="Manage available inventory and allocations using the documented Line Manager endpoints."
-      />
-      {notice && <p className={styles.notice} role="status">{notice}</p>}
-      <section className={`rt-root rt-card ${styles.panel}`}>
-        <div className={styles.panelHeading}>
-          <h2>Available resources</h2>
+        title="Recent Allocations"
+        description="Review recent resource allocations, assigned recipients, and current status."
+        supplementary={
           <button
             type="button"
-            className="rt-root rt-btn rt-btn--outline"
+            className="rt-root rt-btn rt-btn--primary"
             disabled={loading}
-            onClick={() => void loadAvailable()}
+            onClick={() => void loadAllocations()}
           >
             Refresh
           </button>
-        </div>
-        {errors.available ? (
-          <ErrorMessage
-            title="Available resources could not be loaded"
-            message={errors.available}
-            onRetry={() => void loadAvailable()}
-          />
-        ) : loading ? (
-          <LoadingState message="Loading available resources..." />
-        ) : (
-          <ApiDataView
-            data={data.available}
-            emptyTitle="No available resources"
-            emptyDescription="The backend returned no available resources."
-          />
-        )}
-      </section>
-
-      <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Allocate a resource</h2>
-        {errors.allocations && (
-          <ErrorMessage title="Allocation operation failed" message={errors.allocations} />
-        )}
-        <form className={styles.form} onSubmit={(event) => void allocate(event)}>
-          <div className={styles.grid}>
-            <label className={styles.field}>
-              Resource ID
-              <input value={resourceId} onChange={(event) => setResourceId(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Quantity
-              <input type="number" min="1" step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Team ID
-              <input type="number" min="1" step="1" value={teamId} onChange={(event) => setTeamId(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Project ID
-              <input type="number" min="1" step="1" value={projectId} onChange={(event) => setProjectId(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Assigned user UUID
-              <input value={assignedToUserId} onChange={(event) => setAssignedToUserId(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Expected return
-              <input type="datetime-local" value={expectedReturnAt} onChange={(event) => setExpectedReturnAt(event.target.value)} />
-            </label>
-            <label className={styles.field}>
-              Resource request UUID (optional)
-              <input value={requestId} onChange={(event) => setRequestId(event.target.value)} />
-            </label>
-          </div>
-          <button type="submit" className="rt-root rt-btn rt-btn--primary" disabled={busy}>
-            {busy ? "Allocating..." : "Allocate resource"}
-          </button>
-        </form>
-      </section>
-
-      <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Active allocations and movement history</h2>
-        <label className={styles.field}>
-          Resource ID
-          <input value={resourceId} onChange={(event) => setResourceId(event.target.value)} />
-        </label>
-        <button
-          type="button"
-          className="rt-root rt-btn rt-btn--outline"
-          disabled={busy || !resourceId.trim()}
-          onClick={() => void loadResourceHistory()}
-        >
-          Load resource history
-        </button>
-        {data.allocations !== undefined && (
-          <>
-            <h3>Active allocations</h3>
-            {errors.allocations ? (
-              <ErrorMessage title="Allocations unavailable" message={errors.allocations} />
-            ) : (
-              <ApiDataView data={data.allocations} emptyTitle="No active allocations" />
-            )}
-          </>
-        )}
-        {data.movements !== undefined && (
-          <>
-            <h3>Movement history</h3>
-            {errors.movements ? (
-              <ErrorMessage title="Movement history unavailable" message={errors.movements} />
-            ) : (
-              <ApiDataView data={data.movements} emptyTitle="No movement history" />
-            )}
-          </>
-        )}
-      </section>
-
-      <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Return or transfer an allocation</h2>
-        <div className={styles.grid}>
-          <label className={styles.field}>
-            Allocation ID
-            <input value={allocationId} onChange={(event) => setAllocationId(event.target.value)} required />
-          </label>
-          <label className={styles.field}>
-            Return note
-            <input value={returnNote} onChange={(event) => setReturnNote(event.target.value)} />
-          </label>
-        </div>
-        <form className={styles.actions} onSubmit={(event) => void returnAllocation(event)}>
-          <button type="submit" className="rt-root rt-btn rt-btn--outline" disabled={busy || !allocationId.trim()}>
-            Return allocation
-          </button>
-        </form>
-        <form className={styles.form} onSubmit={(event) => void transferAllocation(event)}>
-          <div className={styles.grid}>
-            <label className={styles.field}>
-              Receiving team ID
-              <input type="number" min="1" step="1" value={teamId} onChange={(event) => setTeamId(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Receiving project ID
-              <input type="number" min="1" step="1" value={projectId} onChange={(event) => setProjectId(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Receiving user UUID
-              <input value={assignedToUserId} onChange={(event) => setAssignedToUserId(event.target.value)} required />
-            </label>
-            <label className={styles.field}>
-              Expected return
-              <input type="datetime-local" value={expectedReturnAt} onChange={(event) => setExpectedReturnAt(event.target.value)} />
-            </label>
-            <label className={styles.field}>
-              Transfer note
-              <input value={transferNote} onChange={(event) => setTransferNote(event.target.value)} />
-            </label>
-          </div>
-          <button type="submit" className="rt-root rt-btn rt-btn--outline" disabled={busy || !allocationId.trim()}>
-            Transfer allocation
-          </button>
-        </form>
-      </section>
+        }
+      />
+      {error ? (
+        <ErrorMessage title="Recent allocations could not be loaded" message={error} onRetry={() => void loadAllocations()} />
+      ) : loading ? (
+        <LoadingState message="Loading recent allocations…" />
+      ) : (
+        <DataTable
+          title={`Recent Allocations (${allocations.length})`}
+          columns={columns}
+          rows={allocations}
+          rowKey={(allocation) => getAllocationId(allocation) ?? `${allocation.resourceId}-${allocation.resourceName}`}
+          itemLabel="allocation"
+          pageSize={10}
+          showEmptyTable
+          emptyTitle="No recent allocations"
+          emptyDescription="There are no active allocations yet. Choose a resource below to review it and allocate inventory."
+        />
+      )}
+      {!error && (
+        <DataTable
+          title={`Available Resources (${resources.length})`}
+          columns={resourceColumns}
+          rows={resources}
+          rowKey={(resource, index) => getResourceId(resource) ?? index}
+          itemLabel="resource"
+          pageSize={10}
+          showEmptyTable
+          emptyTitle="No resources available"
+          emptyDescription="The resources endpoint returned no inventory for this account."
+        />
+      )}
     </section>
   );
 }

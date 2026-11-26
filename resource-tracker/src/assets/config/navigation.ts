@@ -18,7 +18,6 @@ export interface NavigationItem {
 export const navigationConfig: Record<UserRole, NavigationItem[]> = {
   TEAM_LEAD: [
     { label: "Dashboard", path: "/team-lead/dashboard" },
-    { label: "New Request", path: "/team-lead/requests/new" },
     { label: "Request History", path: "/team-lead/requests" },
     { label: "Teams", path: "/team-lead/teams" },
     { label: "Projects", path: "/team-lead/projects" },
@@ -26,13 +25,11 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
   ],
   LINE_MANAGER: [
     { label: "Dashboard", path: "/line-manager/dashboard" },
-    { label: "Requests to Review", path: "/line-manager/requests" },
-    { label: "Decision History", path: "/line-manager/decisions" },
-    { label: "Resource Allocations", path: "/line-manager/allocations" },
+    { label: "Requests", path: "/line-manager/requests" },
+    { label: "Allocations", path: "/line-manager/allocations" },
     { label: "Notifications", path: "/notifications" },
   ],
   DEPARTMENT_MANAGER: [
-    { label: "Dashboard", path: "/department-manager/dashboard" },
     { label: "Department Requests", path: "/department-manager/requests" },
     { label: "Department Spending", path: "/department-manager/spending" },
     // { label: "Resource Allocation", path: "/department-manager/allocation" },
@@ -43,19 +40,14 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
   ],
   MANAGING_DIRECTOR: [
     { label: "Dashboard", path: "/managing-director/dashboard" },
-    { label: "Users", path: "/managing-director/users" },
-    { label: "Departments", path: "/managing-director/departments" },
     { label: "Teams", path: "/managing-director/teams" },
     { label: "Projects", path: "/managing-director/projects" },
     { label: "Resources", path: "/managing-director/resources" },
-    { label: "Requests", path: "/managing-director/requests" },
-    { label: "Reports", path: "/managing-director/reports" },
     { label: "Notifications", path: "/notifications" },
   ],
   SYSTEM_ADMIN: [
     { label: "Dashboard", path: "/system-admin/dashboard" },
-    { label: "Users", path: "/system-admin/users" },
-    // { label: "Create User", path: "/system-admin/users/new" },
+    { label: "Manage Users", path: "/system-admin/users" },
     { label: "Audit logs", path: "/system-admin/audit-logs" },
     { label: "Notifications", path: "/notifications" },
   ],

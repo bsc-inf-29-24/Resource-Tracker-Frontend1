@@ -7,7 +7,7 @@ export default function TeamLeadTeamsPage() {
     <section className={`rt-root ${styles.page}`}>
       <PageHeader
         title="Teams"
-        description="Review teams returned by the backend for your account."
+        description="Review teams."
       />
       <TeamLeadTeamsTable />
     </section>

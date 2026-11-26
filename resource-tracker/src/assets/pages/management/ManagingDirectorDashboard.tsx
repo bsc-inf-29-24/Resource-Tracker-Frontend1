@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import StatusCard, {
   StatusCardGrid,
@@ -13,6 +13,7 @@ import {
   usersApi,
 } from "../../data/api-services";
 import { getApiRecords } from "../../data/api-response";
+import { ApiError } from "../../data/api-client";
 import ApiResponsePanel from "./ApiResponsePanel";
 import styles from "./ApiManagementPage.module.css";
 
@@ -34,6 +35,16 @@ export default function ManagingDirectorDashboard() {
   const [data, setData] = useState<DashboardData>({});
   const [errors, setErrors] = useState<DashboardErrors>({});
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [departmentName, setDepartmentName] = useState("");
+  const [departmentCreatedAt, setDepartmentCreatedAt] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  });
+  const [departmentDescription, setDepartmentDescription] = useState("");
+  const [departmentCreating, setDepartmentCreating] = useState(false);
+  const [departmentError, setDepartmentError] = useState("");
+  const [departmentSuccess, setDepartmentSuccess] = useState("");
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -59,16 +70,51 @@ export default function ManagingDirectorDashboard() {
       if (!key) return;
       if (result.status === "fulfilled") nextData[key] = result.value;
       else {
-        nextErrors[key] =
-          result.reason instanceof Error
-            ? result.reason.message
-            : "The request failed.";
+        const reason = result.reason;
+        nextErrors[key] = reason instanceof ApiError
+          ? `${reason.message} (HTTP ${reason.status}; response: ${JSON.stringify(reason.responseBody)})`
+          : reason instanceof Error ? reason.message : "The request failed.";
       }
     });
     setData(nextData);
     setErrors(nextErrors);
     setLoading(false);
   }, []);
+
+  const loadUsers = useCallback(async () => {
+    if (usersLoading) return;
+    setUsersLoading(true);
+    setErrors((current) => ({ ...current, users: undefined }));
+    try {
+      const users = await usersApi.list();
+      setData((current) => ({ ...current, users }));
+    } catch (error) {
+      setErrors((current) => ({ ...current, users: error instanceof Error ? error.message : "Users could not be loaded." }));
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [usersLoading]);
+
+  async function createDepartment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setDepartmentError("");
+    setDepartmentSuccess("");
+    setDepartmentCreating(true);
+    try {
+      await departmentsApi.create({
+        name: departmentName.trim(),
+        description: departmentDescription.trim(),
+      });
+      setDepartmentSuccess("Department created successfully.");
+      setDepartmentName("");
+      setDepartmentDescription("");
+      await loadDashboard();
+    } catch (error) {
+      setDepartmentError(error instanceof Error ? error.message : "The department could not be created.");
+    } finally {
+      setDepartmentCreating(false);
+    }
+  }
 
   useEffect(() => {
     void loadDashboard();
@@ -80,13 +126,7 @@ export default function ManagingDirectorDashboard() {
         title="Managing Director"
         description=""
       />
-      {Object.values(errors).some(Boolean) && (
-        <ErrorMessage
-          title="Some dashboard data could not be loaded"
-          message="Review each endpoint response below. Failed API requests are not replaced with sample values."
-          onRetry={() => void loadDashboard()}
-        />
-      )}
+      {Object.values(errors).some(Boolean) && <ErrorMessage title="Some dashboard data could not be loaded" message={Object.entries(errors).filter(([, message]) => Boolean(message)).map(([key, message]) => `${key}: ${message}`).join("; ")} onRetry={() => void loadDashboard()} />}
       <StatusCardGrid>
         <StatusCard
           label="Users returned"
@@ -133,26 +173,31 @@ export default function ManagingDirectorDashboard() {
         >
           View reports
         </Link>
-        <button
-          type="button"
-          className="rt-root rt-btn rt-btn--outline"
-          disabled={loading}
-          onClick={() => void loadDashboard()}
-        >
-          Refresh
-        </button>
       </div>
-      {(
-        ["users", "departments", "teams", "projects", "requests"] as const
-      ).map((key) => (
-        <ApiResponsePanel
-          key={key}
-          title={key === "requests" ? "Recent resource requests" : key}
-          data={data[key]}
-          loading={loading}
-          error={errors[key]}
-        />
-      ))}
+      <section className={`rt-root rt-card ${styles.panel}`}>
+        <h2>Create department</h2>
+        <form className={styles.departmentForm} onSubmit={(event) => void createDepartment(event)}>
+          <label className={styles.departmentField}>
+            <span>Department name</span>
+            <input required maxLength={255} value={departmentName} onChange={(event) => setDepartmentName(event.target.value)} placeholder="Enter department name" />
+          </label>
+          <label className={styles.departmentField}>
+            <span>Date created</span>
+            <input type="date" value={departmentCreatedAt} onChange={(event) => setDepartmentCreatedAt(event.target.value)} />
+            <small>The department endpoint does not store this field; it is not included in the request.</small>
+          </label>
+          <label className={styles.departmentField}>
+            <span>Description</span>
+            <textarea required maxLength={500} rows={3} value={departmentDescription} onChange={(event) => setDepartmentDescription(event.target.value)} placeholder="Describe the department" />
+          </label>
+          {departmentError && <p className={styles.error} role="alert">{departmentError}</p>}
+          {departmentSuccess && <p className={styles.success} role="status">{departmentSuccess}</p>}
+          <div className={styles.actions}>
+            <button type="submit" className="rt-root rt-btn rt-btn--primary" disabled={departmentCreating}>{departmentCreating ? "Creating…" : "Create department"}</button>
+          </div>
+        </form>
+      </section>
+      <ApiResponsePanel title="Users" data={data.users} loading={loading || usersLoading} error={errors.users} onRefresh={() => void loadUsers()} />
     </section>
   );
 }

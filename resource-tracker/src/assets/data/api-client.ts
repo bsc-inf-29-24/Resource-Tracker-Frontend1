@@ -14,10 +14,9 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || "").replace(
-  /\/$/,
-  "",
-);
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || "")
+  .replace(/\/api\/v1\/?$/, "")
+  .replace(/\/+$/, "");
 const TOKEN_STORAGE_KEY = "resource-tracker.tokens.v1";
 const USER_STORAGE_KEY = "resource-tracker.user.v1";
 
@@ -92,6 +91,12 @@ async function send<T>(
   options: RequestInit,
   accessToken?: string,
 ): Promise<T> {
+  const method = (options.method ?? "GET").toUpperCase();
+  const notify = (type: "success" | "error", message: string) => {
+    if (method !== "GET" && !path.startsWith("/api/v1/auth")) {
+      window.dispatchEvent(new CustomEvent("resource-tracker:toast", { detail: { type, message } }));
+    }
+  };
   const headers = new Headers(options.headers ?? {});
   if (options.body && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
@@ -105,6 +110,7 @@ async function send<T>(
       headers,
     });
   } catch {
+    notify("error", "Unable to reach the Resource Tracker API.");
     throw new ApiError(
       "Unable to reach the Resource Tracker API. Check that the backend is running and try again.",
       0,
@@ -121,7 +127,13 @@ async function send<T>(
     }
   }
   if (!response.ok) {
+    notify("error", errorMessage(body, response.status));
     throw new ApiError(errorMessage(body, response.status), response.status, body);
+  }
+  if (method !== "GET" && !path.startsWith("/api/v1/auth")) {
+    const subject = path.includes("resource-request") ? "Resource request" : path.includes("team-lead") ? "Team lead assignment" : path.includes("departments") ? "Department" : path.includes("teams") ? "Team" : path.includes("projects") ? "Project" : path.includes("resources") ? "Resource" : path.includes("users") ? "User" : path.includes("notifications") ? "Notification" : "Changes";
+    const verb = method === "POST" ? "created" : method === "DELETE" ? "deleted" : "updated";
+    notify("success", `${subject} ${verb} successfully.`);
   }
   return body as T;
 }

@@ -29,9 +29,10 @@ export default function UsersPage() {
         // description=""
         list={usersApi.list}
         assignmentsInDialog
-        expandableRecords
-        recordsTitle=""
-
+        selectionLabel="View"
+        selectionDetailsInDialog
+        recordsTitle="User accounts"
+        headingAction={<Link className="rt-root rt-btn rt-btn--primary" to="/system-admin/users/new">Create User</Link>}
         assignments={[
           {
             label: "Assign role",

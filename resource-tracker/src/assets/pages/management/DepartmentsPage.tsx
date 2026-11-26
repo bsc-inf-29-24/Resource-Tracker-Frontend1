@@ -4,16 +4,18 @@ import ApiManagementPage, {
 } from "./ApiManagementPage";
 
 const departmentFields: ApiField[] = [
-  { name: "name", label: "Department name", required: true },
-  { name: "code", label: "Department code" },
-  { name: "description", label: "Description", kind: "textarea" },
+  { name: "name", label: "Department name", kind: "text", required: true },
+  { name: "description", label: "Description", kind: "textarea", required: true },
 ];
 
 export default function DepartmentsPage() {
   return (
     <ApiManagementPage
       title="Departments"
-      description=""
+      description="Department records returned by the departments endpoint."
+      recordsTitle="Department records"
+      createHeading="Create department"
+      createButtonLabel="Create department"
       list={departmentsApi.list}
       get={departmentsApi.get}
       create={departmentsApi.create}

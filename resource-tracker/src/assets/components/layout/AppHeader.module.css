@@ -1,19 +1,25 @@
 .header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 32;
   display: flex;
   min-height: 68px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   padding: 8px 24px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
 }
 
+.header:has(+ .body) {
+  z-index: 50;
+}
+
 .brand {
   display: inline-flex;
   min-width: 0;
+  margin-right: auto;
   align-items: center;
   gap: 11px;
   color: var(--color-text);
@@ -36,8 +42,17 @@
   font-size: 0.95rem;
 }
 
+.workspaceLabel {
+  padding-left: 12px;
+  border-left: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .menuToggle {
-  display: none;
+  display: grid;
   width: 40px;
   height: 40px;
   flex: 0 0 auto;
@@ -48,10 +63,6 @@
   background: var(--color-surface);
   font-size: 1.25rem;
   cursor: pointer;
-}
-
-.departmentHeadMenuToggle {
-  display: grid;
 }
 
 .menuToggle:focus-visible {
@@ -68,6 +79,30 @@
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.notificationsLink {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--rt-radius-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  text-decoration: none;
+}
+
+.notificationsLink:hover,
+.notificationsLink[aria-current="page"] {
+  color: var(--rt-green-900);
+  background: var(--rt-green-50);
+}
+
+.notificationsLink:focus-visible {
+  outline: 3px solid var(--rt-green-600);
+  outline-offset: 2px;
 }
 
 .brand:focus-visible {
@@ -92,8 +127,15 @@
     height: 34px;
   }
 
+  .workspaceLabel { font-size: 0.72rem; padding-left: 7px; }
+
   .menuToggle {
     display: grid;
+  }
+
+  .notificationsLink {
+    width: 36px;
+    height: 36px;
   }
 
   .pageContext {
@@ -102,7 +144,6 @@
 }
 
 @media (max-width: 380px) {
-  .brand > span:last-child {
-    display: none;
-  }
+  .brand { font-size: 0.72rem; gap: 4px; }
+  .brandMark { width: 30px; height: 30px; }
 }

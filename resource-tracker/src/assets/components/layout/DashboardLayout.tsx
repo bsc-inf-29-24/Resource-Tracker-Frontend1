@@ -8,6 +8,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import AppHeader from "./AppHeader";
 import AppSidebar from "./AppSidebar";
+import ToastViewport from "../feedback/ToastViewport";
 import styles from "./DashboardLayout.module.css";
 
 export default function DashboardLayout() {
@@ -17,7 +18,7 @@ export default function DashboardLayout() {
   const routeRole = getRoleForPath(pathname);
   const role = routeRole ?? getFrontendRoleFromBackendRole(user?.role);
   const showNavigation = role ? navigationConfig[role].length > 0 : false;
-  const collapsibleNavigation = role === "DEPARTMENT_MANAGER";
+  const collapsibleNavigation = Boolean(role);
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
 
@@ -55,6 +56,7 @@ export default function DashboardLayout() {
 
   return (
     <div className={styles.layout}>
+      <ToastViewport />
       <AppHeader
         role={role}
         mobileNavigationOpen={mobileNavigationOpen}

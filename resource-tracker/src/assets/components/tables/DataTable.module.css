@@ -1,11 +1,17 @@
 .container {
   min-width: 0;
+  width: 100%;
   border: 1.2px solid var(--rt-green-200);
-text-align: left;
+  text-align: left;
 }
 
 .tableWrap {
   max-width: 100%;
+}
+
+.emptyCell {
+  padding: 0;
+  text-align: center;
 }
 
 .footer {

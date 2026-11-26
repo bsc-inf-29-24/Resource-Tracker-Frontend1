@@ -1,4 +1,17 @@
 import { useMemo } from "react";
+import {
+  BadgeCheck,
+  Building2,
+  CalendarDays,
+  CalendarClock,
+  Mail,
+  MapPin,
+  Phone,
+  Shield,
+  UserRound,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react";
 import EmptyState from "../../components/feedback/EmptyState";
 import DataTable from "../../components/tables/DataTable";
 import type { DataTableColumn } from "../../components/tables/type";
@@ -19,6 +32,26 @@ interface ApiDataViewProps {
   emptyDescription?: string;
   expandableRecords?: boolean;
   depth?: number;
+  fieldIcons?: boolean;
+}
+
+const fieldIconByKey: Record<string, LucideIcon> = {
+  fullname: UserRound,
+  name: UserRound,
+  email: Mail,
+  isactive: BadgeCheck,
+  role: Shield,
+  createdat: CalendarClock,
+  updatedat: CalendarClock,
+  dateofbirth: CalendarDays,
+  phonenumber: Phone,
+  address: MapPin,
+  department: Building2,
+  team: UsersRound,
+};
+
+function getFieldIcon(key: string) {
+  return fieldIconByKey[key.toLowerCase().replace(/[_\-.\s]/g, "")];
 }
 
 const preferredColumnOrder = [
@@ -42,6 +75,7 @@ export default function ApiDataView({
   emptyDescription = "The backend returned no records.",
   expandableRecords = false,
   depth = 0,
+  fieldIcons = false,
 }: ApiDataViewProps) {
   const response = unwrapApiResponse(data);
   const records = getApiRecords(response);
@@ -120,7 +154,13 @@ export default function ApiDataView({
         <dl className={styles.apiDataFields}>
           {entries.map(([key, value]) => (
             <div className={styles.apiDataField} key={key}>
-              <dt>{humanizeApiKey(key)}</dt>
+              <dt className={fieldIcons ? styles.apiDataFieldLabel : undefined}>
+                {fieldIcons && getFieldIcon(key) && (() => {
+                  const Icon = getFieldIcon(key)!;
+                  return <Icon aria-hidden="true" size={15} strokeWidth={1.8} />;
+                })()}
+                {humanizeApiKey(key)}
+              </dt>
               <dd>{formatApiValue(value)}</dd>
             </div>
           ))}

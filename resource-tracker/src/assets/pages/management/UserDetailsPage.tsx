@@ -56,7 +56,7 @@ export default function UserDetailsPage() {
             to={`/system-admin/users/${encodeURIComponent(id)}/edit`}
             className="rt-root rt-btn rt-btn--primary"
           >
-            Edit role assignment
+            Edit user
           </Link>
         </section>
       ) : data !== undefined ? (

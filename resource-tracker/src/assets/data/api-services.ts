@@ -275,6 +275,11 @@ export const teamsApi = {
       `/api/v1/teams/${encodeURIComponent(id)}/team-lead`,
       { method: "PATCH", body: JSON.stringify({ userId }) },
     ),
+  assignUser: (id: string, userId: string) =>
+    apiRequest<unknown>(
+      `/api/v1/teams/${encodeURIComponent(id)}/assign-user`,
+      { method: "PATCH", body: JSON.stringify({ userId }) },
+    ),
 };
 
 export const projectsApi = {

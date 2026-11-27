@@ -244,7 +244,7 @@ export default function ApiManagementPage({
         if (active) setOptionLoading((current) => ({ ...current, [source]: false }));
       });
     }
-    if (title === "Teams" && assignments.length) {
+    if (title === "Teams" && assignments.some(({ field }) => field === "teamLeadId")) {
       setOptionLoading((current) => ({ ...current, teamLeads: true }));
       void teamsApi.unassignedUsers().then((response) => {
         const eligible = getApiRecords(response).filter((user) => user.role === "TEAM_LEAD");
@@ -253,6 +253,25 @@ export default function ApiManagementPage({
       }).catch((loadError) => {
         if (active) setOptionErrors((current) => ({ ...current, teamLeads: loadError instanceof Error ? loadError.message : "Team leads could not be loaded." }));
       }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, teamLeads: false })); });
+    }
+    if (title === "Teams" && assignments.some(({ field }) => field === "teamUserId")) {
+      setOptionLoading((current) => ({ ...current, teamUsers: true }));
+      void teamsApi.unassignedUsers().then((response) => {
+        const eligible = getApiRecords(response).filter(
+          (user) =>
+            (user.role === "TEAM_LEAD" || user.role === "TEAM_MEMBER") &&
+            user.isActive !== false,
+        );
+        const options = eligible
+          .filter((user) => typeof user.id === "string")
+          .map((user) => ({
+            value: String(user.id),
+            label: `${typeof user.fullName === "string" ? user.fullName : user.id}${typeof user.email === "string" ? ` (${user.email})` : ""} — ${user.role === "TEAM_LEAD" ? "Team Lead" : "Team Member"}`,
+          }));
+        if (active) setAssignmentValues((current) => ({ ...current, teamUserOptions: JSON.stringify(options) }));
+      }).catch((loadError) => {
+        if (active) setOptionErrors((current) => ({ ...current, teamUsers: loadError instanceof Error ? loadError.message : "Eligible team users could not be loaded." }));
+      }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, teamUsers: false })); });
     }
     if (title === "Departments" && assignments.length) {
       setOptionLoading((current) => ({ ...current, departmentHeads: true }));
@@ -600,9 +619,27 @@ export default function ApiManagementPage({
       setError(`Enter ${operation.label.toLowerCase()} first.`);
       return;
     }
+    const onSuccess =
+      operation.field === "teamUserId"
+        ? () => {
+            const assignedUserId = assignmentValues.teamUserId;
+            const options = JSON.parse(
+              assignmentValues.teamUserOptions ?? "[]",
+            ) as { value: string; label: string }[];
+            setAssignmentValues((current) => ({
+              ...current,
+              teamUserId: "",
+              teamUserOptions: JSON.stringify(
+                options.filter((option) => option.value !== assignedUserId),
+              ),
+            }));
+          }
+        : undefined;
     await runOperation(
       () => operation.run(selectedId.trim(), value),
       `${operation.label} completed.`,
+      true,
+      onSuccess,
     );
   }
 
@@ -893,7 +930,31 @@ export default function ApiManagementPage({
                   htmlFor={`assignment-${operation.field}`}
                 >
                   <span>{operation.label}</span>
-                  {operation.field === "teamLeadId" || operation.field === "headUserId" ? (
+                  {operation.field === "teamUserId" ? (
+                    <>
+                      <select
+                        id={`assignment-${operation.field}`}
+                        value={assignmentValues[operation.field] ?? ""}
+                        onChange={(event) => setAssignmentValues((current) => ({ ...current, [operation.field]: event.target.value }))}
+                        disabled={optionLoading.teamUsers || Boolean(optionErrors.teamUsers)}
+                      >
+                        <option value="">
+                          {optionLoading.teamUsers
+                            ? "Loading eligible users…"
+                            : optionErrors.teamUsers
+                              ? "Eligible users unavailable"
+                              : "Select a Team Lead or Team Member"}
+                        </option>
+                        {(JSON.parse(assignmentValues.teamUserOptions ?? "[]") as { value: string; label: string }[]).map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                      {optionErrors.teamUsers && <small role="alert">{optionErrors.teamUsers}</small>}
+                      {!optionLoading.teamUsers && !optionErrors.teamUsers && (JSON.parse(assignmentValues.teamUserOptions ?? "[]") as { value: string; label: string }[]).length === 0 && (
+                        <small>No unassigned active Team Leads or Team Members are available.</small>
+                      )}
+                    </>
+                  ) : operation.field === "teamLeadId" || operation.field === "headUserId" ? (
                     <>
                       <select id={`assignment-${operation.field}`} value={assignmentValues[operation.field] ?? ""} onChange={(event) => setAssignmentValues((current) => ({ ...current, [operation.field]: event.target.value }))} disabled={optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] || Boolean(optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"])}>
                         <option value="">{optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] ? "Loading eligible users…" : operation.field === "teamLeadId" ? "Select a team lead" : "Select a department head"}</option>

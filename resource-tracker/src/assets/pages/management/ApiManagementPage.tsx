@@ -581,7 +581,9 @@ export default function ApiManagementPage({
       const normalizedKey = key.toLowerCase().replace(/[_.\s-]/g, "");
       return {
         key,
-        header: humanizeApiKey(key.replaceAll(".", " ")),
+        header:
+          headers[title]?.[key] ??
+          humanizeApiKey(key.replaceAll(".", " ")),
         render: (record: ApiRecord) => {
           const value =
             title === "Teams" && key === "department"

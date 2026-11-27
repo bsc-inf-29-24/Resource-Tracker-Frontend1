@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
-import StatusCard, {
-  StatusCardGrid,
-} from "../../components/cards/StatusCard";
+import { Link, useNavigate } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import {
@@ -27,24 +24,17 @@ type DashboardData = {
 
 type DashboardErrors = Partial<Record<keyof DashboardData, string>>;
 
-function arrayCount(value: unknown): number | string {
-  return value === undefined ? "Unavailable" : getApiRecords(value).length;
-}
-
 export default function ManagingDirectorDashboard() {
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData>({});
   const [errors, setErrors] = useState<DashboardErrors>({});
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
   const [departmentName, setDepartmentName] = useState("");
-  const [departmentCreatedAt, setDepartmentCreatedAt] = useState(() => {
-    const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  });
+  const [departmentCode, setDepartmentCode] = useState("");
   const [departmentDescription, setDepartmentDescription] = useState("");
   const [departmentCreating, setDepartmentCreating] = useState(false);
   const [departmentError, setDepartmentError] = useState("");
-  const [departmentSuccess, setDepartmentSuccess] = useState("");
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -98,17 +88,17 @@ export default function ManagingDirectorDashboard() {
   async function createDepartment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setDepartmentError("");
-    setDepartmentSuccess("");
     setDepartmentCreating(true);
     try {
       await departmentsApi.create({
         name: departmentName.trim(),
+        ...(departmentCode.trim() ? { code: departmentCode.trim() } : {}),
         description: departmentDescription.trim(),
-      });
-      setDepartmentSuccess("Department created successfully.");
+      }, { successToast: false });
       setDepartmentName("");
+      setDepartmentCode("");
       setDepartmentDescription("");
-      await loadDashboard();
+      navigate("/managing-director/departments");
     } catch (error) {
       setDepartmentError(error instanceof Error ? error.message : "The department could not be created.");
     } finally {
@@ -127,33 +117,6 @@ export default function ManagingDirectorDashboard() {
         description=""
       />
       {Object.values(errors).some(Boolean) && <ErrorMessage title="Some dashboard data could not be loaded" message={Object.entries(errors).filter(([, message]) => Boolean(message)).map(([key, message]) => `${key}: ${message}`).join("; ")} onRetry={() => void loadDashboard()} />}
-      <StatusCardGrid>
-        <StatusCard
-          label="Users returned"
-          value={arrayCount(data.users)}
-          loading={loading}
-        />
-        <StatusCard
-          label="Departments returned"
-          value={arrayCount(data.departments)}
-          loading={loading}
-        />
-        <StatusCard
-          label="Teams returned"
-          value={arrayCount(data.teams)}
-          loading={loading}
-        />
-        <StatusCard
-          label="Projects returned"
-          value={arrayCount(data.projects)}
-          loading={loading}
-        />
-        <StatusCard
-          label="Requests returned"
-          value={arrayCount(data.requests)}
-          loading={loading}
-        />
-      </StatusCardGrid>
       <div className={styles.actions}>
         <Link
           className="rt-root rt-btn rt-btn--outline"
@@ -179,19 +142,17 @@ export default function ManagingDirectorDashboard() {
         <form className={styles.departmentForm} onSubmit={(event) => void createDepartment(event)}>
           <label className={styles.departmentField}>
             <span>Department name</span>
-            <input required maxLength={255} value={departmentName} onChange={(event) => setDepartmentName(event.target.value)} placeholder="Enter department name" />
+            <input required minLength={3} maxLength={100} value={departmentName} onChange={(event) => setDepartmentName(event.target.value)} placeholder="Enter department name" />
           </label>
           <label className={styles.departmentField}>
-            <span>Date created</span>
-            <input type="date" value={departmentCreatedAt} onChange={(event) => setDepartmentCreatedAt(event.target.value)} />
-            <small>The department endpoint does not store this field; it is not included in the request.</small>
+            <span>Department code</span>
+            <input minLength={2} maxLength={20} value={departmentCode} onChange={(event) => setDepartmentCode(event.target.value)} placeholder="Optional code (e.g. FIN)" />
           </label>
           <label className={styles.departmentField}>
             <span>Description</span>
-            <textarea required maxLength={500} rows={3} value={departmentDescription} onChange={(event) => setDepartmentDescription(event.target.value)} placeholder="Describe the department" />
+            <textarea maxLength={500} rows={3} value={departmentDescription} onChange={(event) => setDepartmentDescription(event.target.value)} placeholder="Describe the department" />
           </label>
           {departmentError && <p className={styles.error} role="alert">{departmentError}</p>}
-          {departmentSuccess && <p className={styles.success} role="status">{departmentSuccess}</p>}
           <div className={styles.actions}>
             <button type="submit" className="rt-root rt-btn rt-btn--primary" disabled={departmentCreating}>{departmentCreating ? "Creating…" : "Create department"}</button>
           </div>

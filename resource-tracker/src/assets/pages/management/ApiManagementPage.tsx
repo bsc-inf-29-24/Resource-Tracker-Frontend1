@@ -13,6 +13,7 @@ import {
   humanizeApiKey,
   isApiRecord,
 } from "../../data/api-response";
+import type { ApiRequestFeedbackOptions } from "../../data/api-client";
 import ApiDataView from "./ApiDataView";
 import { dashboardApi, departmentsApi, teamsApi, usersApi } from "../../data/api-services";
 import styles from "./ApiManagementPage.module.css";
@@ -35,6 +36,9 @@ export interface ApiField {
   label: string;
   kind?: InputKind;
   required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
   options?: { value: string; label: string }[];
   optionSource?: "departments" | "teams";
   when?: { field: string; value: string };  
@@ -61,7 +65,10 @@ interface ApiManagementPageProps {
   list: () => Promise<unknown>;
   initialId?: string;
   get?: (id: string) => Promise<unknown>;
-  create?: (body: ApiRecord) => Promise<unknown>;
+  create?: (
+    body: ApiRecord,
+    feedback?: ApiRequestFeedbackOptions,
+  ) => Promise<unknown>;
   update?: (id: string, body: ApiRecord) => Promise<unknown>;
   remove?: (id: string) => Promise<unknown>;
   fields?: ApiField[];
@@ -75,6 +82,7 @@ interface ApiManagementPageProps {
   selectionDetailsInDialog?: boolean;
   createHeading?: string;
   createButtonLabel?: string;
+  createInPageHeader?: boolean;
 }
 
 function textValue(value: unknown): string {
@@ -96,6 +104,56 @@ function formatCreatedAt(value: unknown): string {
         dateStyle: "medium",
         timeStyle: "short",
       }).format(date);
+}
+
+function formatTableDate(value: unknown): string {
+  const isoDate =
+    typeof value === "string"
+      ? /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/.exec(value)
+      : null;
+  if (isoDate) {
+    const [, year, month, day] = isoDate;
+    const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    if (
+      date.getUTCFullYear() === Number(year) &&
+      date.getUTCMonth() === Number(month) - 1 &&
+      date.getUTCDate() === Number(day)
+    ) {
+      return `${day}-${month}-${year.slice(-2)}`;
+    }
+    return formatValue(value);
+  }
+
+  if (typeof value !== "string" && !(value instanceof Date)) {
+    return formatValue(value);
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return formatValue(value);
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = String(date.getUTCFullYear()).slice(-2);
+  return `${day}-${month}-${year}`;
+}
+
+function isDateColumn(key: string): boolean {
+  const normalized = (key.split(".").at(-1) ?? "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+  return normalized.endsWith("date") || normalized.endsWith("at") || normalized.endsWith("timestamp");
+}
+
+function formatTeamNames(value: unknown): string {
+  if (!Array.isArray(value)) return formatValue(value);
+  const names = value.map((team) => {
+    if (!isApiRecord(team)) return formatValue(team);
+    const name = team.name;
+    if (typeof name === "string" && name.trim()) return name.trim();
+    const id = team.id;
+    return typeof id === "string" || typeof id === "number"
+      ? String(id)
+      : formatValue(team);
+  });
+  return names.length ? names.join(", ") : "—";
 }
 
 function getRecordDisplayName(record: ApiRecord): string {
@@ -133,6 +191,7 @@ export default function ApiManagementPage({
   selectionDetailsInDialog = false,
   createHeading,
   createButtonLabel,
+  createInPageHeader = false,
 }: ApiManagementPageProps) {
   const [data, setData] = useState<unknown>(null);
   const [detail, setDetail] = useState<unknown>(null);
@@ -145,6 +204,7 @@ export default function ApiManagementPage({
   >({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [createFormOpen, setCreateFormOpen] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -266,20 +326,50 @@ export default function ApiManagementPage({
   const records = useMemo(() => getApiRecords(data), [data]);
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
     const isUserAccounts = recordsTitle === "User accounts";
-    const keys = Array.from(
+    const allKeys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
       ),
-    ).filter((key) => !(isUserAccounts && key.toLowerCase() === "id"));
+    );
+    const documentedFields: Record<string, string[]> = {
+      Departments: ["id", "name", "code", "description"],
+      Teams: ["id", "name", "description", "department"],
+      Projects: ["id", "name", "description", "teams"],
+    };
+    const preferredKeys = documentedFields[title] ?? [];
+    const nestedRelationKeys =
+      title === "Teams" ? new Set(["department.id", "department.name"]) : new Set<string>();
+    const keys = [
+      ...preferredKeys,
+      ...allKeys.filter(
+        (key) =>
+          !preferredKeys.includes(key) &&
+          !nestedRelationKeys.has(key) &&
+          !(isUserAccounts && key.toLowerCase() === "id"),
+      ),
+    ];
+    const headers: Record<string, Record<string, string>> = {
+      Departments: { id: "ID", name: "Department", code: "Code" },
+      Teams: { id: "ID", name: "Team", department: "Department" },
+      Projects: { id: "ID", name: "Project" },
+    };
     const result: DataTableColumn<ApiRecord>[] = keys.map((key) => {
-      const normalizedKey = key.toLowerCase().replace(/[_.\s-]/g, "");
       return {
         key,
-        header: humanizeApiKey(key.replaceAll(".", " ")),
+        header:
+          headers[title]?.[key] ??
+          humanizeApiKey(key.replaceAll(".", " ")),
         render: (record: ApiRecord) => {
-          const value = flattenApiRecord(record)[key];
-          return isUserAccounts && normalizedKey === "createdat"
-            ? formatCreatedAt(value)
+          const value =
+            title === "Teams" && key === "department"
+              ? isApiRecord(record.department)
+                ? record.department.name ?? record.department.id
+                : record.department
+              : title === "Projects" && key === "teams"
+                ? formatTeamNames(record.teams)
+                : flattenApiRecord(record)[key];
+          return isDateColumn(key)
+            ? formatTableDate(value)
             : formatValue(value);
         },
       };
@@ -314,6 +404,7 @@ export default function ApiManagementPage({
     records,
     remove,
     selectRecord,
+    title,
     update,
   ]);
 
@@ -394,6 +485,7 @@ export default function ApiManagementPage({
     operation: () => Promise<unknown>,
     successMessage: string,
     refreshList = true,
+    onSuccess?: () => void,
   ) {
     setBusy(true);
     setError("");
@@ -402,8 +494,9 @@ export default function ApiManagementPage({
       const response = await operation();
       setDetail(response);
       setRelatedData(null);
-      setNotice(successMessage);
+      if (successMessage) setNotice(successMessage);
       if (refreshList) await reload();
+      onSuccess?.();
     } catch (operationError) {
       setError(
         operationError instanceof Error
@@ -432,9 +525,31 @@ export default function ApiManagementPage({
       return;
     }
     await runOperation(
-      () => create(buildBody(fields)),
-      "The record was created.",
+      () =>
+        create(
+          buildBody(fields),
+          createInPageHeader ? { successToast: false } : undefined,
+        ),
+      createInPageHeader ? "" : "The record was created.",
+      true,
+      createInPageHeader
+        ? () => {
+            setCreateFormOpen(false);
+            setForm(Object.fromEntries(fields.map((field) => [field.name, ""])));
+            setDetail(null);
+            setRelatedData(null);
+          }
+        : undefined,
     );
+  }
+
+  function toggleCreateForm() {
+    if (!createFormOpen) {
+      setForm(Object.fromEntries(fields.map((field) => [field.name, ""])));
+      setError("");
+      setNotice("");
+    }
+    setCreateFormOpen((current) => !current);
   }
 
   async function updateRecord() {
@@ -505,6 +620,8 @@ export default function ApiManagementPage({
             rows={3}
             value={value}
             required={field.required}
+            minLength={field.minLength}
+            maxLength={field.maxLength}
             placeholder={`Enter ${field.label.toLowerCase()}`}
             onChange={(event) =>
               setForm((current) => ({
@@ -566,6 +683,9 @@ export default function ApiManagementPage({
             value={value}
             placeholder={`Enter ${field.label.toLowerCase()}`}
             required={field.required}
+            minLength={field.minLength}
+            maxLength={field.maxLength}
+            pattern={field.pattern}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -583,7 +703,26 @@ export default function ApiManagementPage({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader title={title} description={description} />
+      <PageHeader
+        title={title}
+        description={description}
+        supplementary={
+          create && createInPageHeader ? (
+            <button
+              type="button"
+              className="rt-root rt-btn rt-btn--primary"
+              aria-expanded={createFormOpen}
+              aria-controls="create-record-form"
+              onClick={toggleCreateForm}
+            >
+              {createFormOpen
+                ? "Close form"
+                : createButtonLabel ??
+                  `Create ${title === "Teams" ? "team" : title === "Projects" ? "project" : "department"}`}
+            </button>
+          ) : undefined
+        }
+      />
       {error && (
         <ErrorMessage title="API operation failed" message={error} onRetry={reload} />
       )}
@@ -591,6 +730,50 @@ export default function ApiManagementPage({
         <p className={styles.notice} role="status">
           {notice}
         </p>
+      )}
+
+      {create && createInPageHeader && createFormOpen && (
+        <section
+          id="create-record-form"
+          className={`rt-root rt-card ${styles.panel}`}
+          aria-labelledby="create-record-heading"
+        >
+          <div className={styles.panelHeading}>
+            <h2 id="create-record-heading">
+              {createHeading ??
+                `Create ${title === "Teams" ? "team" : title === "Projects" ? "project" : "department"}`}
+            </h2>
+          </div>
+          <form
+            className={styles.form}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void createRecord();
+            }}
+          >
+            <div className={styles.grid}>{fields.map(renderField)}</div>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--outline"
+                disabled={busy}
+                onClick={() => setCreateFormOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rt-root rt-btn rt-btn--primary"
+                disabled={busy}
+              >
+                {busy
+                  ? "Saving..."
+                  : createButtonLabel ??
+                    `Create ${title === "Teams" ? "team" : title === "Projects" ? "project" : "department"}`}
+              </button>
+            </div>
+          </form>
+        </section>
       )}
 
       <section className={`rt-root rt-card ${styles.panel}`}>
@@ -625,7 +808,6 @@ export default function ApiManagementPage({
       </section>
 
       {(get ||
-        create ||
         update ||
         remove ||
         related.length > 0 ||
@@ -664,7 +846,7 @@ export default function ApiManagementPage({
             )}
           </div>
 
-          {(create || update) && (
+          {!createInPageHeader && (create || update) && (
             <form
               className={styles.form}
               onSubmit={(event) => {

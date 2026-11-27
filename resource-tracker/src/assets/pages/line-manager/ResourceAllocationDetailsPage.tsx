@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import type { DataTableColumn } from "../../components/tables/type";
 import DataTable from "../../components/tables/DataTable";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
@@ -326,7 +326,6 @@ export default function ResourceAllocationDetailsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <Link className={styles.backLink} to="/line-manager/allocations">← Resource allocations</Link>
       <PageHeader title={resourceName} description="Resource details, current allocations, and movement history." />
       {loading ? (
         <LoadingState message="Loading resource details…" />
@@ -384,9 +383,6 @@ export default function ResourceAllocationDetailsPage() {
             >
               Transfer
             </button>
-            <Link className="rt-root rt-btn rt-btn--outline" to="/line-manager/allocations">
-              Cancel
-            </Link>
           </div>
         </section>
       )}

@@ -1,4 +1,7 @@
-import { apiRequest } from "./api-client";
+import {
+  apiRequest,
+  type ApiRequestFeedbackOptions,
+} from "./api-client";
 
 export type AssignableUserRole =
   | "TEAM_LEAD"
@@ -197,11 +200,11 @@ export const departmentsApi = {
   list: () => apiRequest<unknown>("/api/v1/departments"),
   get: (id: string) =>
     apiRequest<unknown>(`/api/v1/departments/${encodeURIComponent(id)}`),
-  create: (input: DepartmentInput) =>
+  create: (input: DepartmentInput, feedback?: ApiRequestFeedbackOptions) =>
     apiRequest<unknown>("/api/v1/departments", {
       method: "POST",
       body: JSON.stringify(input),
-    }),
+    }, true, feedback),
   update: (id: string, input: DepartmentInput) =>
     apiRequest<unknown>(`/api/v1/departments/${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -227,10 +230,16 @@ export const departmentsApi = {
     apiRequest<unknown>(
       `/api/v1/departments/${encodeURIComponent(id)}/resource-requests`,
     ),
-  assignHead: (id: string, userId: string) =>
+  assignHead: (
+    id: string,
+    userId: string,
+    feedback?: ApiRequestFeedbackOptions,
+  ) =>
     apiRequest<unknown>(
       `/api/v1/departments/${encodeURIComponent(id)}/assign-head/${encodeURIComponent(userId)}`,
       { method: "PATCH" },
+      true,
+      feedback,
     ),
 };
 
@@ -239,11 +248,11 @@ export const teamsApi = {
   unassignedUsers: () => apiRequest<unknown>("/api/v1/teams/unassigned-users"),
   get: (id: string) =>
     apiRequest<unknown>(`/api/v1/teams/${encodeURIComponent(id)}`),
-  create: (input: TeamInput) =>
+  create: (input: TeamInput, feedback?: ApiRequestFeedbackOptions) =>
     apiRequest<unknown>("/api/v1/teams", {
       method: "POST",
       body: JSON.stringify(input),
-    }),
+    }, true, feedback),
   update: (id: string, input: TeamInput) =>
     apiRequest<unknown>(`/api/v1/teams/${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -276,11 +285,11 @@ export const projectsApi = {
     apiRequest<unknown>(
       `/api/v1/projects/department/${encodeURIComponent(id)}`,
     ),
-  create: (input: ProjectInput) =>
+  create: (input: ProjectInput, feedback?: ApiRequestFeedbackOptions) =>
     apiRequest<unknown>("/api/v1/projects", {
       method: "POST",
       body: JSON.stringify(input),
-    }),
+    }, true, feedback),
   update: (id: string, input: ProjectInput) =>
     apiRequest<unknown>(`/api/v1/projects/${encodeURIComponent(id)}`, {
       method: "PATCH",

@@ -264,18 +264,6 @@ function ApprovalTag({ requested, approved }) {
   return <span className={`${styles.status} ${className}`}>{status}</span>;
 }
 
-function SummaryCard({ label, value, note, accent }) {
-  return (
-    <article
-      className={`${styles.summaryCard} ${accent ? styles.summaryAccent : ""}`}
-    >
-      <span className={styles.summaryLabel}>{label}</span>
-      <strong className={styles.summaryValue}>{value}</strong>
-      <span className={styles.summaryNote}>{note}</span>
-    </article>
-  );
-}
-
 function EmptyTableRow({ columns, message }) {
   return (
     <tr>
@@ -337,18 +325,6 @@ export default function ResourceAllocationDashboard() {
     () => aggregateBy(filteredRequests, "team"),
     [filteredRequests],
   );
-  const requestedTotal = filteredRequests.reduce(
-    (total, row) => total + row.requested,
-    0,
-  );
-  const approvedTotal = filteredRequests.reduce(
-    (total, row) => total + row.approved,
-    0,
-  );
-  const fulfillmentRate = requestedTotal
-    ? Math.round((approvedTotal / requestedTotal) * 100)
-    : 0;
-
   function clearFilters() {
     setProject("All");
     setTeam("All");
@@ -450,25 +426,6 @@ export default function ResourceAllocationDashboard() {
             />
           </label>
         </div>
-      </section>
-
-      <section className={styles.summaryGrid} aria-label="Allocation summary">
-        <SummaryCard
-          label="Total resources requested"
-          value={numberFormat.format(requestedTotal)}
-          note={`Across ${numberFormat.format(filteredRequests.length)} resource requests`}
-        />
-        <SummaryCard
-          label="Total resources approved"
-          value={numberFormat.format(approvedTotal)}
-          note={`${numberFormat.format(requestedTotal - approvedTotal)} units not yet approved`}
-        />
-        <SummaryCard
-          label="Overall fulfillment"
-          value={`${fulfillmentRate}%`}
-          note="Approved quantity compared with requested"
-          accent
-        />
       </section>
 
       <section

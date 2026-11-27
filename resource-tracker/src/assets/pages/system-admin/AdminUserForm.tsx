@@ -1,7 +1,5 @@
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link } from "react-router-dom";
-import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import type { UserDraft } from "../../data/user-store";
 import {
@@ -15,7 +13,6 @@ import styles from "./AdminUserForm.module.css";
 interface AdminUserFormProps {
   user?: UserAccount;
   onSave: (draft: UserDraft) => void;
-  onCancel: () => void;
   submitLabel: string;
 }
 
@@ -24,7 +21,6 @@ type FieldErrors = Partial<Record<keyof UserDraft, string>>;
 export default function AdminUserForm({
   user,
   onSave,
-  onCancel,
   submitLabel,
 }: AdminUserFormProps) {
   const [form, setForm] = useState<UserDraft>({
@@ -36,13 +32,7 @@ export default function AdminUserForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState("");
-  const [confirmCancel, setConfirmCancel] = useState(false);
   const submitting = useRef(false);
-  const isDirty =
-    form.name !== (user?.name ?? "") ||
-    form.email !== (user?.email ?? "") ||
-    form.department !== (user?.department ?? "") ||
-    form.role !== (user?.role ?? "team-lead");
 
   function validate(): FieldErrors {
     const next: FieldErrors = {};
@@ -102,11 +92,6 @@ export default function AdminUserForm({
     }
   }
 
-  function discardChanges() {
-    setConfirmCancel(false);
-    onCancel();
-  }
-
   function updateField<K extends keyof UserDraft>(
     field: K,
     value: UserDraft[K],
@@ -124,8 +109,7 @@ export default function AdminUserForm({
       )}
       {success && (
         <p className={styles.success} role="status">
-          {success}{" "}
-          <Link to="/system-admin/users">Return to user management</Link>
+          {success}
         </p>
       )}
       <form
@@ -245,32 +229,11 @@ export default function AdminUserForm({
           Account records are demonstration data stored in this browser. There is no authentication or invitation service.
         </p> */}
         <div className={styles.actions}>
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--outline"
-            onClick={() => {
-              if (isDirty) setConfirmCancel(true);
-              else onCancel();
-            }}
-          >
-            Cancel
-          </button>
           <button type="submit" className="rt-root rt-btn rt-btn--primary">
             {submitLabel}
           </button>
         </div>
       </form>
-
-      <ConfirmDialog
-        open={confirmCancel}
-        title="Discard account changes?"
-        message="The unsaved account information will be lost."
-        confirmLabel="Discard changes"
-        cancelLabel="Continue editing"
-        destructive
-        onCancel={() => setConfirmCancel(false)}
-        onConfirm={discardChanges}
-      />
     </>
   );
 }

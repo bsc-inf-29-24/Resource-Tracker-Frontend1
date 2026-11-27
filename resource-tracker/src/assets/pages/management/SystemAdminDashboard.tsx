@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Activity,
-  ClipboardList,
   UserPlus,
-  UsersRound,
 } from "lucide-react";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import { useAuth } from "../../context/AuthContext";
-import { auditLogsApi, usersApi } from "../../data/api-services";
+import { usersApi } from "../../data/api-services";
 import { getApiRecords, type ApiRecord } from "../../data/api-response";
 import { getFrontendRoleFromBackendRole } from "../../data/auth-store";
 import styles from "./SystemAdminDashboard.module.css";
@@ -71,7 +68,6 @@ function displayRole(role: string): string {
 export default function SystemAdminDashboard() {
   const { user } = useAuth();
   const [users, setUsers] = useState<ApiRecord[]>([]);
-  const [auditLogs, setAuditLogs] = useState<ApiRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [now, setNow] = useState(() => new Date());
@@ -79,24 +75,15 @@ export default function SystemAdminDashboard() {
   const loadDashboard = useCallback(async () => {
     setLoading(true);
     setError("");
-    const [usersResult, logsResult] = await Promise.allSettled([
-      usersApi.list(),
-      auditLogsApi.list(),
-    ]);
-    if (usersResult.status === "fulfilled") {
-      setUsers(getApiRecords(usersResult.value));
-    } else {
+    try {
+      setUsers(getApiRecords(await usersApi.list()));
+    } catch (requestError) {
       setUsers([]);
-      setError(usersResult.reason instanceof Error ? usersResult.reason.message : "User totals could not be loaded.");
+      setError(requestError instanceof Error ? requestError.message : "User totals could not be loaded.");
+    } finally {
+      setNow(new Date());
+      setLoading(false);
     }
-    if (logsResult.status === "fulfilled") {
-      setAuditLogs(getApiRecords(logsResult.value));
-    } else {
-      setAuditLogs([]);
-      setError((current) => current || (logsResult.reason instanceof Error ? logsResult.reason.message : "Audit-log totals could not be loaded."));
-    }
-    setNow(new Date());
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -142,14 +129,11 @@ export default function SystemAdminDashboard() {
   const pieBackground = roleTotal
     ? `conic-gradient(${pieStops.join(", ")})`
     : "conic-gradient(var(--rt-border) 0% 100%)";
-  const activeUsers = users.filter((record) => record.isActive !== false).length;
   const firstName = user?.fullName?.trim().split(/\s+/)[0] || "Administrator";
   const isSystemAdmin = getFrontendRoleFromBackendRole(user?.role) === "SYSTEM_ADMIN";
   const quickActions = isSystemAdmin
     ? [
-        { label: "Manage users", detail: "View and update user accounts", href: "/system-admin/users", icon: UsersRound },
         { label: "Create a user", detail: "Add an account to the system", href: "/system-admin/users/new", icon: UserPlus },
-        { label: "Review audit logs", detail: "See recent system activity", href: "/system-admin/audit-logs", icon: ClipboardList },
       ]
     : [];
 
@@ -166,30 +150,6 @@ export default function SystemAdminDashboard() {
       </header>
 
       {error && <ErrorMessage title="Dashboard data incomplete" message={error} onRetry={() => void loadDashboard()} />}
-
-      <section className={styles.metrics} aria-label="System overview">
-        <article className={styles.metric}>
-          <span className={styles.metricIcon}><UsersRound aria-hidden="true" size={19} /></span>
-          <div>
-            <p>Total users</p>
-            <strong>{loading ? "—" : users.length}</strong>
-          </div>
-        </article>
-        <article className={styles.metric}>
-          <span className={styles.metricIcon}><Activity aria-hidden="true" size={19} /></span>
-          <div>
-            <p>Active users</p>
-            <strong>{loading ? "—" : activeUsers}</strong>
-          </div>
-        </article>
-        <article className={styles.metric}>
-          <span className={styles.metricIcon}><ClipboardList aria-hidden="true" size={19} /></span>
-          <div>
-            <p>Audit log records</p>
-            <strong>{loading ? "—" : auditLogs.length}</strong>
-          </div>
-        </article>
-      </section>
 
       <div className={styles.visuals}>
         <section className={styles.chartPanel} aria-labelledby="roles-title">

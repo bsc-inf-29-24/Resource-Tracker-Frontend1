@@ -41,13 +41,6 @@ export default function UserDetailsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      {/* <PageHeader
-        title="User account details"
-        description="The user-list response is inspected without assuming undocumented fields."
-      />
-      <Link to="/system-admin/users" className="rt-root rt-btn rt-btn--outline">
-        Back to users
-      </Link> */}
       {loading ? (
         <LoadingState message="Loading backend user records..." />
       ) : error ? (

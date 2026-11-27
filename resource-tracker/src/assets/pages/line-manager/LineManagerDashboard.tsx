@@ -4,21 +4,15 @@ import { Link } from "react-router-dom";
 import {
   BarChart3,
   CalendarDays,
-  CheckCircle2,
   ClipboardList,
-  Clock3,
   History,
-  MessageCircle,
-  Package,
   UsersRound,
-  XCircle,
 } from "lucide-react";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import DataTable from "../../components/tables/DataTable";
 import type { DataTableColumn } from "../../components/tables/type";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
-import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
 import StatusLabel from "../../components/status/StatusLabel";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -250,14 +244,6 @@ export default function LineManagerDashboard() {
     if (!assignedTeams.length) return requests;
     return requests.filter((request) => assignedTeams.some((team) => requestMatchesTeam(request, team)));
   }, [assignedTeams, requests]);
-  const counts = useMemo(() => ({
-    total: scopedRequests.length,
-    pending: scopedRequests.filter((request) => requestStatus(request) === "PENDING").length,
-    approved: scopedRequests.filter((request) => requestStatus(request) === "APPROVED").length,
-    rejected: scopedRequests.filter((request) => requestStatus(request) === "REJECTED").length,
-    queried: scopedRequests.filter((request) => requestStatus(request) === "QUERIED").length,
-  }), [scopedRequests]);
-
   const statusCounts = chartStatuses.map((entry) => ({
     ...entry,
     value: scopedRequests.filter((request) => requestStatus(request) === entry.status).length,
@@ -424,11 +410,6 @@ export default function LineManagerDashboard() {
 
   const currentDate = new Date();
 
-  function filterByStatus(status: string) {
-    setStatusFilter(status);
-    document.getElementById("manager-recent-requests")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   const actionTitle = actionType === "query" ? "Query request" : "Reject request";
 
   return (
@@ -449,16 +430,6 @@ export default function LineManagerDashboard() {
       {notice && <p className={styles.notice} role="status">{notice}</p>}
       {actionError && <ErrorMessage title="Request action failed" message={actionError} />}
       {errors.requests && <ErrorMessage title="Request data unavailable" message={errors.requests} onRetry={() => void loadDashboard()} />}
-
-      <section className={styles.statsSection} aria-label="Request statistics">
-        <StatusCardGrid>
-          <StatusCard label="Total requests" value={counts.total} icon={<ClipboardList size={20} />} loading={loading} onClick={() => filterByStatus("ALL")} />
-          <StatusCard label="Pending requests" value={counts.pending} icon={<Clock3 size={20} />} note="Awaiting manager decision" loading={loading} onClick={() => filterByStatus("PENDING")} />
-          <StatusCard label="Approved requests" value={counts.approved} icon={<CheckCircle2 size={20} />} loading={loading} onClick={() => filterByStatus("APPROVED")} />
-          <StatusCard label="Rejected requests" value={counts.rejected} icon={<XCircle size={20} />} loading={loading} onClick={() => filterByStatus("REJECTED")} />
-          <StatusCard label="Queried requests" value={counts.queried} icon={<MessageCircle size={20} />} loading={loading} onClick={() => filterByStatus("QUERIED")} />
-        </StatusCardGrid>
-      </section>
 
       <div className={styles.analyticsLayout}>
         <section className={styles.chartGrid} aria-label="Request analytics">
@@ -538,11 +509,9 @@ export default function LineManagerDashboard() {
       <section className={`rt-root rt-card ${styles.quickActions}`}>
         <div className={styles.cardHeading}><div><h2>Quick actions</h2><p>Open your common manager workflows.</p></div></div>
         <div className={styles.quickGrid}>
-          <Link to="/line-manager/requests"><Clock3 /><span><strong>Review pending requests</strong><small>{counts.pending} waiting</small></span></Link>
           <Link to="/line-manager/all-requests"><ClipboardList /><span><strong>View all requests</strong><small>Search the manager request scope</small></span></Link>
           <Link to="/line-manager/teams"><UsersRound /><span><strong>Assigned teams</strong><small>View team assignments</small></span></Link>
           <Link to="/line-manager/teams?view=members"><UsersRound /><span><strong>Team members</strong><small>Browse members by assigned team</small></span></Link>
-          <Link to="/line-manager/allocations"><Package /><span><strong>Resource availability</strong><small>Inspect and allocate inventory</small></span></Link>
           <Link to="/line-manager/reports"><BarChart3 /><span><strong>Generate reports</strong><small>Export scoped request data</small></span></Link>
           <Link to="/line-manager/activity"><History /><span><strong>Activity history</strong><small>Inspect recorded manager audit events</small></span></Link>
         </div>

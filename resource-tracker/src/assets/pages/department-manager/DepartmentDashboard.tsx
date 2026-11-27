@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import DataTable from "../../components/tables/DataTable";
 import PageHeader from "../../components/layout/PageHeader";
 import FilterToolbar from "../../components/filters/filterToolbar";
-import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
+import StatusCard from "../../components/cards/StatusCard";
 import StatusLabel from "../../components/status/StatusLabel";
 import { useResourceRequests } from "../../data/request-store";
 import { formatCurrency, formatDate } from "../../utils/format";
@@ -16,7 +16,6 @@ import {
   getRecentRequests,
   getRequestedAmount,
   getSpentDifference,
-  getStatusCounts,
 } from "../../utils/department-manager";
 import type { RequestStatus, ResourceRequest } from "../../types/resource-request";
 import type { ToolbarFilter } from "../../components/filters/filterToolbar";
@@ -73,7 +72,6 @@ export default function DepartmentDashboard() {
     );
   }, [filteredRequests, search]);
 
-  const statusCounts = getStatusCounts(searchedRequests);
   const requestedTotal = getRequestedAmount(searchedRequests);
   const approvedTotal = getApprovedAmount(searchedRequests);
   const comparisonDifference = getSpentDifference(searchedRequests);
@@ -182,11 +180,6 @@ export default function DepartmentDashboard() {
       <PageHeader
         title="Department Manager"
         description={`${departmentName} department overview`}
-        // supplementary={
-        //   <Link className={styles.linkButton} to="/department-manager/requests">
-        //     Open request list
-        //   </Link>
-        // }
       />
 
       
@@ -195,15 +188,6 @@ export default function DepartmentDashboard() {
           {persistenceWarning}
         </p>
       )}
-
-      <StatusCardGrid>
-        <StatusCard label="Departmental requests" value={searchedRequests.length} />
-        <StatusCard label="Submitted" value={statusCounts.Submitted} />
-        <StatusCard label="Pending" value={statusCounts.Pending} />
-        <StatusCard label="Queried" value={statusCounts.Queried} />
-        <StatusCard label="Approved" value={statusCounts.Approved} />
-        <StatusCard label="Rejected" value={statusCounts.Rejected} />
-      </StatusCardGrid>
 
       <section className={`rt-root rt-card ${styles.panel}`}>
         <h2 className="rt-card__title">Spending overview</h2>

@@ -5,14 +5,14 @@ import ApiManagementPage, {
 import styles from "./TeamsPage.module.css";
 
 const teamFields: ApiField[] = [
-  { name: "name", label: "Team name", required: true },
-  { name: "description", label: "Team Description", kind: "textarea" },
+  { name: "name", label: "Team name", required: true, minLength: 3, maxLength: 100 },
+  { name: "description", label: "Team description", kind: "textarea", maxLength: 500 },
   { name: "departmentId", label: "Department", kind: "select-number", optionSource: "departments", required: true },
 ];
 
 const teamUpdateFields: ApiField[] = [
-  { name: "name", label: "Team name" },
-  { name: "description", label: "Description", kind: "textarea" },
+  { name: "name", label: "Team name", minLength: 3, maxLength: 50 },
+  { name: "description", label: "Description", kind: "textarea", maxLength: 50 },
   { name: "departmentId", label: "Department ID", kind: "number" },
 ];
 
@@ -30,6 +30,7 @@ export default function TeamsPage() {
         remove={teamsApi.remove}
         fields={teamFields}
         updateFields={teamUpdateFields}
+        createInPageHeader
         related={[
           { label: "users", load: teamsApi.users },
           { label: "projects", load: teamsApi.projects },

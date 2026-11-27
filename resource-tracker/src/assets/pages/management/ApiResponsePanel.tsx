@@ -15,6 +15,7 @@ interface ApiResponsePanelProps {
   emptyDescription?: string;
   noResponseTitle?: string;
   noResponseDescription?: string;
+  expandableRecords?: boolean;
 }
 
 export default function ApiResponsePanel({
@@ -28,6 +29,7 @@ export default function ApiResponsePanel({
   emptyDescription = "The backend response did not contain any records.",
   noResponseTitle = "No response yet",
   noResponseDescription = "Run a request to load the response.",
+  expandableRecords = false,
 }: ApiResponsePanelProps) {
   return (
     <section className={`rt-root rt-card ${styles.panel}`}>
@@ -59,7 +61,7 @@ export default function ApiResponsePanel({
           hideIdFields={title === "Users"}
           emptyTitle={emptyTitle}
           emptyDescription={emptyDescription}
-        />
+        expandableRecords={expandableRecords} />
       )}
     </section>
   );

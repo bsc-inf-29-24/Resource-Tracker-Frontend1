@@ -5,7 +5,7 @@ import ApiManagementPage, {
 
 const projectFields: ApiField[] = [
   { name: "name", label: "Project name", required: true },
-  { name: "description", label: "Description", kind: "textarea" },
+  { name: "description", label: "Description", kind: "textarea", maxLength: 1000 },
   { name: "startDate", label: "Start date", kind: "date", required: true },
   { name: "endDate", label: "End date", kind: "date", required: true },
   { name: "teamIds", label: "Teams", kind: "multi-select-number", optionSource: "teams" },

@@ -43,7 +43,6 @@ export default function DecisionHistoryPage() {
               ? "This request was not found or has no recorded history."
               : "Queries and decisions will appear here when they are recorded."}
           </p>
-          <Link to="/line-manager/requests">Return to requests</Link>
         </section>
       ) : (
         <div className={styles.records}>

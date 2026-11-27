@@ -393,9 +393,11 @@ export default function NewApiRequestPage() {
               </div>
             )}
             <div className={formStyles.actions}>
-              <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => reviewing ? setReviewing(false) : navigate("/team-lead/dashboard")} disabled={busy}>
-                {reviewing ? "Back to edit" : "Cancel"}
-              </button>
+              {reviewing && (
+                <button type="button" className="rt-root rt-btn rt-btn--outline" onClick={() => setReviewing(false)} disabled={busy}>
+                  Back to edit
+                </button>
+              )}
               <button type="submit" className="rt-root rt-btn rt-btn--primary" disabled={busy || Object.keys(sourceErrors).length > 0 || resources.length === 0 || teams.length === 0 || lineManagers.length === 0}>
                 {busy ? "Submitting..." : reviewing ? "Submit request" : "Review request"}
               </button>

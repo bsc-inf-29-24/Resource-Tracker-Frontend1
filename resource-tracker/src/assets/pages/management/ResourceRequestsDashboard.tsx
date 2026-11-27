@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import StatusCard, {
-  StatusCardGrid,
-} from "../../components/cards/StatusCard";
 import EmptyState from "../../components/feedback/EmptyState";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
@@ -17,10 +14,7 @@ import {
   humanizeApiKey,
   unwrapApiResponse,
 } from "../../data/api-response";
-import {
-  resourceRequestsApi,
-  type ApiRequestStatus,
-} from "../../data/api-services";
+import { resourceRequestsApi } from "../../data/api-services";
 import styles from "./ApiManagementPage.module.css";
 
 type RequestRecord = Record<string, unknown>;
@@ -82,17 +76,6 @@ export default function ResourceRequestsDashboard({
   }, [loadRequests]);
 
   const requestRecords = requests ?? [];
-  const statusCounts = useMemo(
-    () =>
-      Object.fromEntries(
-        requestStatuses.map((status) => [
-          status,
-          requestRecords.filter((request) => request.status === status).length,
-        ]),
-      ) as Record<ApiRequestStatus, number>,
-    [requestRecords],
-  );
-
   const columns = useMemo<DataTableColumn<RequestRecord>[]>(() => {
     const allKeys = new Set(
       requestRecords.flatMap((request) =>
@@ -151,16 +134,6 @@ export default function ResourceRequestsDashboard({
         />
       ) : !error && !isDepartmentHeadDashboard ? (
         <>
-          <StatusCardGrid>
-            <StatusCard label="Requests returned" value={requestRecords.length} />
-            {requestStatuses.map((status) => (
-              <StatusCard
-                key={status}
-                label={status}
-                value={statusCounts[status]}
-              />
-            ))}
-          </StatusCardGrid>
           <div className={styles.actions}>
             <button
               type="button"

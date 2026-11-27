@@ -4,8 +4,9 @@ import ApiManagementPage, {
 } from "./ApiManagementPage";
 
 const departmentFields: ApiField[] = [
-  { name: "name", label: "Department name", kind: "text", required: true },
-  { name: "description", label: "Description", kind: "textarea", required: true },
+  { name: "name", label: "Department name", kind: "text", required: true, minLength: 3, maxLength: 100 },
+  { name: "code", label: "Code", kind: "text", minLength: 2, maxLength: 20 },
+  { name: "description", label: "Description", kind: "textarea", maxLength: 500 },
 ];
 
 function assignDepartmentHead(id: string, userId: string) {
@@ -49,6 +50,12 @@ export default function DepartmentsPage() {
         optional: true,
         run: assignDepartmentHead,
       }}
+      related={[
+        { label: "users", load: departmentsApi.users },
+        { label: "teams", load: departmentsApi.teams },
+        { label: "projects", load: departmentsApi.projects },
+        { label: "resource requests", load: departmentsApi.requests },
+      ]}
       assignments={[
         {
           label: "Assign department head",

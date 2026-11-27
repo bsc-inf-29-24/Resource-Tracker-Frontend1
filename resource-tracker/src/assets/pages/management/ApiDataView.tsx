@@ -31,6 +31,7 @@ interface ApiDataViewProps {
   hideIdFields?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
+  expandableRecords?: boolean;
   depth?: number;
   fieldIcons?: boolean;
 }
@@ -151,6 +152,8 @@ export default function ApiDataView({
         title={title}
         columns={columns}
         rows={flatRecords}
+        pageSize={expandableRecords ? 4 : undefined}
+        expandable={expandableRecords}
         rowKey={(record, index) =>
           typeof record.id === "string" || typeof record.id === "number"
             ? record.id
@@ -210,6 +213,7 @@ export default function ApiDataView({
               hideIdFields={hideIdFields}
               emptyTitle={`No ${humanizeApiKey(key).toLowerCase()}`}
               emptyDescription="The backend returned an empty collection."
+              expandableRecords={expandableRecords}
               depth={depth + 1}
             />
           </section>

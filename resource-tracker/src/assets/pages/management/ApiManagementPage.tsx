@@ -7,6 +7,7 @@ import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import DataTable from "../../components/tables/DataTable";
 import type { DataTableColumn } from "../../components/tables/type";
+import { ApiError } from "../../data/api-client";
 import {
   flattenApiRecord,
   formatApiValue,
@@ -162,6 +163,16 @@ function getUserOptions(records: ApiRecord[]) {
       value: String(record.id),
       label: getUserOptionLabel(record),
     }));
+}
+
+function getTeamEligibilityErrorMessage(
+  error: unknown,
+  fallback: string,
+): string {
+  if (error instanceof ApiError && error.status === 403) {
+    return "Only Department Heads can list unassigned users for team assignment. Sign in with an active Department Head account, then retry.";
+  }
+  return error instanceof Error ? error.message : fallback;
 }
 
 export default function ApiManagementPage({
@@ -334,10 +345,10 @@ export default function ApiManagementPage({
         }
       }).catch((loadError) => {
         if (active) {
-          const message =
-            loadError instanceof Error
-              ? loadError.message
-              : "Eligible users could not be loaded.";
+          const message = getTeamEligibilityErrorMessage(
+            loadError,
+            "Eligible users could not be loaded.",
+          );
           setOptionErrors((current) => ({
             ...current,
             ...(needsTeamLeadOptions ? { teamLeads: message } : {}),
@@ -935,10 +946,10 @@ export default function ApiManagementPage({
           ...(succeeded ? { teamUserId: "" } : {}),
         }));
       } catch (loadError) {
-        const message =
-          loadError instanceof Error
-            ? loadError.message
-            : "Eligible users could not be refreshed.";
+        const message = getTeamEligibilityErrorMessage(
+          loadError,
+          "Eligible users could not be refreshed.",
+        );
         setOptionErrors((current) => ({
           ...current,
           teamUsers: message,

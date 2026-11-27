@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
@@ -8,7 +8,6 @@ import styles from "./SystemAdminPage.module.css";
 
 export default function EditUserPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { users, persistenceWarning } = useUsers();
   const user = users.find((item) => item.id === id);
 
@@ -23,7 +22,6 @@ export default function EditUserPage() {
           title="User not found"
           message="The selected account is not available."
         />
-        <Link to="/system-admin/users">Return to user management</Link>
       </div>
     );
   }
@@ -41,7 +39,6 @@ export default function EditUserPage() {
         user={user}
         submitLabel="Save changes"
         onSave={(draft) => updateUser(user.id, draft)}
-        onCancel={() => navigate("/system-admin/users")}
       />
     </div>
   );

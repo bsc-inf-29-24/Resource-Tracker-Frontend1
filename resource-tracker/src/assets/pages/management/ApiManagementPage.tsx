@@ -15,6 +15,7 @@ import {
   isApiRecord,
   unwrapApiResponse,
 } from "../../data/api-response";
+import type { ApiRequestFeedbackOptions } from "../../data/api-client";
 import ApiDataView from "./ApiDataView";
 import { dashboardApi, departmentsApi, teamsApi, usersApi } from "../../data/api-services";
 import styles from "./ApiManagementPage.module.css";
@@ -37,6 +38,9 @@ export interface ApiField {
   label: string;
   kind?: InputKind;
   required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
   options?: { value: string; label: string }[];
   optionSource?: "departments" | "teams";
   when?: { field: string; value: string };  
@@ -63,7 +67,10 @@ interface ApiManagementPageProps {
   list: () => Promise<unknown>;
   initialId?: string;
   get?: (id: string) => Promise<unknown>;
-  create?: (body: ApiRecord) => Promise<unknown>;
+  create?: (
+    body: ApiRecord,
+    feedback?: ApiRequestFeedbackOptions,
+  ) => Promise<unknown>;
   update?: (id: string, body: ApiRecord) => Promise<unknown>;
   remove?: (id: string) => Promise<unknown>;
   fields?: ApiField[];
@@ -74,6 +81,7 @@ interface ApiManagementPageProps {
   hideRecordActions?: boolean;
   hideRecordsTitle?: boolean;
   assignmentsInDialog?: boolean;
+  expandableRecords?: boolean;
   recordsTitle?: string;
   tableColumns?: DataTableColumn<ApiRecord>[];
   headingAction?: React.ReactNode;
@@ -106,6 +114,56 @@ function formatCreatedAt(value: unknown): string {
         dateStyle: "medium",
         timeStyle: "short",
       }).format(date);
+}
+
+function formatTableDate(value: unknown): string {
+  const isoDate =
+    typeof value === "string"
+      ? /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/.exec(value)
+      : null;
+  if (isoDate) {
+    const [, year, month, day] = isoDate;
+    const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    if (
+      date.getUTCFullYear() === Number(year) &&
+      date.getUTCMonth() === Number(month) - 1 &&
+      date.getUTCDate() === Number(day)
+    ) {
+      return `${day}-${month}-${year.slice(-2)}`;
+    }
+    return formatValue(value);
+  }
+
+  if (typeof value !== "string" && !(value instanceof Date)) {
+    return formatValue(value);
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return formatValue(value);
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = String(date.getUTCFullYear()).slice(-2);
+  return `${day}-${month}-${year}`;
+}
+
+function isDateColumn(key: string): boolean {
+  const normalized = (key.split(".").at(-1) ?? "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+  return normalized.endsWith("date") || normalized.endsWith("at") || normalized.endsWith("timestamp");
+}
+
+function formatTeamNames(value: unknown): string {
+  if (!Array.isArray(value)) return formatValue(value);
+  const names = value.map((team) => {
+    if (!isApiRecord(team)) return formatValue(team);
+    const name = team.name;
+    if (typeof name === "string" && name.trim()) return name.trim();
+    const id = team.id;
+    return typeof id === "string" || typeof id === "number"
+      ? String(id)
+      : formatValue(team);
+  });
+  return names.length ? names.join(", ") : "—";
 }
 
 function getRecordDisplayName(record: ApiRecord): string {
@@ -152,6 +210,7 @@ export default function ApiManagementPage({
   hideRecordActions = false,
   hideRecordsTitle = false,
   assignmentsInDialog = false,
+  expandableRecords = false,
   recordsTitle = "Users records",
   tableColumns,
   headingAction,
@@ -175,6 +234,7 @@ export default function ApiManagementPage({
   >({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [createFormOpen, setCreateFormOpen] = useState(false);
   const [error, setError] = useState("");
   const [errorTitle, setErrorTitle] = useState("Unable to load records");
   const [warning, setWarning] = useState("");
@@ -255,6 +315,25 @@ export default function ApiManagementPage({
       }).catch((loadError) => {
         if (active) setOptionErrors((current) => ({ ...current, teamLeads: loadError instanceof Error ? loadError.message : "Team leads could not be loaded." }));
       }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, teamLeads: false })); });
+    }
+    if (title === "Teams" && assignments.some(({ field }) => field === "teamUserId")) {
+      setOptionLoading((current) => ({ ...current, teamUsers: true }));
+      void teamsApi.unassignedUsers().then((response) => {
+        const eligible = getApiRecords(response).filter(
+          (user) =>
+            (user.role === "TEAM_LEAD" || user.role === "TEAM_MEMBER") &&
+            user.isActive !== false,
+        );
+        const options = eligible
+          .filter((user) => typeof user.id === "string")
+          .map((user) => ({
+            value: String(user.id),
+            label: `${typeof user.fullName === "string" ? user.fullName : user.id}${typeof user.email === "string" ? ` (${user.email})` : ""} — ${user.role === "TEAM_LEAD" ? "Team Lead" : "Team Member"}`,
+          }));
+        if (active) setAssignmentValues((current) => ({ ...current, teamUserOptions: JSON.stringify(options) }));
+      }).catch((loadError) => {
+        if (active) setOptionErrors((current) => ({ ...current, teamUsers: loadError instanceof Error ? loadError.message : "Eligible team users could not be loaded." }));
+      }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, teamUsers: false })); });
     }
     if (title === "Departments" && assignments.length) {
       setOptionLoading((current) => ({ ...current, departmentHeads: true }));
@@ -378,7 +457,7 @@ export default function ApiManagementPage({
   }, [optionRecords.departments, records, title]);
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
     const isUserAccounts = recordsTitle === "User accounts";
-    const keys = Array.from(
+    const allKeys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
       ),
@@ -389,11 +468,20 @@ export default function ApiManagementPage({
       const normalizedKey = key.toLowerCase().replace(/[_.\s-]/g, "");
       return {
         key,
-        header: humanizeApiKey(key.replaceAll(".", " ")),
+        header:
+          headers[title]?.[key] ??
+          humanizeApiKey(key.replaceAll(".", " ")),
         render: (record: ApiRecord) => {
-          const value = flattenApiRecord(record)[key];
-          return isUserAccounts && normalizedKey === "createdat"
-            ? formatCreatedAt(value)
+          const value =
+            title === "Teams" && key === "department"
+              ? isApiRecord(record.department)
+                ? record.department.name ?? record.department.id
+                : record.department
+              : title === "Projects" && key === "teams"
+                ? formatTeamNames(record.teams)
+                : flattenApiRecord(record)[key];
+          return isDateColumn(key)
+            ? formatTableDate(value)
             : formatValue(value);
         },
       };
@@ -530,7 +618,7 @@ export default function ApiManagementPage({
       const response = await operation();
       setDetail(response);
       setRelatedData(null);
-      setNotice(successMessage);
+      if (successMessage) setNotice(successMessage);
       if (refreshList) await reload();
       return true;
     } catch (operationError) {
@@ -669,6 +757,15 @@ export default function ApiManagementPage({
     }
   }
 
+  function toggleCreateForm() {
+    if (!createFormOpen) {
+      setForm(Object.fromEntries(fields.map((field) => [field.name, ""])));
+      setError("");
+      setNotice("");
+    }
+    setCreateFormOpen((current) => !current);
+  }
+
   async function updateRecord() {
     if (!update || !selectedId.trim()) return;
     const validationError = validateFields(updateFields);
@@ -739,9 +836,27 @@ export default function ApiManagementPage({
       setWarning(`Please provide ${operation.label.toLowerCase()} before continuing.`);
       return;
     }
+    const onSuccess =
+      operation.field === "teamUserId"
+        ? () => {
+            const assignedUserId = assignmentValues.teamUserId;
+            const options = JSON.parse(
+              assignmentValues.teamUserOptions ?? "[]",
+            ) as { value: string; label: string }[];
+            setAssignmentValues((current) => ({
+              ...current,
+              teamUserId: "",
+              teamUserOptions: JSON.stringify(
+                options.filter((option) => option.value !== assignedUserId),
+              ),
+            }));
+          }
+        : undefined;
     await runOperation(
       () => operation.run(selectedId.trim(), value),
       `${operation.label} completed.`,
+      true,
+      onSuccess,
     );
   }
 
@@ -769,6 +884,8 @@ export default function ApiManagementPage({
             rows={3}
             value={value}
             required={field.required}
+            minLength={field.minLength}
+            maxLength={field.maxLength}
             placeholder={`Enter ${field.label.toLowerCase()}`}
             onChange={(event) => updateFormField(field.name, event.target.value)}
           />
@@ -832,7 +949,26 @@ export default function ApiManagementPage({
 
   return (
     <section className={`rt-root ${styles.page}`}>
-      <PageHeader title={title} description={description} />
+      <PageHeader
+        title={title}
+        description={description}
+        supplementary={
+          create && createInPageHeader ? (
+            <button
+              type="button"
+              className="rt-root rt-btn rt-btn--primary"
+              aria-expanded={createFormOpen}
+              aria-controls="create-record-form"
+              onClick={toggleCreateForm}
+            >
+              {createFormOpen
+                ? "Close form"
+                : createButtonLabel ??
+                  `Create ${title === "Teams" ? "team" : title === "Projects" ? "project" : "department"}`}
+            </button>
+          ) : undefined
+        }
+      />
       {error && (
         <ErrorMessage title={errorTitle} message={error} onRetry={reload} />
       )}
@@ -843,6 +979,50 @@ export default function ApiManagementPage({
         <p className={styles.notice} role="status">
           {notice}
         </p>
+      )}
+
+      {create && createInPageHeader && createFormOpen && (
+        <section
+          id="create-record-form"
+          className={`rt-root rt-card ${styles.panel}`}
+          aria-labelledby="create-record-heading"
+        >
+          <div className={styles.panelHeading}>
+            <h2 id="create-record-heading">
+              {createHeading ??
+                `Create ${title === "Teams" ? "team" : title === "Projects" ? "project" : "department"}`}
+            </h2>
+          </div>
+          <form
+            className={styles.form}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void createRecord();
+            }}
+          >
+            <div className={styles.grid}>{fields.map(renderField)}</div>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--outline"
+                disabled={busy}
+                onClick={() => setCreateFormOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rt-root rt-btn rt-btn--primary"
+                disabled={busy}
+              >
+                {busy
+                  ? "Saving..."
+                  : createButtonLabel ??
+                    `Create ${title === "Teams" ? "team" : title === "Projects" ? "project" : "department"}`}
+              </button>
+            </div>
+          </form>
+        </section>
       )}
 
       <section className={`rt-root rt-card ${styles.panel}`}>
@@ -982,7 +1162,31 @@ export default function ApiManagementPage({
                   htmlFor={`assignment-${operation.field}`}
                 >
                   <span>{operation.label}</span>
-                  {operation.field === "teamLeadId" || operation.field === "headUserId" ? (
+                  {operation.field === "teamUserId" ? (
+                    <>
+                      <select
+                        id={`assignment-${operation.field}`}
+                        value={assignmentValues[operation.field] ?? ""}
+                        onChange={(event) => setAssignmentValues((current) => ({ ...current, [operation.field]: event.target.value }))}
+                        disabled={optionLoading.teamUsers || Boolean(optionErrors.teamUsers)}
+                      >
+                        <option value="">
+                          {optionLoading.teamUsers
+                            ? "Loading eligible users…"
+                            : optionErrors.teamUsers
+                              ? "Eligible users unavailable"
+                              : "Select a Team Lead or Team Member"}
+                        </option>
+                        {(JSON.parse(assignmentValues.teamUserOptions ?? "[]") as { value: string; label: string }[]).map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                      {optionErrors.teamUsers && <small role="alert">{optionErrors.teamUsers}</small>}
+                      {!optionLoading.teamUsers && !optionErrors.teamUsers && (JSON.parse(assignmentValues.teamUserOptions ?? "[]") as { value: string; label: string }[]).length === 0 && (
+                        <small>No unassigned active Team Leads or Team Members are available.</small>
+                      )}
+                    </>
+                  ) : operation.field === "teamLeadId" || operation.field === "headUserId" ? (
                     <>
                       <select id={`assignment-${operation.field}`} value={assignmentValues[operation.field] ?? ""} onChange={(event) => setAssignmentValues((current) => ({ ...current, [operation.field]: event.target.value }))} disabled={optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] || Boolean(optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"])}>
                         <option value="">{optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] ? "Loading eligible users…" : operation.field === "teamLeadId" ? "Select a team lead" : "Select a department head"}</option>

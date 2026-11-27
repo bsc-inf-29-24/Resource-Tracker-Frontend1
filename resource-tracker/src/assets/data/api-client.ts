@@ -3,6 +3,10 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+export interface ApiRequestFeedbackOptions {
+  successToast?: boolean;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -90,10 +94,15 @@ async function send<T>(
   path: string,
   options: RequestInit,
   accessToken?: string,
+  successToast = true,
 ): Promise<T> {
   const method = (options.method ?? "GET").toUpperCase();
   const notify = (type: "success" | "error", message: string) => {
-    if (method !== "GET" && !path.startsWith("/api/v1/auth")) {
+    if (
+      method !== "GET" &&
+      !path.startsWith("/api/v1/auth") &&
+      (type === "error" || successToast)
+    ) {
       window.dispatchEvent(new CustomEvent("resource-tracker:toast", { detail: { type, message } }));
     }
   };
@@ -183,10 +192,12 @@ export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
   authenticated = true,
+  feedback: ApiRequestFeedbackOptions = {},
 ): Promise<T> {
   const tokens = authenticated ? getStoredAuthTokens() : null;
+  const notifySuccess = feedback.successToast !== false;
   try {
-    return await send<T>(path, options, tokens?.accessToken);
+    return await send<T>(path, options, tokens?.accessToken, notifySuccess);
   } catch (error) {
     if (
       !(error instanceof ApiError) ||
@@ -199,7 +210,7 @@ export async function apiRequest<T>(
 
     const refreshed = await refreshAuthTokens();
     try {
-      return await send<T>(path, options, refreshed.accessToken);
+      return await send<T>(path, options, refreshed.accessToken, notifySuccess);
     } catch (retryError) {
       if (retryError instanceof ApiError && retryError.status === 401) {
         clearAuthSession();

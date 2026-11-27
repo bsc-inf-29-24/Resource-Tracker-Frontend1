@@ -29,7 +29,21 @@ interface AuthTokens {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function unwrapUserProfile(value: unknown): Record<string, unknown> | null {
+  let current = value;
+
+  for (let depth = 0; depth < 5; depth += 1) {
+    if (!isRecord(current)) return null;
+
+    const nested = current.data ?? current.result ?? current.user ?? current.profile;
+    if (nested === undefined) return current;
+    current = nested;
+  }
+
+  return isRecord(current) ? current : null;
 }
 
 function readTokens(): AuthTokens | null {
@@ -189,7 +203,9 @@ export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
     typeof fullName !== "string" ||
     !fullName.trim() ||
     typeof profile.email !== "string" ||
-    typeof profile.role !== "string"
+    !profile.email.trim() ||
+    typeof profile.role !== "string" ||
+    !profile.role.trim()
   ) {
     throw new Error("The user profile response is missing required account fields.");
   }

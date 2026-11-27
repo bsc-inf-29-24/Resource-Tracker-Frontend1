@@ -8,8 +8,8 @@ import ApiManagementPage, {
 import styles from "./TeamsPage.module.css";
 
 const teamFields: ApiField[] = [
-  { name: "name", label: "Team name", required: true },
-  { name: "description", label: "Team Description", kind: "textarea" },
+  { name: "name", label: "Team name", required: true, minLength: 3, maxLength: 100 },
+  { name: "description", label: "Team description", kind: "textarea", maxLength: 500 },
   { name: "departmentId", label: "Department", kind: "select-number", optionSource: "departments", required: true },
 ];
 

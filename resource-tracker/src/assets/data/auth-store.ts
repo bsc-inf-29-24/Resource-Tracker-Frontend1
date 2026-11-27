@@ -29,7 +29,21 @@ interface AuthTokens {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function unwrapUserProfile(value: unknown): Record<string, unknown> | null {
+  let current = value;
+
+  for (let depth = 0; depth < 5; depth += 1) {
+    if (!isRecord(current)) return null;
+
+    const nested = current.data ?? current.result ?? current.user ?? current.profile;
+    if (nested === undefined) return current;
+    current = nested;
+  }
+
+  return isRecord(current) ? current : null;
 }
 
 function readTokens(): AuthTokens | null {
@@ -165,21 +179,37 @@ function normalizeUser(
 }
 
 export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
-  const profile = await request<unknown>("/api/v1/users/me");
+  const profile = unwrapUserProfile(await request<unknown>("/api/v1/users/me"));
+  const nameFromParts = profile
+    ? [profile.firstName, profile.middleName, profile.surname ?? profile.lastName]
+        .filter(
+          (part): part is string =>
+            typeof part === "string" && Boolean(part.trim()),
+        )
+        .map((part) => part.trim())
+        .join(" ")
+    : "";
+  const fullName = [profile?.fullName, profile?.name, nameFromParts].find(
+    (name): name is string => typeof name === "string" && Boolean(name.trim()),
+  );
+  const id = profile?.id ?? profile?._id;
   if (
-    !isRecord(profile) ||
-    typeof profile.id !== "string" ||
-    typeof profile.fullName !== "string" ||
+    !profile ||
+    (typeof id !== "string" && typeof id !== "number") ||
+    !String(id).trim() ||
+    !fullName ||
     typeof profile.email !== "string" ||
-    typeof profile.role !== "string"
+    !profile.email.trim() ||
+    typeof profile.role !== "string" ||
+    !profile.role.trim()
   ) {
     throw new Error("The user profile response is missing required account fields.");
   }
   const normalized = normalizeUser({
-    id: profile.id,
-    fullName: profile.fullName,
-    email: profile.email,
-    role: profile.role,
+    id: String(id),
+    fullName: fullName.trim(),
+    email: profile.email.trim(),
+    role: profile.role.trim(),
     department:
       typeof profile.department === "string" ? profile.department : null,
     team: typeof profile.team === "string" ? profile.team : null,

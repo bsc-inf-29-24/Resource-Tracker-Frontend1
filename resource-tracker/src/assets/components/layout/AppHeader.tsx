@@ -21,29 +21,13 @@ interface AppHeaderProps {
   onSignOut: () => void;
 }
 
-function getPageContext(pathname: string, role: UserRole | null | undefined) {
-  if (!role) return "";
-  const items = navigationConfig[role];
-  const item = [...items]
-    .sort((left, right) => right.path.length - left.path.length)
-    .find(
-      ({ path }) =>
-        pathname === path ||
-        (pathname.startsWith(`${path}/`) &&
-          !(role === "SYSTEM_ADMIN" &&
-            path === "/system-admin/users" &&
-            pathname.startsWith("/system-admin/users/new")))
-    );
-  return item?.label ?? roleDisplayNames[role];
-}
-
 function getDashboardPath(role: UserRole | null | undefined) {
   return role
     ? navigationConfig[role].find((item) => item.label === "Dashboard")?.path ??
         {
           TEAM_LEAD: "/team-lead/dashboard",
           LINE_MANAGER: "/line-manager/dashboard",
-          DEPARTMENT_MANAGER: "/department-manager/requests",
+          DEPARTMENT_MANAGER: "/department-manager/dashboard",
           MANAGING_DIRECTOR: "/managing-director/dashboard",
           SYSTEM_ADMIN: "/system-admin/dashboard",
           TEAM_MEMBER: "/team-member/dashboard",
@@ -103,9 +87,6 @@ export default function AppHeader({
           RT
         </span>
         <span className={styles.brandText}>Resource Tracker</span>
-        {role === "TEAM_LEAD" && <span className={styles.workspaceLabel}>Team Lead</span>}
-        {role === "MANAGING_DIRECTOR" && <span className={styles.workspaceLabel}>Managing Director</span>}
-        {role === "DEPARTMENT_MANAGER" && <span className={styles.workspaceLabel}>Department Head</span>}
       </Link>
       {/* <span className={styles.pageContext} aria-current="page">
         {getPageContext(pathname, role)}

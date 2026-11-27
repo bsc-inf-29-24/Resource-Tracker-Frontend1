@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import { useResourceRequests } from "../../data/request-store";
 import { getRequestsAwaitingAction } from "../../utils/status";
 import RequestTable from "./RequestTable";
@@ -17,9 +18,7 @@ export default function RequestToReviewPage() {
         description="Pending requests and queried requests with a response from the requesting Team Lead."
       />
       {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
+        <WarningMessage variant="inline" message={persistenceWarning} />
       )}
       <RequestTable requests={awaitingAction} />
     </div>

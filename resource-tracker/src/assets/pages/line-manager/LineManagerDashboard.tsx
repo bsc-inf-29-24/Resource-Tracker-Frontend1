@@ -500,7 +500,7 @@ export default function LineManagerDashboard() {
               itemLabel="request"
               pageSize={8}
               emptyTitle="No matching requests"
-              emptyDescription="Try changing the search or filters."
+              emptyDescription="Adjust the search criteria or filters to broaden the results."
             />
           )}
         </section>

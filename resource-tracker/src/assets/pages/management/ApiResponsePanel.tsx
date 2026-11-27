@@ -9,6 +9,7 @@ interface ApiResponsePanelProps {
   data: unknown;
   loading?: boolean;
   error?: string;
+  errorTitle?: string;
   onRefresh?: () => void;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -22,9 +23,10 @@ export default function ApiResponsePanel({
   data,
   loading = false,
   error,
+  errorTitle = "Unable to load data",
   onRefresh,
   emptyTitle = "No records returned",
-  emptyDescription = "The backend returned no records.",
+  emptyDescription = "The backend response did not contain any records.",
   noResponseTitle = "No response yet",
   noResponseDescription = "Run a request to load the response.",
   expandableRecords = false,
@@ -47,7 +49,7 @@ export default function ApiResponsePanel({
       {loading ? (
         <LoadingState message="Loading data..." />
       ) : error ? (
-        <ErrorMessage title="API operation failed" message={error} onRetry={onRefresh} />
+        <ErrorMessage title={errorTitle} message={error} onRetry={onRefresh} />
       ) : data === undefined ? (
         <EmptyState
           title={noResponseTitle}

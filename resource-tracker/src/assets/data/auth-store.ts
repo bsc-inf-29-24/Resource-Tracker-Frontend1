@@ -104,7 +104,7 @@ export function getDashboardPathForRole(role?: string | null): string {
     case "line_manager":
       return "/line-manager/dashboard";
     case "department_head":
-      return "/department-manager/requests";
+      return "/department-manager/dashboard";
     case "managing_director":
       return "/managing-director/dashboard";
     case "system_admin":
@@ -161,12 +161,19 @@ function normalizeUser(
   user: Partial<AuthenticatedUser> & {
     fullName?: string;
     name?: string;
+    firstName?: string;
+    middleName?: string | null;
+    surname?: string;
     role?: string;
   },
 ): AuthenticatedUser {
+  const structuredName = [user.firstName, user.middleName, user.surname]
+    .filter((part): part is string => typeof part === "string" && Boolean(part.trim()))
+    .join(" ");
+
   return {
     id: String(user.id ?? ""),
-    fullName: user.fullName ?? user.name ?? "User",
+    fullName: user.fullName ?? user.name ?? (structuredName || "User"),
     email: String(user.email ?? ""),
     role: String(user.role ?? ""),
     department: user.department ?? null,
@@ -179,25 +186,22 @@ function normalizeUser(
 }
 
 export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
-  const profile = unwrapUserProfile(await request<unknown>("/api/v1/users/me"));
-  const nameFromParts = profile
-    ? [profile.firstName, profile.middleName, profile.surname ?? profile.lastName]
+  const profile = await request<unknown>("/api/v1/users/me");
+  const fullName = isRecord(profile)
+    ? profile.fullName ??
+      profile.name ??
+      [profile.firstName, profile.middleName, profile.surname]
         .filter(
           (part): part is string =>
             typeof part === "string" && Boolean(part.trim()),
         )
-        .map((part) => part.trim())
         .join(" ")
     : "";
-  const fullName = [profile?.fullName, profile?.name, nameFromParts].find(
-    (name): name is string => typeof name === "string" && Boolean(name.trim()),
-  );
-  const id = profile?.id ?? profile?._id;
   if (
-    !profile ||
-    (typeof id !== "string" && typeof id !== "number") ||
-    !String(id).trim() ||
-    !fullName ||
+    !isRecord(profile) ||
+    typeof profile.id !== "string" ||
+    typeof fullName !== "string" ||
+    !fullName.trim() ||
     typeof profile.email !== "string" ||
     !profile.email.trim() ||
     typeof profile.role !== "string" ||
@@ -206,10 +210,10 @@ export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
     throw new Error("The user profile response is missing required account fields.");
   }
   const normalized = normalizeUser({
-    id: String(id),
-    fullName: fullName.trim(),
-    email: profile.email.trim(),
-    role: profile.role.trim(),
+    id: profile.id,
+    fullName,
+    email: profile.email,
+    role: profile.role,
     department:
       typeof profile.department === "string" ? profile.department : null,
     team: typeof profile.team === "string" ? profile.team : null,

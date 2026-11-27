@@ -157,7 +157,7 @@ function saveUsers(users: UserAccount[]) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
   } catch {
     throw new Error(
-      "The account change could not be saved in this browser. Check available storage and try again."
+      "The account change could not be saved in this browser. Confirm that sufficient storage is available, then retry."
     );
   }
   snapshot = { users };

@@ -3,6 +3,7 @@ import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import EmptyState from "../../components/feedback/EmptyState";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import DataTable from "../../components/tables/DataTable";
 import type { DataTableColumn } from "../../components/tables/type";
@@ -12,6 +13,7 @@ import {
   getApiRecords,
   humanizeApiKey,
   isApiRecord,
+  unwrapApiResponse,
 } from "../../data/api-response";
 import type { ApiRequestFeedbackOptions } from "../../data/api-client";
 import ApiDataView from "./ApiDataView";
@@ -75,15 +77,22 @@ interface ApiManagementPageProps {
   updateFields?: ApiField[];
   related?: RelatedOperation[];
   assignments?: AssignmentOperation[];
+  createAssignment?: AssignmentOperation;
+  hideRecordActions?: boolean;
+  hideRecordsTitle?: boolean;
   assignmentsInDialog?: boolean;
   expandableRecords?: boolean;
   recordsTitle?: string;
+  tableColumns?: DataTableColumn<ApiRecord>[];
   headingAction?: React.ReactNode;
   selectionLabel?: string;
   selectionDetailsInDialog?: boolean;
   createHeading?: string;
   createButtonLabel?: string;
-  createInPageHeader?: boolean;
+  createInDialog?: boolean;
+  updateInDialog?: boolean;
+  updateHeading?: string;
+  updateButtonLabel?: string;
 }
 
 function textValue(value: unknown): string {
@@ -163,13 +172,25 @@ function getRecordDisplayName(record: ApiRecord): string {
   }
   const firstName =
     typeof record.firstName === "string" ? record.firstName.trim() : "";
+  const middleName =
+    typeof record.middleName === "string" ? record.middleName.trim() : "";
   const lastName =
     typeof record.lastName === "string" ? record.lastName.trim() : "";
-  const fullName = [firstName, lastName].filter(Boolean).join(" ");
+  const surname =
+    typeof record.surname === "string" ? record.surname.trim() : "";
+  const fullName = [firstName, middleName, lastName || surname]
+    .filter(Boolean)
+    .join(" ");
   if (fullName) return fullName;
   return typeof record.email === "string" && record.email.trim()
     ? record.email.trim()
-    : "the selected user";
+    : "Unnamed user";
+}
+
+function getUserOptionLabel(record: ApiRecord): string {
+  const name = getRecordDisplayName(record);
+  const email = typeof record.email === "string" ? record.email.trim() : "";
+  return email && name !== email ? `${name} (${email})` : name;
 }
 
 export default function ApiManagementPage({
@@ -185,15 +206,22 @@ export default function ApiManagementPage({
   updateFields = fields,
   related = [],
   assignments = [],
+  createAssignment,
+  hideRecordActions = false,
+  hideRecordsTitle = false,
   assignmentsInDialog = false,
   expandableRecords = false,
   recordsTitle = "Users records",
+  tableColumns,
   headingAction,
   selectionLabel = "Select",
   selectionDetailsInDialog = false,
   createHeading,
   createButtonLabel,
-  createInPageHeader = false,
+  createInDialog = false,
+  updateInDialog = false,
+  updateHeading,
+  updateButtonLabel,
 }: ApiManagementPageProps) {
   const [data, setData] = useState<unknown>(null);
   const [detail, setDetail] = useState<unknown>(null);
@@ -208,9 +236,17 @@ export default function ApiManagementPage({
   const [busy, setBusy] = useState(false);
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [error, setError] = useState("");
+  const [errorTitle, setErrorTitle] = useState("Unable to load records");
+  const [warning, setWarning] = useState("");
   const [notice, setNotice] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [createdRecordId, setCreatedRecordId] = useState("");
+  const [creationBlocked, setCreationBlocked] = useState(false);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
+  const createDialogRef = useRef<HTMLDialogElement>(null);
+  const updateDialogRef = useRef<HTMLDialogElement>(null);
   const assignmentDialogRef = useRef<HTMLDialogElement>(null);
   const [pendingAssignment, setPendingAssignment] =
     useState<AssignmentOperation | null>(null);
@@ -237,6 +273,27 @@ export default function ApiManagementPage({
             name: record.name ?? record.departmentName,
           }));
           setOptionRecords((current) => ({ ...current, [source]: records }));
+          if (source === "departments") {
+            const validOptions = records.filter(
+              (record) =>
+                (typeof record.id === "number" ||
+                  (typeof record.id === "string" && record.id.trim() !== "")) &&
+                typeof record.name === "string" &&
+                record.name.trim() !== "",
+            );
+            if (validOptions.length === 1) {
+              const onlyId = String(validOptions[0].id);
+              setForm((current) => {
+                const updates: Record<string, string> = {};
+                for (const field of fields) {
+                  if (field.optionSource === "departments" && !current[field.name]) {
+                    updates[field.name] = onlyId;
+                  }
+                }
+                return Object.keys(updates).length ? { ...current, ...updates } : current;
+              });
+            }
+          }
         }
       }).catch((loadError) => {
         if (active) setOptionErrors((current) => ({ ...current, [source]: loadError instanceof Error ? loadError.message : "Options could not be loaded." }));
@@ -244,11 +301,16 @@ export default function ApiManagementPage({
         if (active) setOptionLoading((current) => ({ ...current, [source]: false }));
       });
     }
-    if (title === "Teams" && assignments.some(({ field }) => field === "teamLeadId")) {
+    if (title === "Teams" && (assignments.length || createAssignment)) {
       setOptionLoading((current) => ({ ...current, teamLeads: true }));
       void teamsApi.unassignedUsers().then((response) => {
         const eligible = getApiRecords(response).filter((user) => user.role === "TEAM_LEAD");
-        const options = eligible.filter((user) => typeof user.id === "string").map((user) => ({ value: String(user.id), label: `${typeof user.fullName === "string" ? user.fullName : user.id}${typeof user.email === "string" ? ` (${user.email})` : ""}` }));
+        const options = eligible
+          .filter((user) => typeof user.id === "string")
+          .map((user) => ({
+            value: String(user.id),
+            label: getUserOptionLabel(user),
+          }));
         if (active) setAssignmentValues((current) => ({ ...current, teamLeadOptions: JSON.stringify(options) }));
       }).catch((loadError) => {
         if (active) setOptionErrors((current) => ({ ...current, teamLeads: loadError instanceof Error ? loadError.message : "Team leads could not be loaded." }));
@@ -277,18 +339,24 @@ export default function ApiManagementPage({
       setOptionLoading((current) => ({ ...current, departmentHeads: true }));
       void usersApi.list().then((response) => {
         const eligible = getApiRecords(response).filter((user) => user.role === "DEPARTMENT_HEAD" && user.isActive !== false);
-        const options = eligible.filter((user) => typeof user.id === "string").map((user) => ({ value: String(user.id), label: `${typeof user.fullName === "string" ? user.fullName : user.id}${typeof user.email === "string" ? ` (${user.email})` : ""}` }));
+        const options = eligible
+          .filter((user) => typeof user.id === "string")
+          .map((user) => ({
+            value: String(user.id),
+            label: getUserOptionLabel(user),
+          }));
         if (active) setAssignmentValues((current) => ({ ...current, departmentHeadOptions: JSON.stringify(options) }));
       }).catch((loadError) => {
         if (active) setOptionErrors((current) => ({ ...current, departmentHeads: loadError instanceof Error ? loadError.message : "Department heads could not be loaded." }));
       }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, departmentHeads: false })); });
     }
     return () => { active = false; };
-  }, [assignments.length, fields, title]);
+  }, [assignments.length, createAssignment, fields, title]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError("");
+    setWarning("");
     try {
       const response = await list();
       const responseRecords = getApiRecords(response);
@@ -301,6 +369,7 @@ export default function ApiManagementPage({
       }
       setData(response);
     } catch (loadError) {
+      setErrorTitle("Unable to load records");
       setError(
         loadError instanceof Error
           ? loadError.message
@@ -314,6 +383,20 @@ export default function ApiManagementPage({
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    const dialog = createDialogRef.current;
+    if (!dialog) return;
+    if (createDialogOpen && !dialog.open) dialog.showModal();
+    else if (!createDialogOpen && dialog.open) dialog.close();
+  }, [createDialogOpen]);
+
+  useEffect(() => {
+    const dialog = updateDialogRef.current;
+    if (!dialog) return;
+    if (updateDialogOpen && !dialog.open) dialog.showModal();
+    else if (!updateDialogOpen && dialog.open) dialog.close();
+  }, [updateDialogOpen]);
 
   useEffect(() => {
     const dialog = assignmentDialogRef.current;
@@ -330,51 +413,59 @@ export default function ApiManagementPage({
     if (assignmentsInDialog) {
       setSelectedUserName(getRecordDisplayName(record));
     }
+    const selectedFields = updateInDialog ? updateFields : fields;
     setForm(
       Object.fromEntries(
-        fields.map((field) => [field.name, textValue(record[field.name])]),
+        selectedFields.map((field) => [field.name, textValue(record[field.name])]),
       ),
     );
     setDetail(
-      assignmentsInDialog && !selectionDetailsInDialog ? null : record,
+      (assignmentsInDialog && !selectionDetailsInDialog) || updateInDialog
+        ? null
+        : record,
     );
     setRelatedData(null);
     setError("");
+    setWarning("");
     setNotice("");
+    if (updateInDialog) setUpdateDialogOpen(true);
     if (assignmentsInDialog) setAssignmentDialogOpen(true);
-  }, [assignmentsInDialog, fields]);
+  }, [assignmentsInDialog, fields, updateFields, updateInDialog]);
 
   const records = useMemo(() => getApiRecords(data), [data]);
+  const recordsForTable = useMemo(() => {
+    if (title !== "Teams") return records;
+    const departments = optionRecords.departments ?? [];
+    return records.map((record) => {
+      if (typeof record.departmentName === "string" && record.departmentName.trim()) {
+        return record;
+      }
+      const nestedDepartment = isApiRecord(record.department)
+        ? record.department
+        : null;
+      const departmentId =
+        record.departmentId ??
+        (nestedDepartment ? nestedDepartment.id : undefined);
+      if (departmentId === undefined || departmentId === null) return record;
+      const department = departments.find(
+        (item) => String(item.id) === String(departmentId),
+      );
+      return typeof department?.name === "string"
+        ? { ...record, departmentName: department.name }
+        : record;
+    });
+  }, [optionRecords.departments, records, title]);
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
     const isUserAccounts = recordsTitle === "User accounts";
     const allKeys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
       ),
-    );
-    const documentedFields: Record<string, string[]> = {
-      Departments: ["id", "name", "code", "description"],
-      Teams: ["id", "name", "description", "department"],
-      Projects: ["id", "name", "description", "teams"],
-    };
-    const preferredKeys = documentedFields[title] ?? [];
-    const nestedRelationKeys =
-      title === "Teams" ? new Set(["department.id", "department.name"]) : new Set<string>();
-    const keys = [
-      ...preferredKeys,
-      ...allKeys.filter(
-        (key) =>
-          !preferredKeys.includes(key) &&
-          !nestedRelationKeys.has(key) &&
-          !(isUserAccounts && key.toLowerCase() === "id"),
-      ),
-    ];
-    const headers: Record<string, Record<string, string>> = {
-      Departments: { id: "ID", name: "Department", code: "Code" },
-      Teams: { id: "ID", name: "Team", department: "Department" },
-      Projects: { id: "ID", name: "Project" },
-    };
-    const result: DataTableColumn<ApiRecord>[] = keys.map((key) => {
+    ).filter((key) => !(isUserAccounts && key.toLowerCase() === "id"));
+    const result: DataTableColumn<ApiRecord>[] = tableColumns
+      ? [...tableColumns]
+      : keys.map((key) => {
+      const normalizedKey = key.toLowerCase().replace(/[_.\s-]/g, "");
       return {
         key,
         header:
@@ -425,7 +516,7 @@ export default function ApiManagementPage({
     records,
     remove,
     selectRecord,
-    title,
+    tableColumns,
     update,
   ]);
 
@@ -484,20 +575,32 @@ export default function ApiManagementPage({
   }
 
   function validateFields(fieldList: ApiField[]): string | null {
-    const missing = visibleFields(fieldList)
+    const visible = visibleFields(fieldList);
+    const unavailableSources = visible.filter(
+      (field) =>
+        field.required &&
+        field.optionSource &&
+        optionErrors[field.optionSource] &&
+        !form[field.name]?.trim(),
+    );
+    if (unavailableSources.length) {
+      const labels = unavailableSources.map((field) => field.label.toLowerCase()).join(", ");
+      return `The available ${labels} options could not be retrieved right now. Please refresh the page or contact your administrator before submitting.`;
+    }
+    const missing = visible
       .filter((field) => field.required && !form[field.name]?.trim())
       .map((field) => field.label);
     if (missing.length) {
-      return `Complete the required fields: ${missing.join(", ")}.`;
+      return `Please complete the required fields before submitting: ${missing.join(", ")}.`;
     }
     if (
-      visibleFields(fieldList).some((field) => field.name === "startDate") &&
-      visibleFields(fieldList).some((field) => field.name === "endDate") &&
+      visible.some((field) => field.name === "startDate") &&
+      visible.some((field) => field.name === "endDate") &&
       form.startDate &&
       form.endDate &&
       form.startDate > form.endDate
     ) {
-      return "End date must be on or after start date.";
+      return "Please ensure the end date is on or after the start date.";
     }
     return null;
   }
@@ -506,10 +609,10 @@ export default function ApiManagementPage({
     operation: () => Promise<unknown>,
     successMessage: string,
     refreshList = true,
-    onSuccess?: () => void,
-  ) {
+  ): Promise<boolean> {
     setBusy(true);
     setError("");
+    setWarning("");
     setNotice("");
     try {
       const response = await operation();
@@ -517,13 +620,19 @@ export default function ApiManagementPage({
       setRelatedData(null);
       if (successMessage) setNotice(successMessage);
       if (refreshList) await reload();
-      onSuccess?.();
+      return true;
     } catch (operationError) {
-      setError(
+      const message =
         operationError instanceof Error
           ? operationError.message
-          : "The operation could not be completed.",
+          : "The request could not be completed.";
+      setErrorTitle("Unable to complete request");
+      setError(
+        /^a managing director is already assigned\.?$/i.test(message.trim())
+          ? "A Managing Director account is already assigned. Only one account may be assigned at a time."
+          : message,
       );
+      return false;
     } finally {
       setBusy(false);
     }
@@ -540,28 +649,112 @@ export default function ApiManagementPage({
 
   async function createRecord() {
     if (!create) return;
-    const validationError = validateFields(fields);
-    if (validationError) {
-      setError(validationError);
+    const assigneeId = createAssignment
+      ? assignmentValues[createAssignment.field]?.trim() ?? ""
+      : "";
+    if (
+      createAssignment &&
+      createAssignment.requiresValue !== false &&
+      !assigneeId
+    ) {
+      setError("");
+      setNotice("");
+      setWarning(`Select ${createAssignment?.label.toLowerCase()} before creating the team.`);
       return;
     }
-    await runOperation(
-      () =>
-        create(
-          buildBody(fields),
-          createInPageHeader ? { successToast: false } : undefined,
-        ),
-      createInPageHeader ? "" : "The record was created.",
-      true,
-      createInPageHeader
-        ? () => {
-            setCreateFormOpen(false);
-            setForm(Object.fromEntries(fields.map((field) => [field.name, ""])));
-            setDetail(null);
-            setRelatedData(null);
-          }
-        : undefined,
-    );
+    if (createdRecordId && createAssignment) {
+      const succeeded = await runOperation(
+        () => createAssignment.run(createdRecordId, assigneeId),
+        "The team and team lead are assigned.",
+      );
+      if (succeeded) {
+        setCreateDialogOpen(false);
+        setDetail(null);
+        setRelatedData(null);
+        setForm(Object.fromEntries(fields.map((field) => [field.name, ""])));
+        setCreatedRecordId("");
+        setCreationBlocked(false);
+        setAssignmentValues((current) => ({
+          ...current,
+          [createAssignment.field]: "",
+        }));
+      }
+      return;
+    }
+    const validationError = validateFields(fields);
+    if (validationError) {
+      setError("");
+      setNotice("");
+      setWarning(validationError);
+      return;
+    }
+    let body: ApiRecord;
+    try {
+      body = buildBody(fields);
+    } catch (validationException) {
+      setError("");
+      setNotice("");
+      setWarning(
+        validationException instanceof Error
+          ? validationException.message
+          : "Please review the entered fields before submitting.",
+      );
+      return;
+    }
+    const succeeded = await runOperation(async () => {
+      const response = await create(body);
+      if (!createAssignment) return response;
+
+      const unwrapped = unwrapApiResponse(response);
+      const createdRecord =
+        isApiRecord(unwrapped) && isApiRecord(unwrapped.team)
+          ? unwrapped.team
+          : unwrapped;
+      const recordId = isApiRecord(createdRecord)
+        ? createdRecord.id ?? createdRecord.teamId
+        : undefined;
+      if (
+        (typeof recordId !== "string" || !recordId.trim()) &&
+        (typeof recordId !== "number" || !Number.isFinite(recordId))
+      ) {
+        setCreationBlocked(true);
+        await reload();
+        throw new Error(
+          "The team was created, but its ID was missing from the response, so the team lead could not be assigned. Refresh the teams list and contact an administrator; do not submit the form again.",
+        );
+      }
+
+      const newRecordId = String(recordId);
+      setCreatedRecordId(newRecordId);
+      setSelectedId(newRecordId);
+      try {
+        await createAssignment.run(newRecordId, assigneeId);
+      } catch (assignmentError) {
+        await reload();
+        const message =
+          assignmentError instanceof Error
+            ? assignmentError.message
+            : "The assignment request failed.";
+        throw new Error(
+          `The team was created, but assigning its team lead failed. Retry the assignment here without creating the team again. ${message}`,
+        );
+      }
+      return response;
+    }, createAssignment ? "The team and team lead are assigned." : "The record was created.");
+    if (succeeded && createInDialog) {
+      setCreateDialogOpen(false);
+      setDetail(null);
+      setRelatedData(null);
+      setForm(Object.fromEntries(fields.map((field) => [field.name, ""])));
+      setCreatedRecordId("");
+      setCreationBlocked(false);
+      if (createAssignment) {
+        setAssignmentValues((current) => ({
+          ...current,
+          [createAssignment.field]: "",
+        }));
+      }
+    }
   }
 
   function toggleCreateForm() {
@@ -577,13 +770,33 @@ export default function ApiManagementPage({
     if (!update || !selectedId.trim()) return;
     const validationError = validateFields(updateFields);
     if (validationError) {
-      setError(validationError);
+      setError("");
+      setNotice("");
+      setWarning(validationError);
       return;
     }
-    await runOperation(
-      () => update(selectedId.trim(), buildBody(updateFields)),
+    let body: ApiRecord;
+    try {
+      body = buildBody(updateFields);
+    } catch (validationException) {
+      setError("");
+      setNotice("");
+      setWarning(
+        validationException instanceof Error
+          ? validationException.message
+          : "Please review the entered fields before submitting.",
+      );
+      return;
+    }
+    const succeeded = await runOperation(
+      () => update(selectedId.trim(), body),
       "The record was updated.",
     );
+    if (succeeded && updateInDialog) {
+      setUpdateDialogOpen(false);
+      setDetail(null);
+      setRelatedData(null);
+    }
   }
 
   async function deleteRecord() {
@@ -599,9 +812,11 @@ export default function ApiManagementPage({
     if (!selectedId.trim()) return;
     setBusy(true);
     setError("");
+    setWarning("");
     try {
       setRelatedData(await operation.load(selectedId.trim()));
     } catch (relatedError) {
+      setErrorTitle("Unable to load related records");
       setError(
         relatedError instanceof Error
           ? relatedError.message
@@ -616,7 +831,9 @@ export default function ApiManagementPage({
     if (!selectedId.trim()) return;
     const value = assignmentValues[operation.field]?.trim() ?? "";
     if (operation.requiresValue !== false && !value) {
-      setError(`Enter ${operation.label.toLowerCase()} first.`);
+      setError("");
+      setNotice("");
+      setWarning(`Please provide ${operation.label.toLowerCase()} before continuing.`);
       return;
     }
     const onSuccess =
@@ -643,6 +860,14 @@ export default function ApiManagementPage({
     );
   }
 
+  function updateFormField(name: string, nextValue: string) {
+    setWarning("");
+    setForm((current) => ({
+      ...current,
+      [name]: nextValue,
+    }));
+  }
+
   function renderField(field: ApiField) {
     if (field.when && form[field.when.field] !== field.when.value) return null;
     const value = form[field.name] ?? "";
@@ -662,16 +887,11 @@ export default function ApiManagementPage({
             minLength={field.minLength}
             maxLength={field.maxLength}
             placeholder={`Enter ${field.label.toLowerCase()}`}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                [field.name]: event.target.value,
-              }))
-            }
+            onChange={(event) => updateFormField(field.name, event.target.value)}
           />
         ) : field.kind === "select-options" ? (
           <>
-            <select id={id} value={value} required={field.required} disabled={optionLoading[field.optionSource ?? ""] || Boolean(optionErrors[field.optionSource ?? ""])} onChange={(event) => setForm((current) => ({ ...current, [field.name]: event.target.value }))}>
+            <select id={id} value={value} required={field.required} disabled={optionLoading[field.optionSource ?? ""] || Boolean(optionErrors[field.optionSource ?? ""])} onChange={(event) => updateFormField(field.name, event.target.value)}>
               <option value="">{optionLoading[field.optionSource ?? ""] ? "Loading departments…" : "Choose a department"}</option>
               {(optionRecords[field.optionSource ?? ""] ?? []).filter((record) => (typeof record.id === "number" || (typeof record.id === "string" && record.id.trim() !== "")) && typeof record.name === "string" && record.name.trim() !== "").map((record) => <option key={String(record.id)} value={String(record.id)}>{String(record.name)}</option>)}
             </select>
@@ -682,7 +902,7 @@ export default function ApiManagementPage({
           <>
             <select id={id} multiple={field.kind === "multi-select-number"} value={field.kind === "multi-select-number" ? undefined : value} required={field.required} disabled={optionLoading[field.optionSource ?? ""] || Boolean(optionErrors[field.optionSource ?? ""])} onChange={(event) => {
               const selected = field.kind === "multi-select-number" ? Array.from(event.currentTarget.selectedOptions, (option) => option.value).join(",") : event.target.value;
-              setForm((current) => ({ ...current, [field.name]: selected }));
+              updateFormField(field.name, selected);
             }}>
               {field.kind !== "multi-select-number" && <option value="">{optionLoading[field.optionSource ?? ""] ? "Loading departments..." : optionErrors[field.optionSource ?? ""] ? "Departments unavailable" : (optionRecords[field.optionSource ?? ""] ?? []).length === 0 ? "No departments available" : "Select a department"}</option>}
               {(optionRecords[field.optionSource ?? ""] ?? []).filter((record) => (typeof record.id === "number" || (typeof record.id === "string" && record.id.trim() !== "")) && typeof record.name === "string" && record.name.trim() !== "").map((record) => <option key={String(record.id)} value={String(record.id)}>{String(record.name)}</option>)}
@@ -697,12 +917,7 @@ export default function ApiManagementPage({
             id={id}
             value={value}
             required={field.required}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                [field.name]: event.target.value,
-              }))
-            }
+            onChange={(event) => updateFormField(field.name, event.target.value)}
           >
             <option value="">Select</option>
             {field.options?.map((option) => (
@@ -722,15 +937,7 @@ export default function ApiManagementPage({
             value={value}
             placeholder={`Enter ${field.label.toLowerCase()}`}
             required={field.required}
-            minLength={field.minLength}
-            maxLength={field.maxLength}
-            pattern={field.pattern}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                [field.name]: event.target.value,
-              }))
-            }
+            onChange={(event) => updateFormField(field.name, event.target.value)}
           />
         )}
         {(field.kind === "list" || field.kind === "number-list") && (
@@ -763,7 +970,10 @@ export default function ApiManagementPage({
         }
       />
       {error && (
-        <ErrorMessage title="API operation failed" message={error} onRetry={reload} />
+        <ErrorMessage title={errorTitle} message={error} onRetry={reload} />
+      )}
+      {warning && (
+        <WarningMessage title="Action required" message={warning} />
       )}
       {notice && (
         <p className={styles.notice} role="status">
@@ -816,11 +1026,34 @@ export default function ApiManagementPage({
       )}
 
       <section className={`rt-root rt-card ${styles.panel}`}>
-        <div className={styles.panelHeading}>
-          <h2>{recordsTitle}</h2>
+        <div className={`${styles.panelHeading} ${hideRecordsTitle ? styles.panelHeadingActionsOnly : ""}`}>
+          {!hideRecordsTitle && <h2>{recordsTitle}</h2>}
           <div className={styles.actions}>
             {headingAction}
             <button type="button" className="rt-root rt-btn rt-btn--outline" disabled={loading || busy} onClick={() => void reload()}>{loading ? "Refreshing…" : "Refresh"}</button>
+            {create && createInDialog && (
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--primary"
+                disabled={busy || Boolean(createdRecordId) || creationBlocked}
+                onClick={() => {
+                  setForm(Object.fromEntries(fields.map((field) => [field.name, ""])));
+                  setCreatedRecordId("");
+                  setCreationBlocked(false);
+                  if (createAssignment) {
+                    setAssignmentValues((current) => ({
+                      ...current,
+                      [createAssignment.field]: "",
+                    }));
+                  }
+                  setWarning("");
+                  setError("");
+                  setCreateDialogOpen(true);
+                }}
+              >
+                {createButtonLabel ?? `Create ${title === "Teams" ? "Team" : "Record"}`}
+              </button>
+            )}
           </div>
         </div>
         {loading ? (
@@ -828,28 +1061,26 @@ export default function ApiManagementPage({
         ) : records.length > 0 && columns.length > 0 ? (
           <DataTable
             columns={columns}
-            rows={records}
-            pageSize={4}
-            expandable={expandableRecords}
+            rows={recordsForTable}
             itemLabel="record"
             emptyTitle="No records"
-            emptyDescription="The backend returned no records."
+            emptyDescription="The backend response did not contain any records."
           />
         ) : (
           <ApiDataView
             data={data}
-            expandableRecords={expandableRecords}
-            emptyTitle={data === null ? "No response data" : "No records found"}
+            emptyTitle={data === null ? "No response data" : "No records are currently available"}
             emptyDescription={
               data === null
-                ? "Refresh to request the current records from the backend."
-                : "The backend returned no object records."
+                ? "No response data was received."
+                : "The backend response did not contain any records."
             }
           />
         )}
       </section>
 
-      {(get ||
+      {!hideRecordActions && (get ||
+        create ||
         update ||
         remove ||
         related.length > 0 ||
@@ -888,9 +1119,10 @@ export default function ApiManagementPage({
             )}
           </div>
 
-          {!createInPageHeader && (create || update) && (
+          {(create || update) && !createInDialog && (
             <form
               className={styles.form}
+              noValidate
               onSubmit={(event) => {
                 event.preventDefault();
                 if (create) void createRecord();
@@ -1039,6 +1271,183 @@ export default function ApiManagementPage({
             </div>
           )}
         </section>
+      )}
+
+      {create && createInDialog && (
+        <dialog
+          ref={createDialogRef}
+          className={styles.assignmentDialog}
+          aria-labelledby="create-record-title"
+          onCancel={(event) => {
+            if (busy || createdRecordId) event.preventDefault();
+          }}
+          onClose={() => {
+            if (!busy && !createdRecordId) setCreateDialogOpen(false);
+          }}
+        >
+          <div className={styles.dialogHeading}>
+            <h2 id="create-record-title">
+              {createHeading ?? `Create ${title === "Teams" ? "Team" : "Record"}`}
+            </h2>
+            <button
+              type="button"
+              className="rt-root rt-btn rt-btn--outline"
+              disabled={busy || Boolean(createdRecordId)}
+              onClick={() => setCreateDialogOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+          {error && <ErrorMessage title={errorTitle} message={error} onRetry={reload} />}
+          {warning && <WarningMessage title="Action required" message={warning} />}
+          <form
+            className={styles.form}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void createRecord();
+            }}
+          >
+            <fieldset
+              className={styles.createFields}
+              disabled={busy || Boolean(createdRecordId) || creationBlocked}
+            >
+              <div className={styles.grid}>{fields.map(renderField)}</div>
+            </fieldset>
+            {createAssignment && createAssignment.requiresValue !== false && (
+              <label className={styles.field} htmlFor={`create-${createAssignment.field}`}>
+                <span>{createAssignment.label} *</span>
+                <select
+                  id={`create-${createAssignment.field}`}
+                  required
+                  value={assignmentValues[createAssignment.field] ?? ""}
+                  disabled={
+                    busy ||
+                    creationBlocked ||
+                    optionLoading.teamLeads ||
+                    Boolean(optionErrors.teamLeads)
+                  }
+                  onChange={(event) =>
+                    setAssignmentValues((current) => ({
+                      ...current,
+                      [createAssignment.field]: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">
+                    {optionLoading.teamLeads
+                      ? "Loading eligible team leads…"
+                      : optionErrors.teamLeads
+                        ? "Team leads unavailable"
+                        : "Select a team lead"}
+                  </option>
+                  {(
+                    JSON.parse(
+                      assignmentValues.teamLeadOptions ?? "[]",
+                    ) as { value: string; label: string }[]
+                  ).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                {optionErrors.teamLeads && (
+                  <small role="alert">{optionErrors.teamLeads}</small>
+                )}
+                {!optionLoading.teamLeads &&
+                  !optionErrors.teamLeads &&
+                  JSON.parse(assignmentValues.teamLeadOptions ?? "[]").length ===
+                    0 && <small>No eligible team leads are available.</small>}
+              </label>
+            )}
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--outline"
+                disabled={busy || Boolean(createdRecordId)}
+                onClick={() => setCreateDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rt-root rt-btn rt-btn--primary"
+                disabled={
+                  busy ||
+                  creationBlocked ||
+                  Boolean(optionErrors.teamLeads) ||
+                  Boolean(
+                    createAssignment &&
+                      createAssignment.requiresValue !== false &&
+                      !assignmentValues[createAssignment.field]?.trim(),
+                  )
+                }
+              >
+                {busy
+                  ? createdRecordId
+                    ? "Assigning…"
+                    : "Saving…"
+                  : createdRecordId
+                    ? "Retry assignment"
+                    : createButtonLabel ?? "Create"}
+              </button>
+            </div>
+          </form>
+        </dialog>
+      )}
+
+      {update && updateInDialog && (
+        <dialog
+          ref={updateDialogRef}
+          className={styles.assignmentDialog}
+          aria-labelledby="update-record-title"
+          onClose={() => setUpdateDialogOpen(false)}
+        >
+          <div className={styles.dialogHeading}>
+            <h2 id="update-record-title">
+              {updateHeading ?? `Edit ${title === "Teams" ? "team" : "record"}`}
+            </h2>
+            <button
+              type="button"
+              className="rt-root rt-btn rt-btn--outline"
+              disabled={busy}
+              onClick={() => setUpdateDialogOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+          {error && <ErrorMessage title={errorTitle} message={error} onRetry={reload} />}
+          {warning && <WarningMessage title="Action required" message={warning} />}
+          <form
+            className={styles.form}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void updateRecord();
+            }}
+          >
+            <fieldset className={styles.createFields} disabled={busy}>
+              <div className={styles.grid}>{updateFields.map(renderField)}</div>
+            </fieldset>
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--outline"
+                disabled={busy}
+                onClick={() => setUpdateDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rt-root rt-btn rt-btn--primary"
+                disabled={busy || !selectedId.trim()}
+              >
+                {busy ? "Saving…" : updateButtonLabel ?? "Save changes"}
+              </button>
+            </div>
+          </form>
+        </dialog>
       )}
 
         {(detail !== null || relatedData !== null) && !selectionDetailsInDialog && (

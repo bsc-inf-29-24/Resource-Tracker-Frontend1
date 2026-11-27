@@ -102,7 +102,6 @@ export interface ResourceInput {
 export type ResourceType = "insourced" | "outsourced";
 
 export type ApiRequestStatus =
-  | "DRAFT"
   | "SUBMITTED"
   | "QUERIED"
   | "APPROVED"
@@ -128,7 +127,7 @@ export interface UpdateResourceRequestInput {
   projectId?: number;
   lineManagerName?: string;
   teamId?: number;
-  status?: Exclude<ApiRequestStatus, "DRAFT">;
+  status?: ApiRequestStatus;
   note?: string;
 }
 
@@ -409,7 +408,7 @@ export const resourcesApi = {
 export const resourceRequestsApi = {
   list: (teamId?: string, status?: ApiRequestStatus) =>
     apiRequest<unknown>(
-      withQuery("/resource-requests/api/v1/resource-request", {
+      withQuery("/api/v1/resource-request", {
         teamId,
         status,
       }),
@@ -417,18 +416,18 @@ export const resourceRequestsApi = {
   get: (id: string, include?: string) =>
     apiRequest<unknown>(
       withQuery(
-        `/resource-requests/api/v1/resource-request/${encodeURIComponent(id)}`,
+        `/api/v1/resource-request/${encodeURIComponent(id)}`,
         { include },
       ),
     ),
   create: (input: CreateResourceRequestInput) =>
-    apiRequest<unknown>("/resource-requests/api/v1/resource-request", {
+    apiRequest<unknown>("/api/v1/resource-request", {
       method: "POST",
       body: JSON.stringify(input),
     }),
   update: (id: string, input: UpdateResourceRequestInput) =>
     apiRequest<unknown>(
-      `/resource-requests/api/v1/resource-request/${encodeURIComponent(id)}`,
+      `/api/v1/resource-request/${encodeURIComponent(id)}`,
       { method: "PATCH", body: JSON.stringify(input) },
     ),
 };

@@ -5,6 +5,11 @@
   text-align: left;
 }
 
+.dashboardContent {
+  display: grid;
+  gap: 1.5rem;
+}
+
 /* .demoNotice, */
 /* .warning, */
 /* .empty { */

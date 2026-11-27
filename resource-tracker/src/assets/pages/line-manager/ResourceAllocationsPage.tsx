@@ -281,7 +281,7 @@ export default function ResourceAllocationsPage() {
           pageSize={10}
           showEmptyTable
           emptyTitle="No recent allocations"
-          emptyDescription="There are no active allocations yet. Choose a resource below to review it and allocate inventory."
+          emptyDescription="No active allocations are available. Select a resource below to review it and allocate inventory."
         />
       )}
       {!error && (

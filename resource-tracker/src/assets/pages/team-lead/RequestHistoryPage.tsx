@@ -22,7 +22,6 @@ import styles from "./RequestHistoryPage.module.css";
 type RequestRecord = Record<string, unknown>;
 
 const statuses: ApiRequestStatus[] = [
-  "DRAFT",
   "SUBMITTED",
   "QUERIED",
   "APPROVED",

@@ -45,7 +45,7 @@ function DataTable<Row extends object>({
   error,
   onRetry,
   showEmptyTable = false,
-  emptyTitle = "No records found",
+  emptyTitle = "No records are currently available",
   emptyDescription = "There are no records to display.",
   emptyActionLabel,
   onEmptyAction,
@@ -100,7 +100,7 @@ function DataTable<Row extends object>({
     content = (
       <ErrorMessage
         message={error}
-        title="Could not load data"
+        title="Unable to load data"
         onRetry={onRetry}
       />
     );

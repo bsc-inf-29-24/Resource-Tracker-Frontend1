@@ -209,55 +209,181 @@
 
 .loginCard {
   display: flex;
-  min-height: calc(100vh - 96px);
+  min-height: auto;
   flex-direction: column;
   text-align: center;
+  padding-top: 0;
 }
 
 .loginEyebrow {
-  font-size: 1.9rem;
+  margin: 0;
+  color: #194d27;
+  font-size: 2.45rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.15;
+  text-transform: none;
+  transform: translateY(-8px);
 }
 
 .loginTitle {
-  margin-top: 1.5rem;
-  font-size: 2.5rem;
+  margin: 8px 0 38px;
+  padding-bottom: 0;
+  color: #194d27;
+  font-size: 2.45rem;
+  line-height: 1.15;
+  text-transform: lowercase;
+  transform: translateY(-9px);
 }
 
 .loginCard .form {
   width: 100%;
-  gap: 1.5rem;
+  gap: 26px;
+  transform: translateY(-10px);
+}
+
+.loginCard .field {
+  gap: 3px;
 }
 
 .loginLinks {
   justify-content: flex-end;
-  margin-top: -0.8rem;
-  margin-bottom: -0.2rem;
+  margin-top: -16px;
+  margin-bottom: 18px;
+  transform: translateY(-4px);
+}
+
+.loginLinks a {
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
 .staffNotice {
-  margin: auto 0 0;
-  color: var(--rt-green-800);
-  font-size: 1rem;
+  margin: 72px 0 0;
+  color: #194d27;
+  font-size: 1.05rem;
   font-weight: 700;
   text-align: center;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 850px) {
   .loginCard {
     min-height: auto;
   }
 
+  .loginEyebrow,
+  .loginTitle,
+  .loginCard .form,
+  .loginCard .field:nth-child(2),
+  .loginCard .field:first-child input,
+  .loginLinks,
+  .loginCard .submit,
   .staffNotice {
-    margin-top: 2rem;
+    transform: none;
+  }
+
+  .loginEyebrow,
+  .loginTitle {
+    font-size: 2rem;
+  }
+
+  .loginTitle {
+    margin-bottom: 28px;
+  }
+
+  .staffNotice {
+    margin-top: 40px;
   }
 }
 
 .loginCard .field input {
-  min-height: 68px;
-  font-size: 1.1rem;
+  min-height: 60px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 1.05rem;
+}
+
+.loginCard .field label {
+  font-size: 1.05rem;
+}
+
+.iconControl,
+.passwordControl {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fieldIcon {
+  position: absolute;
+  z-index: 1;
+  left: 15px;
+  width: 20px;
+  height: 20px;
+  color: #52705e;
+  pointer-events: none;
+}
+
+.loginCard .iconControl input,
+.loginCard .passwordControl input {
+  padding-left: 46px;
 }
 
 .loginCard .submit {
-  min-height: 68px;
-  font-size: 1.15rem;
+  min-height: 62px;
+  margin-top: 0;
+  border-radius: 999px;
+  background: #00513c;
+  font-size: 1.35rem;
+  letter-spacing: 0;
+  text-transform: lowercase;
+  transform: translateY(-3px);
+}
+
+.loginCard .submit:hover:not(:disabled) {
+  background: #003e2d;
+}
+
+.loginCard .passwordControl input {
+  padding-right: 48px;
+}
+
+.passwordControl .passwordToggle {
+  right: 10px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  color: #365646;
+}
+
+.passwordToggle:hover {
+  background: #eff5f0;
+}
+
+.passwordToggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.loginCard .field:first-child input {
+  transform: translateY(-4px);
+}
+
+.loginCard .field:nth-child(2) {
+  transform: translateY(-1px);
+}
+
+.staffNotice {
+  transform: translateY(-6px);
+}
+
+@media (max-width: 850px) {
+  .loginCard .field:first-child input,
+  .loginCard .field:nth-child(2),
+  .loginCard .submit,
+  .staffNotice {
+    transform: none;
+  }
 }

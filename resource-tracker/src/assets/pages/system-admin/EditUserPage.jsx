@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import { updateUser, useUsers } from "../../data/user-store";
 import AdminUserForm from "./AdminUserForm";
@@ -15,7 +16,7 @@ export default function EditUserPage() {
       <div className={`rt-root ${styles.page}`}>
         <PageHeader title="Edit user account" />
         {persistenceWarning && (
-          <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+          <WarningMessage title="Using demonstration accounts" message={persistenceWarning} />
         )}
         <ErrorMessage
           title="User not found"
@@ -32,7 +33,7 @@ export default function EditUserPage() {
         description="Update this account record. Account status is managed separately."
       />
       {persistenceWarning && (
-        <ErrorMessage title="Using demonstration accounts" message={persistenceWarning} />
+        <WarningMessage title="Using demonstration accounts" message={persistenceWarning} />
       )}
       <AdminUserForm
         user={user}

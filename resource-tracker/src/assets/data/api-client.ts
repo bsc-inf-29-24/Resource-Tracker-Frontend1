@@ -121,7 +121,7 @@ async function send<T>(
   } catch {
     notify("error", "Unable to reach the Resource Tracker API.");
     throw new ApiError(
-      "Unable to reach the Resource Tracker API. Check that the backend is running and try again.",
+      "Unable to reach the Resource Tracker API. Confirm that the backend is running, then retry.",
       0,
       null,
     );

@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import StatusLabel from "../../components/status/StatusLabel";
 import { useUsers } from "../../data/user-store";
@@ -23,7 +24,7 @@ export default function UserDetailsPage() {
       <div className={`rt-root ${styles.page}`}>
         <PageHeader title="User account details" />
         {persistenceWarning && (
-          <ErrorMessage
+          <WarningMessage
             title="Using demonstration accounts"
             message={persistenceWarning}
           />
@@ -41,7 +42,7 @@ export default function UserDetailsPage() {
       <section className={styles.details}>
         <PageHeader title={user.name} description="User account details." />
         {persistenceWarning && (
-          <ErrorMessage
+          <WarningMessage
             title="Using demonstration accounts"
             message={persistenceWarning}
           />

@@ -67,7 +67,7 @@ export default function UserDetailsPage() {
       ) : (
         <EmptyState
           title="No user data"
-          description="The user list returned no data. Refresh to try again."
+          description="The user list returned no data. Refresh the page to reload the list."
         />
       )}
     </section>

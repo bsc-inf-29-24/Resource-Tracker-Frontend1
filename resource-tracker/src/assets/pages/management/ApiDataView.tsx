@@ -72,8 +72,7 @@ export default function ApiDataView({
   data,
   title,
   emptyTitle = "No records returned",
-  emptyDescription = "The backend returned no records.",
-  expandableRecords = false,
+  emptyDescription = "The backend response did not contain any records.",
   depth = 0,
   fieldIcons = false,
 }: ApiDataViewProps) {

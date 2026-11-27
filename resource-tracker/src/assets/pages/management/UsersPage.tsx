@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { assignableUserRoles, usersApi } from "../../data/api-services";
 import type { AssignableUserRole } from "../../data/api-services";
+import PageHeader from "../../components/layout/PageHeader";
 import ApiManagementPage from "./ApiManagementPage";
 import styles from "./ApiManagementPage.module.css";
 
@@ -11,6 +13,17 @@ function isAssignableUserRole(value: string): value is AssignableUserRole {
 export default function UsersPage() {
   return (
     <div className={`rt-root ${styles.page}`}>
+      <PageHeader
+        title="User accounts"
+        supplementary={
+          <Link
+            to="/system-admin/users/new"
+            className="rt-root rt-btn rt-btn--primary"
+          >
+            Create User
+          </Link>
+        }
+      />
       <ApiManagementPage
         // title=""
         // description=""

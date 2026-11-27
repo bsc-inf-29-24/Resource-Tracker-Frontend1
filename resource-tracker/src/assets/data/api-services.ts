@@ -510,6 +510,14 @@ export const reportsApi = {
     ),
 };
 
+export interface AuditLogFilters {
+  userId?: string;
+  actionType?: string;
+  entityType?: string;
+  date?: string;
+  time?: string;
+}
+
 export const auditLogsApi = {
   list: (filters: AuditLogFilters = {}) =>
     apiRequest<unknown>(

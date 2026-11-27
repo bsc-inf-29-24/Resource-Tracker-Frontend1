@@ -76,6 +76,7 @@ interface ApiManagementPageProps {
   related?: RelatedOperation[];
   assignments?: AssignmentOperation[];
   assignmentsInDialog?: boolean;
+  expandableRecords?: boolean;
   recordsTitle?: string;
   headingAction?: React.ReactNode;
   selectionLabel?: string;
@@ -185,6 +186,7 @@ export default function ApiManagementPage({
   related = [],
   assignments = [],
   assignmentsInDialog = false,
+  expandableRecords = false,
   recordsTitle = "Users records",
   headingAction,
   selectionLabel = "Select",
@@ -790,6 +792,8 @@ export default function ApiManagementPage({
           <DataTable
             columns={columns}
             rows={records}
+            pageSize={4}
+            expandable={expandableRecords}
             itemLabel="record"
             emptyTitle="No records"
             emptyDescription="The backend returned no records."
@@ -797,6 +801,7 @@ export default function ApiManagementPage({
         ) : (
           <ApiDataView
             data={data}
+            expandableRecords={expandableRecords}
             emptyTitle={data === null ? "No response data" : "No records found"}
             emptyDescription={
               data === null

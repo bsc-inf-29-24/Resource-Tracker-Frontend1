@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import RequestDetails from "../../components/requests/RequestDetails";
 import RequestTimeline from "../../components/requests/RequestTimeline";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import { mockUsers } from "../../data/mock-data";
 import { useResourceRequests } from "../../data/request-store";
 import { getCurrentDepartmentManager } from "../../utils/department-manager";
@@ -50,9 +51,7 @@ export default function DepartmentRequestDetailsPage() {
       </div>
 
       {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
+        <WarningMessage variant="inline" message={persistenceWarning} />
       )}
 
       <RequestDetails request={request} />

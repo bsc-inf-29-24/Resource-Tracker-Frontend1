@@ -196,14 +196,14 @@ export default function SharedComponentsDemo() {
         />
         <TextAreaField
           label="Purpose / Justification"
-          placeholder="Explaining why this resource is needed..."
+          placeholder="Provide the reason this resource is required."
           value={form.reason}
           onChange={set("reason")}
         />
       </section>
 
       <ErrorMessage
-        message="The server did not respond. Check your connection and try again."
+        message="The server did not respond. Verify your connection, then retry."
         onRetry={() => {}}
       />
       <EmptyState

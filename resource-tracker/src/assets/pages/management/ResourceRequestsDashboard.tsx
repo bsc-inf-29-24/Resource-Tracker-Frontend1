@@ -26,7 +26,6 @@ import styles from "./ApiManagementPage.module.css";
 type RequestRecord = Record<string, unknown>;
 
 const requestStatuses: ApiRequestStatus[] = [
-  "DRAFT",
   "SUBMITTED",
   "QUERIED",
   "APPROVED",
@@ -147,8 +146,8 @@ export default function ResourceRequestsDashboard({
         <LoadingState message="Loading backend requests..." />
       ) : !error && !loading && requests === undefined ? (
         <EmptyState
-          title="No request response"
-          description="No request data."
+          title="No response data"
+          description="No request data was returned."
         />
       ) : !error && !isDepartmentHeadDashboard ? (
         <>
@@ -179,12 +178,12 @@ export default function ResourceRequestsDashboard({
               rows={requestRecords.slice(0, 5)}
               itemLabel="request"
               emptyTitle="No requests"
-              emptyDescription="no requests for this account."
+              emptyDescription="No requests are available for this account."
             />
           ) : (
             <EmptyState
               title="No requests found"
-              description="an empty request list for this account returned."
+              description="No requests are currently available for this account."
             />
           )}
         </>

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import RequestDetails from "../../components/requests/RequestDetails";
 import RequestTimeline from "../../components/requests/RequestTimeline";
 import { useResourceRequests, addRequestQuery, recordDecision } from "../../data/request-store";
@@ -93,9 +94,7 @@ export default function RequestReviewDetailsPage() {
           Back to requests
         </Link>
         {persistenceWarning && (
-          <p className={styles.warning} role="alert">
-            {persistenceWarning}
-          </p>
+          <WarningMessage variant="inline" message={persistenceWarning} />
         )}
         <h1>Request not found</h1>
         <p>
@@ -125,9 +124,7 @@ export default function RequestReviewDetailsPage() {
       </div>
 
       {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
+        <WarningMessage variant="inline" message={persistenceWarning} />
       )}
       {notice && (
         <p

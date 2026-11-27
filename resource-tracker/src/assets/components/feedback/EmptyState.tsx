@@ -12,7 +12,7 @@ interface EmptyStateProps {
 }
 
 function EmptyState({
-  title = "Nothing here yet",
+  title = "No information is available",
   message,
   description,
   icon,
@@ -20,7 +20,7 @@ function EmptyState({
   onAction,
 }: EmptyStateProps) {
   const emptyDescription =
-    description ?? message ?? "There is nothing to display here for now.";
+    description ?? message ?? "There is currently no information to display.";
   return (
     <div className="rt-root rt-state">
       <span className="rt-state__icon">

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import FilterToolbar from "../../components/filters/filterToolbar";
 import PageHeader from "../../components/layout/PageHeader";
 import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
@@ -136,9 +137,7 @@ export default function SpendingReportsPage() {
       />
 
       {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
+        <WarningMessage variant="inline" message={persistenceWarning} />
       )}
 
       <FilterToolbar

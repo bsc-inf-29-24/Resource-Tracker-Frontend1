@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import RequestTimeline from "../../components/requests/RequestTimeline";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import { mockUsers } from "../../data/mock-data";
 import { useResourceRequests } from "../../data/request-store";
@@ -31,9 +32,7 @@ export default function DecisionHistoryPage() {
       </div>
 
       {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
+        <WarningMessage variant="inline" message={persistenceWarning} />
       )}
 
       {historyRequests.length === 0 ? (

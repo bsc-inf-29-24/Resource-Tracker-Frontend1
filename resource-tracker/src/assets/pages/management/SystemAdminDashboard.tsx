@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Activity,
   ClipboardList,
-  UserPlus,
   UsersRound,
 } from "lucide-react";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import { useAuth } from "../../context/AuthContext";
 import { auditLogsApi, usersApi } from "../../data/api-services";
 import { getApiRecords, type ApiRecord } from "../../data/api-response";
-import { getFrontendRoleFromBackendRole } from "../../data/auth-store";
 import styles from "./SystemAdminDashboard.module.css";
 
 type RegistrationMonth = {
@@ -144,14 +141,6 @@ export default function SystemAdminDashboard() {
     : "conic-gradient(var(--rt-border) 0% 100%)";
   const activeUsers = users.filter((record) => record.isActive !== false).length;
   const firstName = user?.fullName?.trim().split(/\s+/)[0] || "Administrator";
-  const isSystemAdmin = getFrontendRoleFromBackendRole(user?.role) === "SYSTEM_ADMIN";
-  const quickActions = isSystemAdmin
-    ? [
-        { label: "Manage users", detail: "View and update user accounts", href: "/system-admin/users", icon: UsersRound },
-        { label: "Create a user", detail: "Add an account to the system", href: "/system-admin/users/new", icon: UserPlus },
-        { label: "Review audit logs", detail: "See recent system activity", href: "/system-admin/audit-logs", icon: ClipboardList },
-      ]
-    : [];
 
   return (
     <section className={`rt-root ${styles.page}`}>
@@ -248,27 +237,6 @@ export default function SystemAdminDashboard() {
         </section>
       </div>
 
-      {quickActions.length > 0 && (
-        <section className={styles.quickPanel} aria-labelledby="quick-actions-title">
-          <div className={styles.sectionHeading}>
-            <div>
-              <h2 id="quick-actions-title">Admin tools</h2>
-              <p>Common account and system tasks</p>
-            </div>
-          </div>
-          <nav className={styles.quickActions} aria-label="Admin tools">
-            {quickActions.map(({ label, detail, href, icon: Icon }) => (
-              <Link className={styles.quickAction} to={href} key={href}>
-                <span className={styles.quickIcon}><Icon aria-hidden="true" size={19} /></span>
-                <span className={styles.quickCopy}>
-                  <strong>{label}</strong>
-                  <small>{detail}</small>
-                </span>
-              </Link>
-            ))}
-          </nav>
-        </section>
-      )}
     </section>
   );
 }

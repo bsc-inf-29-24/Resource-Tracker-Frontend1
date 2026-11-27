@@ -90,7 +90,7 @@ export function getDashboardPathForRole(role?: string | null): string {
     case "line_manager":
       return "/line-manager/dashboard";
     case "department_head":
-      return "/department-manager/requests";
+      return "/department-manager/dashboard";
     case "managing_director":
       return "/managing-director/dashboard";
     case "system_admin":
@@ -147,12 +147,19 @@ function normalizeUser(
   user: Partial<AuthenticatedUser> & {
     fullName?: string;
     name?: string;
+    firstName?: string;
+    middleName?: string | null;
+    surname?: string;
     role?: string;
   },
 ): AuthenticatedUser {
+  const structuredName = [user.firstName, user.middleName, user.surname]
+    .filter((part): part is string => typeof part === "string" && Boolean(part.trim()))
+    .join(" ");
+
   return {
     id: String(user.id ?? ""),
-    fullName: user.fullName ?? user.name ?? "User",
+    fullName: user.fullName ?? user.name ?? (structuredName || "User"),
     email: String(user.email ?? ""),
     role: String(user.role ?? ""),
     department: user.department ?? null,
@@ -166,10 +173,21 @@ function normalizeUser(
 
 export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
   const profile = await request<unknown>("/api/v1/users/me");
+  const fullName = isRecord(profile)
+    ? profile.fullName ??
+      profile.name ??
+      [profile.firstName, profile.middleName, profile.surname]
+        .filter(
+          (part): part is string =>
+            typeof part === "string" && Boolean(part.trim()),
+        )
+        .join(" ")
+    : "";
   if (
     !isRecord(profile) ||
     typeof profile.id !== "string" ||
-    typeof profile.fullName !== "string" ||
+    typeof fullName !== "string" ||
+    !fullName.trim() ||
     typeof profile.email !== "string" ||
     typeof profile.role !== "string"
   ) {
@@ -177,7 +195,7 @@ export async function getCurrentUserProfile(): Promise<AuthenticatedUser> {
   }
   const normalized = normalizeUser({
     id: profile.id,
-    fullName: profile.fullName,
+    fullName,
     email: profile.email,
     role: profile.role,
     department:

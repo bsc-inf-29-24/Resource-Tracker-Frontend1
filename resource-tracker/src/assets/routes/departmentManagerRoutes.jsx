@@ -1,5 +1,8 @@
 import lazyPage from "./lazyPage";
-import { Navigate } from "react-router-dom";
+
+const DepartmentDashboard = lazyPage(
+  () => import("../pages/department-manager/DepartmentDashboard"),
+);
 
 const DepartmentRequestPage = lazyPage(
   () => import("../pages/department-manager/DepartmentRequestPage"),
@@ -15,7 +18,7 @@ const ResourceAllocationPage = lazyPage(
 );
 
 const departmentManagerRoutes = [
-  { path: "/department-manager/dashboard", element: <Navigate to="/department-manager/requests" replace /> },
+  { path: "/department-manager/dashboard", element: <DepartmentDashboard /> },
   { path: "/department-manager/requests", element: <DepartmentRequestPage /> },
   {
     path: "/department-manager/requests/:id",

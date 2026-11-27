@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import DataTable from "../../components/tables/DataTable";
 import type { DataTableColumn } from "../../components/tables/type";
 import EmptyState from "../../components/feedback/EmptyState";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
+import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
-import StatusLabel from "../../components/status/StatusLabel";
 import {
   resourceRequestsApi,
   type ApiRequestStatus,
@@ -18,7 +18,6 @@ import {
   formatApiValue,
   getApiRecords,
   humanizeApiKey,
-  isApiRecord,
 } from "../../data/api-response";
 import ApiDataView from "./ApiDataView";
 import styles from "./ApiManagementPage.module.css";
@@ -27,7 +26,6 @@ type ApiRecord = Record<string, unknown>;
 type PageMode = "history" | "review" | "query-response";
 
 const requestStatuses: ApiRequestStatus[] = [
-  "DRAFT",
   "SUBMITTED",
   "QUERIED",
   "APPROVED",
@@ -62,18 +60,6 @@ function getRequestId(record: ApiRecord): string | undefined {
   return typeof id === "string" || typeof id === "number" ? String(id) : undefined;
 }
 
-function firstValue(...values: unknown[]): unknown {
-  return values.find((value) => value !== undefined && value !== null && value !== "");
-}
-
-function formatRequestDate(value: unknown): string {
-  if (typeof value === "string" || typeof value === "number") {
-    const date = new Date(value);
-    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString();
-  }
-  return formatApiValue(value);
-}
-
 function isAwaitingManagerDecision(record: ApiRecord): boolean {
   const status = String(record.status ?? "").toUpperCase();
   return status === "SUBMITTED" || status === "PENDING";
@@ -99,6 +85,8 @@ export function ResourceRequestsPage({
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errorTitle, setErrorTitle] = useState("Unable to load requests");
+  const [warning, setWarning] = useState("");
   const [detailError, setDetailError] = useState("");
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus>("APPROVED");
   const [note, setNote] = useState("");
@@ -108,13 +96,17 @@ export function ResourceRequestsPage({
   const [pendingRejection, setPendingRejection] = useState<ApiRecord | null>(null);
   const [rejectionNote, setRejectionNote] = useState("");
   const [actionBusy, setActionBusy] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const detailsDialogRef = useRef<HTMLDialogElement>(null);
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
     setError("");
+    setWarning("");
     try {
       setData(await resourceRequestsApi.list(undefined, statusFilter || undefined));
     } catch (requestError) {
+      setErrorTitle("Unable to load requests");
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -162,169 +154,23 @@ export function ResourceRequestsPage({
     if (initialId) void loadDetail(initialId);
   }, [initialId, loadDetail]);
 
+  useEffect(() => {
+    const dialog = detailsDialogRef.current;
+    if (!dialog) return;
+    if (detailsDialogOpen && !dialog.open) dialog.showModal();
+    else if (!detailsDialogOpen && dialog.open) dialog.close();
+  }, [detailsDialogOpen]);
+
   const records = useMemo(
     () => getApiRecords(data),
     [data],
   );
-  const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
-    if (lineManagerActions) {
-      return [
-        {
-          key: "requester",
-          header: "Requester",
-          render: (record) => formatValue(firstValue(
-            record.requesterName,
-            record.requestedByName,
-            record.requester,
-            record.requestedBy,
-            record.submittedBy,
-            record.createdBy,
-          )),
-        },
-        {
-          key: "department",
-          header: "Department",
-          render: (record) => {
-            const requester = firstValue(
-              record.requester,
-              record.requestedBy,
-              record.submittedBy,
-              record.createdBy,
-            );
-            const team = record.team;
-            return formatValue(firstValue(
-              record.departmentName,
-              record.department,
-              record.requesterDepartment,
-              record.requestedByDepartment,
-              isApiRecord(requester)
-                ? firstValue(requester.departmentName, requester.department)
-                : undefined,
-              isApiRecord(team)
-                ? firstValue(team.departmentName, team.department)
-                : undefined,
-            ));
-          },
-        },
-        {
-          key: "team",
-          header: "Team",
-          render: (record) => formatValue(firstValue(
-            record.teamName,
-            record.team,
-            record.requestingTeam,
-            record.teamId,
-          )),
-        },
-        {
-          key: "resource",
-          header: "Resource",
-          render: (record) => formatValue(firstValue(
-            record.resourceName,
-            record.itemDescription,
-            record.resource,
-          )),
-        },
-        {
-          key: "category",
-          header: "Category",
-          render: (record) => {
-            const resource = record.resource;
-            return formatValue(firstValue(
-              record.category,
-              record.resourceCategory,
-              record.resourceType,
-              isApiRecord(resource)
-                ? firstValue(resource.category, resource.type)
-                : undefined,
-              record.type,
-            ));
-          },
-        },
-        {
-          key: "quantity",
-          header: "Quantity",
-          render: (record) => formatValue(record.quantity),
-        },
-        {
-          key: "submittedAt",
-          header: "Date Submitted",
-          render: (record) => formatRequestDate(firstValue(
-            record.submittedAt,
-            record.dateSubmitted,
-            record.createdAt,
-            record.submissionDate,
-          )),
-        },
-        {
-          key: "requiredDate",
-          header: "Required Date",
-          render: (record) => formatRequestDate(firstValue(
-            record.requiredDate,
-            record.requiredAt,
-            record.requiredByDate,
-            record.dateRequired,
-            record.dateNeeded,
-            record.neededBy,
-          )),
-        },
-        {
-          key: "status",
-          header: "Status",
-          render: (record) => (
-            <StatusLabel
-              status={typeof record.status === "string" ? record.status : undefined}
-            />
-          ),
-        },
-        {
-          key: "actions",
-          header: "Actions",
-          render: (record) => {
-            const requestId = getRequestId(record);
-            if (!requestId) return "Request ID not provided";
-            return (
-              <div className={styles.requestRowActions}>
-                <Link
-                  className="rt-root rt-btn rt-btn--outline"
-                  to={`/line-manager/requests/${encodeURIComponent(requestId)}`}
-                >
-                  View
-                </Link>
-                {isAwaitingManagerDecision(record) && (
-                  <>
-                    <button
-                      type="button"
-                      className="rt-root rt-btn rt-btn--primary"
-                      disabled={actionBusy}
-                      onClick={() => {
-                        setError("");
-                        setPendingApproval(record);
-                      }}
-                    >
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      className="rt-root rt-btn rt-btn--danger"
-                      disabled={actionBusy}
-                      onClick={() => {
-                        setError("");
-                        setRejectionNote("");
-                        setPendingRejection(record);
-                      }}
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
-              </div>
-            );
-          },
-        },
-      ];
-    }
+  const openRequestDetails = useCallback((requestId: string) => {
+    if (!initialId) setDetailsDialogOpen(true);
+    void loadDetail(requestId);
+  }, [initialId, loadDetail]);
 
+  const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
     const keys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
@@ -339,39 +185,72 @@ export function ResourceRequestsPage({
       key: "actions",
       header: "Actions",
       render: (record) => {
-        const requestId = record.id;
-        if (typeof requestId !== "string" && typeof requestId !== "number") {
+        const requestId = getRequestId(record);
+        if (!requestId) {
           return "Request ID not provided";
         }
         return (
-          <button
-            type="button"
-            className="rt-root rt-btn rt-btn--outline"
-            onClick={() => void loadDetail(String(requestId))}
-          >
-            View
-          </button>
+          <div className={styles.requestRowActions}>
+            <button
+              type="button"
+              className="rt-root rt-btn rt-btn--outline"
+              aria-label={`View request ${requestId}`}
+              onClick={() => openRequestDetails(requestId)}
+            >
+              View
+            </button>
+            {lineManagerActions && isAwaitingManagerDecision(record) && (
+              <>
+                <button
+                  type="button"
+                  className="rt-root rt-btn rt-btn--primary"
+                  disabled={actionBusy}
+                  onClick={() => {
+                    setError("");
+                    setPendingApproval(record);
+                  }}
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  className="rt-root rt-btn rt-btn--danger"
+                  disabled={actionBusy}
+                  onClick={() => {
+                    setError("");
+                    setRejectionNote("");
+                    setPendingRejection(record);
+                  }}
+                >
+                  Reject
+                </button>
+              </>
+            )}
+          </div>
         );
       },
     });
     return result;
-  }, [actionBusy, lineManagerActions, loadDetail, records]);
+  }, [actionBusy, lineManagerActions, openRequestDetails, records]);
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedId) {
-      setError("Select a request from the backend list first.");
+      setError("");
+      setWarning("Please select a request from the list before submitting a decision.");
       return;
     }
     if (
       (reviewStatus === "QUERIED" || reviewStatus === "REJECTED") &&
       !note.trim()
     ) {
-      setError("A note is required for a query or rejection.");
+      setError("");
+      setWarning("Please provide a note before submitting a query or rejection.");
       return;
     }
     setBusy(true);
     setError("");
+    setWarning("");
     setNotice("");
     const body =
       reviewStatus === "QUERIED" || reviewStatus === "REJECTED"
@@ -383,6 +262,7 @@ export function ResourceRequestsPage({
       setNote("");
       await loadRequests();
     } catch (requestError) {
+      setErrorTitle("Unable to update request");
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -400,15 +280,18 @@ export function ResourceRequestsPage({
   ) {
     const requestId = getRequestId(record);
     if (!requestId) {
-      setError("The selected request has no ID and cannot be updated.");
+      setError("");
+      setWarning("The selected request does not have an identifier and cannot be updated.");
       return;
     }
     if (status === "REJECTED" && !decisionNote?.trim()) {
-      setError("A rejection reason is required.");
+      setError("");
+      setWarning("Please provide a rejection reason before continuing.");
       return;
     }
     setActionBusy(true);
     setError("");
+    setWarning("");
     setNotice("");
     try {
       await resourceRequestsApi.update(requestId, {
@@ -424,6 +307,7 @@ export function ResourceRequestsPage({
       await loadRequests();
       if (selectedId === requestId) await loadDetail(requestId);
     } catch (requestError) {
+      setErrorTitle("Unable to update request");
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -434,17 +318,83 @@ export function ResourceRequestsPage({
     }
   }
 
-  const detailId = initialId || selectedId;
+  const detailId = selectedId || initialId;
+  const detailContent = (
+    <>
+      {detailError && (
+        <ErrorMessage
+          title="Request details could not be loaded"
+          message={detailError}
+          onRetry={() => void loadDetail(detailId)}
+        />
+      )}
+      {detailLoading ? (
+        <LoadingState message="Loading request details..." />
+      ) : detail !== undefined ? (
+        <ApiDataView data={detail} />
+      ) : !detailError ? (
+        <EmptyState
+          title="Request details are not loaded"
+          description="Select a request from the table to view its details."
+        />
+      ) : null}
+      {mode === "review" && selectedId && (
+        <form className={styles.form} onSubmit={submitReview}>
+          <h3>Submit a Line Manager decision</h3>
+          <label className={styles.field} htmlFor="request-review-status">
+            <span>Decision</span>
+            <select
+              id="request-review-status"
+              value={reviewStatus}
+              onChange={(event) => {
+                if (isReviewStatus(event.target.value)) {
+                  setReviewStatus(event.target.value);
+                }
+              }}
+            >
+              {reviewStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+          {(reviewStatus === "QUERIED" || reviewStatus === "REJECTED") && (
+            <label className={styles.field} htmlFor="request-review-note">
+              <span>Note *</span>
+              <textarea
+                id="request-review-note"
+                rows={4}
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                required
+              />
+            </label>
+          )}
+          <button
+            type="submit"
+            className="rt-root rt-btn rt-btn--primary"
+            disabled={busy || !selectedId.trim()}
+          >
+            {busy ? "Submitting..." : "Submit decision"}
+          </button>
+        </form>
+      )}
+    </>
+  );
 
   return (
     <section className={`rt-root ${styles.page}`}>
       <PageHeader title={title} description={description} />
       {error && (
         <ErrorMessage
-          title="Request operation failed"
+          title={errorTitle}
           message={error}
           onRetry={loadRequests}
         />
+      )}
+      {warning && (
+        <WarningMessage title="Action required" message={warning} />
       )}
       {notice && (
         <p className={styles.notice} role="status">
@@ -498,93 +448,43 @@ export function ResourceRequestsPage({
         ) : data !== undefined ? (
           <EmptyState
             title="No backend requests"
-            description="returned an empty request list for the selected status."
+            description="No requests are currently available for the selected status."
           />
         ) : (
           <EmptyState
             title="No response data"
-            description="Refresh to request the current list. "
+            description="No request data was received."
           />
         )}
       </section>
 
-      <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2>Request details</h2>
-          {detailError && (
-            <ErrorMessage
-              title="Request details could not be loaded"
-              message={detailError}
-              onRetry={() => void loadDetail(detailId)}
-            />
-          )}
-          {detailLoading ? (
-            <LoadingState message="Loading request details..." />
-          ) : detail !== undefined ? (
-            <ApiDataView data={detail} />
-          ) : (
-            <label className={styles.field} htmlFor="request-id">
-              <span>Request ID</span>
-              <input
-                id="request-id"
-                value={selectedId || initialId}
-                onChange={(event) => setSelectedId(event.target.value)}
-                placeholder="Select a row or enter the request UUID"
-              />
-            </label>
-          )}
-          {detail === undefined && (
+      {initialId && (
+        <section className={`rt-root rt-card ${styles.panel}`}>
+          <h2>Request details</h2>
+          {detailContent}
+        </section>
+      )}
+
+      {!initialId && (
+        <dialog
+          ref={detailsDialogRef}
+          className={styles.assignmentDialog}
+          aria-labelledby="request-details-title"
+          onClose={() => setDetailsDialogOpen(false)}
+        >
+          <div className={styles.dialogHeading}>
+            <h2 id="request-details-title">Request details</h2>
             <button
               type="button"
               className="rt-root rt-btn rt-btn--outline"
-              disabled={detailLoading || !(selectedId || initialId).trim()}
-              onClick={() => void loadDetail(selectedId || initialId)}
+              onClick={() => setDetailsDialogOpen(false)}
             >
-              Load request details
+              Close
             </button>
-          )}
-          {mode === "review" && (
-            <form className={styles.form} onSubmit={submitReview}>
-              <h3>Submit a Line Manager decision</h3>
-              <label className={styles.field} htmlFor="request-review-status">
-                <span>Decision</span>
-                <select
-                  id="request-review-status"
-                  value={reviewStatus}
-                  onChange={(event) => {
-                    if (isReviewStatus(event.target.value)) {
-                      setReviewStatus(event.target.value);
-                    }
-                  }}
-                >
-                  {reviewStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {(reviewStatus === "QUERIED" || reviewStatus === "REJECTED") && (
-                <label className={styles.field} htmlFor="request-review-note">
-                  <span>Note *</span>
-                  <textarea
-                    id="request-review-note"
-                    rows={4}
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    required
-                  />
-                </label>
-              )}
-              <button
-                type="submit"
-                className="rt-root rt-btn rt-btn--primary"
-                disabled={busy || !selectedId.trim()}
-              >
-                {busy ? "Submitting..." : "Submit decision"}
-              </button>
-            </form>
-          )}
-      </section>
+          </div>
+          {detailContent}
+        </dialog>
+      )}
 
       <ConfirmDialog
         open={Boolean(pendingApproval)}
@@ -734,7 +634,7 @@ export function LineManagerDecisionHistoryPage() {
 export function DepartmentRequestListPage() {
   return (
     <ResourceRequestsPage
-      title="Department requests"
+      title="Requests"
       description=""
     />
   );
@@ -743,7 +643,7 @@ export function DepartmentRequestListPage() {
 export function DepartmentRequestDetailsPage() {
   return (
     <ResourceRequestsPage
-      title="Department request details"
+      title="Request details"
       description="Inspect request details and the audit trail."
       includeAudit
     />

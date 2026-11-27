@@ -122,7 +122,7 @@ function saveRequests(requests: ResourceRequest[]) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
   } catch {
     throw new Error(
-      "The request could not be saved in this browser. Check available storage and try again."
+      "The request could not be saved in this browser. Confirm that sufficient storage is available, then retry."
     );
   }
 

@@ -1,270 +1,247 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import DataTable from "../../components/tables/DataTable";
-import PageHeader from "../../components/layout/PageHeader";
-import FilterToolbar from "../../components/filters/filterToolbar";
 import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
+import EmptyState from "../../components/feedback/EmptyState";
+import ErrorMessage from "../../components/feedback/ErrorMessage";
+import LoadingState from "../../components/feedback/LoadingState";
+import WarningMessage from "../../components/feedback/WarningMessage";
+import PageHeader from "../../components/layout/PageHeader";
 import StatusLabel from "../../components/status/StatusLabel";
-import { useResourceRequests } from "../../data/request-store";
-import { formatCurrency, formatDate } from "../../utils/format";
-import {
-  applyDepartmentFilters,
-  getApprovedAmount,
-  getCurrentDepartmentManager,
-  getDepartmentRequests,
-  getProjectTotals,
-  getRecentRequests,
-  getRequestedAmount,
-  getSpentDifference,
-  getStatusCounts,
-} from "../../utils/department-manager";
-import type { RequestStatus, ResourceRequest } from "../../types/resource-request";
-import type { ToolbarFilter } from "../../components/filters/filterToolbar";
+import DataTable from "../../components/tables/DataTable";
+import type { DataTableColumn } from "../../components/tables/type";
+import { useAuth } from "../../context/AuthContext";
+import { getApiRecords, isApiRecord, unwrapApiResponse } from "../../data/api-response";
+import { ApiError } from "../../data/api-client";
+import { resourceRequestsApi } from "../../data/api-services";
+import { formatCurrency } from "../../utils/format";
 import styles from "./DepartmentDashboard.module.css";
 
-type StatusFilter = RequestStatus | "All";
+type RequestRecord = Record<string, unknown>;
+
+const requestStatuses = ["SUBMITTED", "QUERIED", "APPROVED", "REJECTED"] as const;
+
+function valueLabel(value: unknown): string {
+  if (typeof value === "string" && value.trim()) return value;
+  if (typeof value === "number") return String(value);
+  if (isApiRecord(value)) {
+    const label = value.name ?? value.title ?? value.id;
+    if (typeof label === "string" || typeof label === "number") return String(label);
+  }
+  return "Not specified";
+}
+
+function requestAmount(request: RequestRecord, approved = false): number {
+  const resource = isApiRecord(request.resource) ? request.resource : undefined;
+  const unitPrice = Number(request.price ?? resource?.price ?? 0);
+  const rawQuantity = approved
+    ? request.approvedQuantity ?? request.quantity
+    : request.quantity;
+  const quantity = Number(rawQuantity ?? 0);
+  return Number.isFinite(unitPrice * quantity) ? unitPrice * quantity : 0;
+}
+
+function requestDate(request: RequestRecord): number {
+  const submittedAt = request.submittedAt ?? request.createdAt;
+  const date = typeof submittedAt === "string" ? Date.parse(submittedAt) : Number.NaN;
+  return Number.isFinite(date) ? date : 0;
+}
+
+function formattedDate(value: unknown): string {
+  if (typeof value !== "string") return "Not specified";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Not specified" : date.toLocaleDateString();
+}
 
 export default function DepartmentDashboard() {
   const navigate = useNavigate();
-  const { requests, persistenceWarning } = useResourceRequests();
-  const manager = getCurrentDepartmentManager();
-  const departmentName = manager?.department ?? "Data Science";
-  const departmentRequests = useMemo(
-    () => getDepartmentRequests(requests, departmentName),
-    [departmentName, requests]
+  const { user } = useAuth();
+  const [requests, setRequests] = useState<RequestRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [departmentAssignmentRequired, setDepartmentAssignmentRequired] = useState(false);
+
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    setDepartmentAssignmentRequired(false);
+    try {
+      const response = unwrapApiResponse(await resourceRequestsApi.list());
+      const records = getApiRecords(response);
+      if (!Array.isArray(response) || records.length !== response.length) {
+        throw new Error("The resource-request endpoint returned an unexpected response.");
+      }
+      setRequests(records);
+    } catch (loadError) {
+      setRequests([]);
+      if (loadError instanceof ApiError && loadError.status === 403) {
+        setDepartmentAssignmentRequired(true);
+        setError(
+          "Your account is not currently assigned to a department. Please contact your system administrator to have your department assignment reviewed.",
+        );
+      } else {
+        setError(
+          "We are unable to display department information at this time. Please retry. If the issue persists, contact your system administrator.",
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadRequests();
+  }, [loadRequests]);
+
+  const counts = useMemo(() => ({
+    total: requests.length,
+    ...Object.fromEntries(
+      requestStatuses.map((status) => [
+        status.toLowerCase(),
+        requests.filter((request) => String(request.status ?? "").toUpperCase() === status).length,
+      ]),
+    ),
+  }), [requests]);
+
+  const requestedTotal = useMemo(
+    () => requests.reduce((total, request) => total + requestAmount(request), 0),
+    [requests],
   );
-
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("All");
-  const [project, setProject] = useState("All");
-  const [team, setTeam] = useState("All");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-
-  const projectOptions = useMemo(
-    () => Array.from(new Set(departmentRequests.map((request) => request.project))).sort(),
-    [departmentRequests]
+  const approvedTotal = useMemo(
+    () => requests
+      .filter((request) => String(request.status ?? "").toUpperCase() === "APPROVED")
+      .reduce((total, request) => total + requestAmount(request, true), 0),
+    [requests],
   );
-  const teamOptions = useMemo(
-    () => Array.from(new Set(departmentRequests.map((request) => request.team))).sort(),
-    [departmentRequests]
-  );
+  const projectTotals = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const request of requests) {
+      const project = valueLabel(request.projectName ?? request.project ?? request.projectId);
+      totals.set(project, (totals.get(project) ?? 0) + requestAmount(request));
+    }
+    return Array.from(totals, ([project, amount]) => ({ project, amount }))
+      .sort((left, right) => right.amount - left.amount);
+  }, [requests]);
 
-  const filteredRequests = useMemo(
-    () =>
-      applyDepartmentFilters(departmentRequests, {
-        project,
-        team,
-        status,
-        startDate: fromDate,
-        endDate: toDate,
-      }),
-    [departmentRequests, fromDate, project, status, team, toDate]
-  );
-  const searchedRequests = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return filteredRequests;
-
-    return filteredRequests.filter((request) =>
-      [request.id, request.itemDescription, request.project, request.team]
-        .join(" ")
-        .toLowerCase()
-        .includes(term)
-    );
-  }, [filteredRequests, search]);
-
-  const statusCounts = getStatusCounts(searchedRequests);
-  const requestedTotal = getRequestedAmount(searchedRequests);
-  const approvedTotal = getApprovedAmount(searchedRequests);
-  const comparisonDifference = getSpentDifference(searchedRequests);
-  const recentRequests = getRecentRequests(searchedRequests, 5);
-  const projectTotals = getProjectTotals(searchedRequests);
-
-  const filters: ToolbarFilter[] = [
+  const columns = useMemo<DataTableColumn<RequestRecord>[]>(() => [
     {
-      id: "department-status-filter",
-      label: "Status",
-      type: "select",
-      value: status,
-      onChange: (value: any) => setStatus(value),
-      options: [
-        { value: "All", label: "All statuses" },
-        ...(["Submitted", "Pending", "Queried", "Approved", "Rejected"] as RequestStatus[]).map(
-          (value) => ({ value, label: value })
-        ),
-      ],
+      key: "id",
+      header: "Request ID",
+      render: (request) => request.id == null ? "Not provided" : String(request.id),
     },
     {
-      id: "department-project-filter",
-      label: "Project",
-      type: "select",
-      value: project,
-      onChange: setProject,
-      options: [
-        { value: "All", label: "All projects" },
-        ...projectOptions.map((value) => ({ value, label: value })),
-      ],
+      key: "resource",
+      header: "Resource",
+      render: (request) => String(request.itemDescription ?? request.itemName ?? "Not specified"),
     },
     {
-      id: "department-team-filter",
-      label: "Requesting team",
-      type: "select",
-      value: team,
-      onChange: setTeam,
-      options: [
-        { value: "All", label: "All teams" },
-        ...teamOptions.map((value) => ({ value, label: value })),
-      ],
+      key: "team",
+      header: "Team",
+      render: (request) => valueLabel(request.teamName ?? request.team ?? request.teamId),
     },
     {
-      id: "department-date-from",
-      label: "Submitted from",
-      type: "date",
-      value: fromDate,
-      max: toDate || undefined,
-      onChange: setFromDate,
+      key: "project",
+      header: "Project",
+      render: (request) => valueLabel(request.projectName ?? request.project ?? request.projectId),
     },
-    {
-      id: "department-date-to",
-      label: "Submitted to",
-      type: "date",
-      value: toDate,
-      min: fromDate || undefined,
-      onChange: setToDate,
-    },
-  ];
-
-  function resetFilters() {
-    setSearch("");
-    setStatus("All");
-    setProject("All");
-    setTeam("All");
-    setFromDate("");
-    setToDate("");
-  }
-
-  const columns = [
-    { key: "id", header: "Request ID" },
-    { key: "itemDescription", header: "Item description" },
-    { key: "team", header: "Requesting team" },
-    { key: "project", header: "Project" },
     {
       key: "submittedAt",
-      header: "Submission date",
-      render: (request: ResourceRequest) => formatDate(request.submittedAt),
+      header: "Submitted",
+      render: (request) => formattedDate(request.submittedAt ?? request.createdAt),
     },
     {
-      key: "estimatedPrice",
-      header: "Estimated amount",
-      render: (request: ResourceRequest) => formatCurrency(request.estimatedPrice),
+      key: "amount",
+      header: "Requested amount",
+      render: (request) => formatCurrency(requestAmount(request)),
     },
     {
       key: "status",
-      header: "Current status",
-      render: (request: ResourceRequest) => <StatusLabel status={request.status} />,
+      header: "Status",
+      render: (request) => <StatusLabel status={String(request.status ?? "Unknown")} />,
     },
     {
-      key: "actions",
-      header: "Available action",
-      render: (request: ResourceRequest) => (
-        <Link
-          className={styles.detailLink}
-          to={`/department-manager/requests/${encodeURIComponent(request.id)}`}
-        >
-          View request
-        </Link>
-      ),
+      key: "details",
+      header: "Details",
+      render: (request) => request.id == null
+        ? "Unavailable"
+        : <Link to={`/department-manager/requests/${encodeURIComponent(String(request.id))}`}>View request</Link>,
     },
-  ];
+  ], []);
 
   return (
-    <div className={styles.page}>
+    <section className={`rt-root ${styles.page}`}>
       <PageHeader
-        title="Department Manager"
-        description={`${departmentName} department overview`}
-        // supplementary={
-        //   <Link className={styles.linkButton} to="/department-manager/requests">
-        //     Open request list
-        //   </Link>
-        // }
+        title="Dashboard"
+        description={user?.department ? `${user.department} department overview` : "Department request analytics"}
       />
+      <div className={styles.dashboardContent}>
+          {error && (departmentAssignmentRequired ? (
+            <WarningMessage title="Department assignment required" message={error} />
+          ) : (
+            <ErrorMessage title="Department information unavailable" message={error} onRetry={() => void loadRequests()} />
+          ))}
+          <StatusCardGrid>
+            <StatusCard label="Total requests" value={requests.length} loading={loading} />
+            <StatusCard label="Submitted" value={counts.submitted ?? 0} loading={loading} />
+            <StatusCard label="Queried" value={counts.queried ?? 0} loading={loading} />
+            <StatusCard label="Approved" value={counts.approved ?? 0} loading={loading} />
+            <StatusCard label="Rejected" value={counts.rejected ?? 0} loading={loading} />
+          </StatusCardGrid>
 
-      
-      {persistenceWarning && (
-        <p className={styles.warning} role="alert">
-          {persistenceWarning}
-        </p>
-      )}
+          <section className={`rt-root rt-card ${styles.panel}`}>
+            <h2 className="rt-card__title">Spending overview</h2>
+            <div className={styles.summaryGrid}>
+              <StatusCard label="Requested spending" value={formatCurrency(requestedTotal)} loading={loading} />
+              <StatusCard label="Approved spending" value={formatCurrency(approvedTotal)} loading={loading} />
+              <StatusCard label="Unapproved amount" value={formatCurrency(requestedTotal - approvedTotal)} loading={loading} />
+            </div>
+          </section>
 
-      <StatusCardGrid>
-        <StatusCard label="Departmental requests" value={searchedRequests.length} />
-        <StatusCard label="Submitted" value={statusCounts.Submitted} />
-        <StatusCard label="Pending" value={statusCounts.Pending} />
-        <StatusCard label="Queried" value={statusCounts.Queried} />
-        <StatusCard label="Approved" value={statusCounts.Approved} />
-        <StatusCard label="Rejected" value={statusCounts.Rejected} />
-      </StatusCardGrid>
-
-      <section className={`rt-root rt-card ${styles.panel}`}>
-        <h2 className="rt-card__title">Spending overview</h2>
-        <div className={styles.summaryGrid}>
-          <StatusCard label="Requested spending" value={formatCurrency(requestedTotal)} />
-          <StatusCard label="Approved spending" value={formatCurrency(approvedTotal)} />
-          <StatusCard
-            label="Difference"
-            value={formatCurrency(comparisonDifference)}
-            note={comparisonDifference >= 0 ? "Requested minus approved" : "Negative variance"}
-          />
-        </div>
-      </section>
-
-      <section className={`rt-root rt-card ${styles.panel}`} aria-labelledby="department-spending-visualization">
-        <h2 id="department-spending-visualization" className="rt-card__title">
-          Spending by project
-        </h2>
-        {projectTotals.length === 0 ? (
-          <p className={styles.empty}>No spending data to visualize for the current filters.</p>
-        ) : (
-          <div className={styles.chart} aria-label="Department spending by project">
-            {projectTotals.map(({ project, amount }) => {
-              const max = Math.max(...projectTotals.map((entry) => entry.amount), 1);
-              const width = `${(amount / max) * 100}%`;
-              return (
-                <div key={project} className={styles.chartRow}>
-                  <div className={styles.chartMeta}>
-                    <span>{project}</span>
-                    <strong>{formatCurrency(amount)}</strong>
+          <section className={`rt-root rt-card ${styles.panel}`}>
+            <h2 className="rt-card__title">Requested spending by project</h2>
+            {loading ? (
+              <LoadingState message="Loading department analytics..." />
+            ) : projectTotals.length ? (
+              <div className={styles.chart} aria-label="Requested spending by project">
+                {projectTotals.map(({ project, amount }) => (
+                  <div key={project} className={styles.chartRow}>
+                    <div className={styles.chartMeta}>
+                      <span>{project}</span>
+                      <strong>{formatCurrency(amount)}</strong>
+                    </div>
+                    <div className={styles.chartTrack}>
+                      <div
+                        className={styles.chartBar}
+                        style={{ width: `${(amount / Math.max(...projectTotals.map((item) => item.amount), 1)) * 100}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.chartTrack}>
-                    <div className={styles.chartBar} style={{ width }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+                ))}
+              </div>
+            ) : (
+              <EmptyState title="No spending data" description="Department request spending will appear here." />
+            )}
+          </section>
 
-      <section className={styles.tableSection}>
-        <FilterToolbar
-          searchLabel="Search requests"
-          searchPlaceholder="ID, team, project or item"
-          searchValue={search}
-          onSearchChange={setSearch}
-          filters={filters}
-          onClear={resetFilters}
-        />
-        <DataTable
-          title={`Recent ${searchedRequests.length} ${searchedRequests.length === 1 ? "request" : "requests"}`}
-          columns={columns}
-          rows={recentRequests}
-          pageSize={5}
-          itemLabel="request"
-          emptyTitle="No requests found"
-          emptyDescription="No requests match the selected department filters."
-          onRowClick={(request) => navigate(`/department-manager/requests/${encodeURIComponent(request.id)}`)}
-        />
-      </section>
-    </div>
+          {loading ? (
+            <LoadingState message="Loading department requests..." />
+          ) : !error && requests.length ? (
+            <DataTable
+              title="Recent requests"
+              columns={columns}
+              rows={[...requests].sort((left, right) => requestDate(right) - requestDate(left)).slice(0, 5)}
+              itemLabel="request"
+              emptyTitle="No requests"
+              emptyDescription="No department requests are currently available."
+            />
+          ) : !error ? (
+            <EmptyState
+              title="No department requests"
+              description="Requests submitted by teams in your department will appear here."
+              actionLabel="View requests"
+              onAction={() => navigate("/department-manager/requests")}
+            />
+          ) : null}
+      </div>
+    </section>
   );
 }

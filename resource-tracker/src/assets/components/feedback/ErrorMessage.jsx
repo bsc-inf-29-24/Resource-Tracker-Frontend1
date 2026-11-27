@@ -1,7 +1,7 @@
 import { AlertCircleIcon } from "../icons";
 import Button from "../forms/Button";
 
-export default function ErrorMessage({ message, title = "Something went wrong", variant = "block", onRetry, id }) {
+export default function ErrorMessage({ message, title = "An error occurred", variant = "block", onRetry, id }) {
   if (!message) return null;
   if (variant === "inline") {
     return (
@@ -16,7 +16,7 @@ export default function ErrorMessage({ message, title = "Something went wrong", 
       <div>
         <p className="rt-error-block__title">{title}</p>
         <p className="rt-error-block__text">{message}</p>
-        {onRetry && <Button variant="outline" onClick={onRetry}>Try again</Button>}
+        {onRetry && <Button variant="outline" onClick={onRetry}>Retry</Button>}
       </div>
     </div>
   );

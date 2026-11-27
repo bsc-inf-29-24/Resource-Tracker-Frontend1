@@ -106,6 +106,22 @@ const teamLeadAssignment: AssignmentOperation = {
   },
 };
 
+const teamUserAssignment: AssignmentOperation = {
+  label: "Assign user to team",
+  field: "teamUserId",
+  successMessage: "The user was assigned to the team and its department.",
+  run: (id, userId) => {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        userId,
+      )
+    ) {
+      return Promise.reject(new Error("The user ID must be a UUID."));
+    }
+    return teamsApi.assignUser(id, userId);
+  },
+};
+
 export default function TeamsPage() {
   return (
     <div className={styles.formLabels}>
@@ -121,6 +137,9 @@ export default function TeamsPage() {
         tableColumns={teamColumns}
         createInDialog
         createAssignment={teamLeadAssignment}
+        assignments={[teamUserAssignment]}
+        assignmentsInDialog
+        selectionDetailsInDialog
         hideRecordActions
         hideRecordsTitle
         createButtonLabel="Create Team"
@@ -128,7 +147,7 @@ export default function TeamsPage() {
         updateInDialog
         updateHeading="Edit team name"
         updateButtonLabel="Save team name"
-        selectionLabel="Edit team"
+        selectionLabel="View"
       />
     </div>
   );

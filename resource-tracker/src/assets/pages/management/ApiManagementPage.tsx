@@ -39,6 +39,7 @@ export interface ApiField {
   required?: boolean;
   options?: { value: string; label: string }[];
   optionSource?: "departments" | "teams";
+  optionValue?: "id" | "name";
   when?: { field: string; value: string };  
 }
 
@@ -54,6 +55,8 @@ export interface AssignmentOperation {
   kind?: "text" | "list" | "number-list";
   options?: { value: string; label: string }[];
   requiresValue?: boolean;
+  optional?: boolean;
+  successMessage?: string;
   confirmation?: { title: string; message: string; confirmLabel: string };
 }
 
@@ -73,6 +76,7 @@ interface ApiManagementPageProps {
   createAssignment?: AssignmentOperation;
   hideRecordActions?: boolean;
   hideRecordsTitle?: boolean;
+  showEmptyTable?: boolean;
   assignmentsInDialog?: boolean;
   recordsTitle?: string;
   tableColumns?: DataTableColumn<ApiRecord>[];
@@ -135,6 +139,31 @@ function getUserOptionLabel(record: ApiRecord): string {
   return email && name !== email ? `${name} (${email})` : name;
 }
 
+function getUserDepartmentLabel(record: ApiRecord): string {
+  for (const value of [
+    record.departmentName,
+    record.department_name,
+    record.department,
+  ]) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (isApiRecord(value)) {
+      for (const name of [value.name, value.departmentName, value.department_name]) {
+        if (typeof name === "string" && name.trim()) return name.trim();
+      }
+    }
+  }
+  return "Not provided by the API";
+}
+
+function getUserOptions(records: ApiRecord[]) {
+  return records
+    .filter((record) => typeof record.id === "string")
+    .map((record) => ({
+      value: String(record.id),
+      label: getUserOptionLabel(record),
+    }));
+}
+
 export default function ApiManagementPage({
   title,
   description,
@@ -151,6 +180,7 @@ export default function ApiManagementPage({
   createAssignment,
   hideRecordActions = false,
   hideRecordsTitle = false,
+  showEmptyTable = false,
   assignmentsInDialog = false,
   recordsTitle = "Users records",
   tableColumns,
@@ -193,6 +223,18 @@ export default function ApiManagementPage({
   const [optionRecords, setOptionRecords] = useState<Record<string, ApiRecord[]>>({});
   const [optionLoading, setOptionLoading] = useState<Record<string, boolean>>({});
   const [optionErrors, setOptionErrors] = useState<Record<string, string>>({});
+  const createAssignmentOptionSource =
+    createAssignment?.field === "headUserId" ? "departmentHeads" : "teamLeads";
+  const createAssignmentOptionsKey =
+    createAssignmentOptionSource === "departmentHeads"
+      ? "departmentHeadOptions"
+      : "teamLeadOptions";
+  const createAssignmentLabel =
+    createAssignment?.label.replace(/^Assign\s+/i, "").toLowerCase() ?? "assignee";
+  const createRecordLabel =
+    title === "Departments" ? "department" : title === "Teams" ? "team" : "record";
+  const dialogEntityLabel =
+    title === "Departments" ? "department" : title === "Teams" ? "team" : "user";
 
   useEffect(() => {
     const sources = Array.from(new Set(fields.map((field) => field.optionSource).filter((source): source is "departments" | "teams" => Boolean(source))));
@@ -241,22 +283,81 @@ export default function ApiManagementPage({
         if (active) setOptionLoading((current) => ({ ...current, [source]: false }));
       });
     }
-    if (title === "Teams" && (assignments.length || createAssignment)) {
-      setOptionLoading((current) => ({ ...current, teamLeads: true }));
+    const needsTeamLeadOptions =
+      title === "Teams" &&
+      (assignments.some((operation) => operation.field === "teamLeadId") ||
+        createAssignment?.field === "teamLeadId");
+    const needsTeamUserOptions =
+      title === "Teams" &&
+      assignments.some((operation) => operation.field === "teamUserId");
+    if (needsTeamLeadOptions || needsTeamUserOptions) {
+      setOptionLoading((current) => ({
+        ...current,
+        ...(needsTeamLeadOptions ? { teamLeads: true } : {}),
+        ...(needsTeamUserOptions ? { teamUsers: true } : {}),
+      }));
+      setOptionErrors((current) => ({
+        ...current,
+        ...(needsTeamLeadOptions ? { teamLeads: "" } : {}),
+        ...(needsTeamUserOptions ? { teamUsers: "" } : {}),
+      }));
       void teamsApi.unassignedUsers().then((response) => {
-        const eligible = getApiRecords(response).filter((user) => user.role === "TEAM_LEAD");
-        const options = eligible
-          .filter((user) => typeof user.id === "string")
-          .map((user) => ({
-            value: String(user.id),
-            label: getUserOptionLabel(user),
+        const eligible = getApiRecords(response).filter(
+          (user) => user.isActive !== false,
+        );
+        if (active) {
+          setAssignmentValues((current) => ({
+            ...current,
+            ...(needsTeamLeadOptions
+              ? {
+                  teamLeadOptions: JSON.stringify(
+                    getUserOptions(
+                      eligible.filter((user) => user.role === "TEAM_LEAD"),
+                    ),
+                  ),
+                }
+              : {}),
+            ...(needsTeamUserOptions
+              ? {
+                  teamUserOptions: JSON.stringify(
+                    getUserOptions(
+                      eligible.filter(
+                        (user) =>
+                          user.role === "TEAM_LEAD" ||
+                          user.role === "TEAM_MEMBER",
+                      ),
+                    ),
+                  ),
+                }
+              : {}),
           }));
-        if (active) setAssignmentValues((current) => ({ ...current, teamLeadOptions: JSON.stringify(options) }));
+        }
       }).catch((loadError) => {
-        if (active) setOptionErrors((current) => ({ ...current, teamLeads: loadError instanceof Error ? loadError.message : "Team leads could not be loaded." }));
-      }).finally(() => { if (active) setOptionLoading((current) => ({ ...current, teamLeads: false })); });
+        if (active) {
+          const message =
+            loadError instanceof Error
+              ? loadError.message
+              : "Eligible users could not be loaded.";
+          setOptionErrors((current) => ({
+            ...current,
+            ...(needsTeamLeadOptions ? { teamLeads: message } : {}),
+            ...(needsTeamUserOptions ? { teamUsers: message } : {}),
+          }));
+        }
+      }).finally(() => {
+        if (active) {
+          setOptionLoading((current) => ({
+            ...current,
+            ...(needsTeamLeadOptions ? { teamLeads: false } : {}),
+            ...(needsTeamUserOptions ? { teamUsers: false } : {}),
+          }));
+        }
+      });
     }
-    if (title === "Departments" && assignments.length) {
+    if (
+      title === "Departments" &&
+      (assignments.length > 0 || createAssignment?.field === "headUserId")
+    ) {
       setOptionLoading((current) => ({ ...current, departmentHeads: true }));
       void usersApi.list().then((response) => {
         const eligible = getApiRecords(response).filter((user) => user.role === "DEPARTMENT_HEAD" && user.isActive !== false);
@@ -333,6 +434,12 @@ export default function ApiManagementPage({
     }
     if (assignmentsInDialog) {
       setSelectedUserName(getRecordDisplayName(record));
+      setAssignmentValues((current) => ({
+        ...current,
+        ...Object.fromEntries(
+          assignments.map((operation) => [operation.field, ""]),
+        ),
+      }));
     }
     const selectedFields = updateInDialog ? updateFields : fields;
     setForm(
@@ -341,17 +448,26 @@ export default function ApiManagementPage({
       ),
     );
     setDetail(
-      (assignmentsInDialog && !selectionDetailsInDialog) || updateInDialog
-        ? null
-        : record,
+      selectionDetailsInDialog
+        ? record
+        : assignmentsInDialog || updateInDialog
+          ? null
+          : record,
     );
     setRelatedData(null);
     setError("");
     setWarning("");
     setNotice("");
-    if (updateInDialog) setUpdateDialogOpen(true);
+    if (updateInDialog && !assignmentsInDialog) setUpdateDialogOpen(true);
     if (assignmentsInDialog) setAssignmentDialogOpen(true);
-  }, [assignmentsInDialog, fields, updateFields, updateInDialog]);
+  }, [
+    assignmentsInDialog,
+    assignments,
+    fields,
+    selectionDetailsInDialog,
+    updateFields,
+    updateInDialog,
+  ]);
 
   const records = useMemo(() => getApiRecords(data), [data]);
   const recordsForTable = useMemo(() => {
@@ -377,12 +493,17 @@ export default function ApiManagementPage({
     });
   }, [optionRecords.departments, records, title]);
   const columns = useMemo<DataTableColumn<ApiRecord>[]>(() => {
-    const isUserAccounts = recordsTitle === "User accounts";
+    const isUserAccounts =
+      recordsTitle === "User accounts" || title === "Users";
     const keys = Array.from(
       new Set(
         records.flatMap((record) => Object.keys(flattenApiRecord(record))),
       ),
-    ).filter((key) => !(isUserAccounts && key.toLowerCase() === "id"));
+    ).filter((key) => {
+      if (!isUserAccounts) return true;
+      const normalizedKey = key.toLowerCase().replace(/[_.\s-]/g, "");
+      return normalizedKey !== "id" && !normalizedKey.startsWith("department");
+    });
     const result: DataTableColumn<ApiRecord>[] = tableColumns
       ? [...tableColumns]
       : keys.map((key) => {
@@ -398,6 +519,19 @@ export default function ApiManagementPage({
         },
       };
     });
+    if (
+      isUserAccounts &&
+      !result.some((column) => column.key.toLowerCase() === "department")
+    ) {
+      const emailIndex = result.findIndex(
+        (column) => column.key.toLowerCase() === "email",
+      );
+      result.splice(emailIndex >= 0 ? emailIndex + 1 : result.length, 0, {
+        key: "department",
+        header: "Department",
+        render: (record: ApiRecord) => getUserDepartmentLabel(record),
+      });
+    }
     if (get || update || remove || assignments.length > 0) {
       result.push({
         key: "actions",
@@ -424,11 +558,14 @@ export default function ApiManagementPage({
   }, [
     assignments.length,
     assignmentsInDialog,
+    createAssignment,
     get,
     records,
     remove,
+    recordsTitle,
     selectRecord,
     tableColumns,
+    title,
     update,
   ]);
 
@@ -566,18 +703,29 @@ export default function ApiManagementPage({
       : "";
     if (
       createAssignment &&
+      !createAssignment.optional &&
       createAssignment.requiresValue !== false &&
       !assigneeId
     ) {
       setError("");
       setNotice("");
-      setWarning(`Select ${createAssignment?.label.toLowerCase()} before creating the team.`);
+      setWarning(
+        `Select the ${createAssignmentLabel} before creating the ${createRecordLabel}.`,
+      );
       return;
     }
     if (createdRecordId && createAssignment) {
+      if (!assigneeId) {
+        setWarning(
+          `Select the ${createAssignmentLabel} to retry the assignment.`,
+        );
+        return;
+      }
       const succeeded = await runOperation(
         () => createAssignment.run(createdRecordId, assigneeId),
-        "The team and team lead are assigned.",
+        title === "Departments"
+          ? "The department head was assigned."
+          : "The team lead was assigned.",
       );
       if (succeeded) {
         setCreateDialogOpen(false);
@@ -615,7 +763,7 @@ export default function ApiManagementPage({
     }
     const succeeded = await runOperation(async () => {
       const response = await create(body);
-      if (!createAssignment) return response;
+      if (!createAssignment || !assigneeId) return response;
 
       const unwrapped = unwrapApiResponse(response);
       const createdRecord =
@@ -632,7 +780,7 @@ export default function ApiManagementPage({
         setCreationBlocked(true);
         await reload();
         throw new Error(
-          "The team was created, but its ID was missing from the response, so the team lead could not be assigned. Refresh the teams list and contact an administrator; do not submit the form again.",
+          `The ${createRecordLabel} was created, but its ID was missing from the response, so the ${createAssignmentLabel} could not be assigned. Refresh the list and contact an administrator; do not submit the form again.`,
         );
       }
 
@@ -648,11 +796,16 @@ export default function ApiManagementPage({
             ? assignmentError.message
             : "The assignment request failed.";
         throw new Error(
-          `The team was created, but assigning its team lead failed. Retry the assignment here without creating the team again. ${message}`,
+          `The ${createRecordLabel} was created, but assigning its ${createAssignmentLabel} failed. Retry the assignment here without creating the ${createRecordLabel} again. ${message}`,
         );
       }
       return response;
-    }, createAssignment ? "The team and team lead are assigned." : "The record was created.");
+    },
+    createAssignment && assigneeId
+      ? title === "Departments"
+        ? "The department was created and its department head was assigned."
+        : "The team and team lead are assigned."
+      : `The ${createRecordLabel} was created.`);
     if (succeeded && createInDialog) {
       setCreateDialogOpen(false);
       setDetail(null);
@@ -739,10 +892,66 @@ export default function ApiManagementPage({
       setWarning(`Please provide ${operation.label.toLowerCase()} before continuing.`);
       return;
     }
-    await runOperation(
+    const succeeded = await runOperation(
       () => operation.run(selectedId.trim(), value),
-      `${operation.label} completed.`,
+      operation.successMessage ?? `${operation.label} completed.`,
     );
+    if (operation.field === "teamUserId") {
+      const refreshTeamLeads = "teamLeadOptions" in assignmentValues;
+      setOptionLoading((current) => ({
+        ...current,
+        teamUsers: true,
+        ...(refreshTeamLeads ? { teamLeads: true } : {}),
+      }));
+      setOptionErrors((current) => ({
+        ...current,
+        teamUsers: "",
+        ...(refreshTeamLeads ? { teamLeads: "" } : {}),
+      }));
+      try {
+        const response = await teamsApi.unassignedUsers();
+        const eligible = getApiRecords(response).filter(
+          (user) => user.isActive !== false,
+        );
+        setAssignmentValues((current) => ({
+          ...current,
+          teamUserOptions: JSON.stringify(
+            getUserOptions(
+              eligible.filter(
+                (user) =>
+                  user.role === "TEAM_LEAD" || user.role === "TEAM_MEMBER",
+              ),
+            ),
+          ),
+          ...(refreshTeamLeads
+            ? {
+                teamLeadOptions: JSON.stringify(
+                  getUserOptions(
+                    eligible.filter((user) => user.role === "TEAM_LEAD"),
+                  ),
+                ),
+              }
+            : {}),
+          ...(succeeded ? { teamUserId: "" } : {}),
+        }));
+      } catch (loadError) {
+        const message =
+          loadError instanceof Error
+            ? loadError.message
+            : "Eligible users could not be refreshed.";
+        setOptionErrors((current) => ({
+          ...current,
+          teamUsers: message,
+          ...(refreshTeamLeads ? { teamLeads: message } : {}),
+        }));
+      } finally {
+        setOptionLoading((current) => ({
+          ...current,
+          teamUsers: false,
+          ...(refreshTeamLeads ? { teamLeads: false } : {}),
+        }));
+      }
+    }
   }
 
   function updateFormField(name: string, nextValue: string) {
@@ -776,7 +985,7 @@ export default function ApiManagementPage({
           <>
             <select id={id} value={value} required={field.required} disabled={optionLoading[field.optionSource ?? ""] || Boolean(optionErrors[field.optionSource ?? ""])} onChange={(event) => updateFormField(field.name, event.target.value)}>
               <option value="">{optionLoading[field.optionSource ?? ""] ? "Loading departments…" : "Choose a department"}</option>
-              {(optionRecords[field.optionSource ?? ""] ?? []).filter((record) => (typeof record.id === "number" || (typeof record.id === "string" && record.id.trim() !== "")) && typeof record.name === "string" && record.name.trim() !== "").map((record) => <option key={String(record.id)} value={String(record.id)}>{String(record.name)}</option>)}
+              {(optionRecords[field.optionSource ?? ""] ?? []).filter((record) => (typeof record.id === "number" || (typeof record.id === "string" && record.id.trim() !== "")) && typeof record.name === "string" && record.name.trim() !== "").map((record) => <option key={String(record.id)} value={field.optionValue === "name" ? String(record.name) : String(record.id)}>{String(record.name)}</option>)}
             </select>
             {optionErrors[field.optionSource ?? ""] && <small role="alert">Departments could not be loaded: {optionErrors[field.optionSource ?? ""]}</small>}
             {!optionLoading[field.optionSource ?? ""] && !optionErrors[field.optionSource ?? ""] && (optionRecords[field.optionSource ?? ""] ?? []).length === 0 && <small>No departments are available.</small>}
@@ -878,10 +1087,12 @@ export default function ApiManagementPage({
         </div>
         {loading ? (
           <LoadingState message="Loading backend records..." />
-        ) : records.length > 0 && columns.length > 0 ? (
+        ) : (records.length > 0 || (showEmptyTable && data !== null)) &&
+          columns.length > 0 ? (
           <DataTable
             columns={columns}
             rows={recordsForTable}
+            showEmptyTable={showEmptyTable}
             itemLabel="record"
             emptyTitle="No records"
             emptyDescription="The backend response did not contain any records."
@@ -990,6 +1201,56 @@ export default function ApiManagementPage({
                       </select>
                       {optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] && <small role="alert">{optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"]}</small>}
                       {!optionLoading[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] && !optionErrors[operation.field === "teamLeadId" ? "teamLeads" : "departmentHeads"] && JSON.parse(assignmentValues[operation.field === "teamLeadId" ? "teamLeadOptions" : "departmentHeadOptions"] ?? "[]").length === 0 && <small>No eligible users are available.</small>}
+                    </>
+                  ) : operation.field === "teamUserId" ? (
+                    <>
+                      <select
+                        id={`assignment-${operation.field}`}
+                        value={assignmentValues[operation.field] ?? ""}
+                        onChange={(event) =>
+                          setAssignmentValues((current) => ({
+                            ...current,
+                            [operation.field]: event.target.value,
+                          }))
+                        }
+                        disabled={
+                          optionLoading.teamUsers ||
+                          Boolean(optionErrors.teamUsers)
+                        }
+                      >
+                        <option value="">
+                          {optionLoading.teamUsers
+                            ? "Loading eligible users…"
+                            : optionErrors.teamUsers
+                              ? "Eligible users unavailable"
+                              : "Select a Team Lead or Team Member"}
+                        </option>
+                        {(
+                          JSON.parse(
+                            assignmentValues.teamUserOptions ?? "[]",
+                          ) as { value: string; label: string }[]
+                        ).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {optionErrors.teamUsers && (
+                        <small role="alert">
+                          Eligible users could not be loaded:{" "}
+                          {optionErrors.teamUsers}
+                        </small>
+                      )}
+                      {!optionLoading.teamUsers &&
+                        !optionErrors.teamUsers &&
+                        JSON.parse(
+                          assignmentValues.teamUserOptions ?? "[]",
+                        ).length === 0 && (
+                          <small>
+                            No unassigned Team Leads or Team Members are
+                            available.
+                          </small>
+                        )}
                     </>
                   ) : operation.options ? (
                     <select
@@ -1110,18 +1371,24 @@ export default function ApiManagementPage({
             >
               <div className={styles.grid}>{fields.map(renderField)}</div>
             </fieldset>
-            {createAssignment && createAssignment.requiresValue !== false && (
+            {createAssignment &&
+              (createAssignment.requiresValue !== false ||
+                createAssignment.optional) && (
               <label className={styles.field} htmlFor={`create-${createAssignment.field}`}>
-                <span>{createAssignment.label} *</span>
+                <span>
+                  {createAssignment.label}
+                  {createAssignment.optional ? "" : " *"}
+                </span>
                 <select
                   id={`create-${createAssignment.field}`}
-                  required
+                  required={!createAssignment.optional}
                   value={assignmentValues[createAssignment.field] ?? ""}
                   disabled={
                     busy ||
                     creationBlocked ||
-                    optionLoading.teamLeads ||
-                    Boolean(optionErrors.teamLeads)
+                    optionLoading[createAssignmentOptionSource] ||
+                    (!createAssignment.optional &&
+                      Boolean(optionErrors[createAssignmentOptionSource]))
                   }
                   onChange={(event) =>
                     setAssignmentValues((current) => ({
@@ -1131,15 +1398,15 @@ export default function ApiManagementPage({
                   }
                 >
                   <option value="">
-                    {optionLoading.teamLeads
-                      ? "Loading eligible team leads…"
-                      : optionErrors.teamLeads
-                        ? "Team leads unavailable"
-                        : "Select a team lead"}
+                    {optionLoading[createAssignmentOptionSource]
+                      ? `Loading eligible ${createAssignmentLabel}s…`
+                      : optionErrors[createAssignmentOptionSource]
+                        ? `${createAssignmentLabel} options unavailable`
+                        : `Select a ${createAssignmentLabel}`}
                   </option>
                   {(
                     JSON.parse(
-                      assignmentValues.teamLeadOptions ?? "[]",
+                      assignmentValues[createAssignmentOptionsKey] ?? "[]",
                     ) as { value: string; label: string }[]
                   ).map((option) => (
                     <option key={option.value} value={option.value}>
@@ -1147,13 +1414,18 @@ export default function ApiManagementPage({
                     </option>
                   ))}
                 </select>
-                {optionErrors.teamLeads && (
-                  <small role="alert">{optionErrors.teamLeads}</small>
+                {optionErrors[createAssignmentOptionSource] && (
+                  <small role="alert">
+                    {optionErrors[createAssignmentOptionSource]}
+                  </small>
                 )}
-                {!optionLoading.teamLeads &&
-                  !optionErrors.teamLeads &&
-                  JSON.parse(assignmentValues.teamLeadOptions ?? "[]").length ===
-                    0 && <small>No eligible team leads are available.</small>}
+                {!optionLoading[createAssignmentOptionSource] &&
+                  !optionErrors[createAssignmentOptionSource] &&
+                  JSON.parse(
+                    assignmentValues[createAssignmentOptionsKey] ?? "[]",
+                  ).length === 0 && (
+                    <small>No eligible {createAssignmentLabel}s are available.</small>
+                  )}
               </label>
             )}
             <div className={styles.dialogActions}>
@@ -1171,9 +1443,14 @@ export default function ApiManagementPage({
                 disabled={
                   busy ||
                   creationBlocked ||
-                  Boolean(optionErrors.teamLeads) ||
                   Boolean(
                     createAssignment &&
+                      !createAssignment.optional &&
+                      optionErrors[createAssignmentOptionSource],
+                  ) ||
+                  Boolean(
+                    createAssignment &&
+                      !createAssignment.optional &&
                       createAssignment.requiresValue !== false &&
                       !assignmentValues[createAssignment.field]?.trim(),
                   )
@@ -1259,25 +1536,27 @@ export default function ApiManagementPage({
         <dialog
           ref={assignmentDialogRef}
           className={styles.assignmentDialog}
-          aria-labelledby="user-actions-title"
+          aria-labelledby="record-actions-title"
           onClose={() => setAssignmentDialogOpen(false)}
         >
           <div className={styles.dialogHeading}>
-            <h2 id="user-actions-title">
-              {selectionDetailsInDialog ? "User details" : "User actions"}
+            <h2 id="record-actions-title">
+              {selectionDetailsInDialog
+                ? `${dialogEntityLabel[0].toUpperCase()}${dialogEntityLabel.slice(1)} details`
+                : `${dialogEntityLabel[0].toUpperCase()}${dialogEntityLabel.slice(1)} actions`}
             </h2>
             <button
               type="button"
               className="rt-root rt-btn rt-btn--outline"
               onClick={() => setAssignmentDialogOpen(false)}
-              aria-label="Close user actions"
+              aria-label={`Close ${dialogEntityLabel} actions`}
             >
               Close
             </button>
           </div>
           <p className={styles.assignmentIntro}>
             {selectionDetailsInDialog
-              ? `User information and available account actions for ${selectedUserName}.`
+              ? `${dialogEntityLabel[0].toUpperCase()}${dialogEntityLabel.slice(1)} information and available actions for ${selectedUserName}.`
               : `Choose an action for ${selectedUserName}.`}
           </p>
           {selectionDetailsInDialog && isApiRecord(detail) && (
@@ -1307,7 +1586,104 @@ export default function ApiManagementPage({
                   htmlFor={`assignment-${operation.field}`}
                 >
                   <span>{operation.label}</span>
-                  {operation.options ? (
+                  {operation.field === "headUserId" ? (
+                    <>
+                      <select
+                        id={`assignment-${operation.field}`}
+                        value={assignmentValues[operation.field] ?? ""}
+                        disabled={
+                          optionLoading.departmentHeads ||
+                          Boolean(optionErrors.departmentHeads)
+                        }
+                        onChange={(event) =>
+                          setAssignmentValues((current) => ({
+                            ...current,
+                            [operation.field]: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">
+                          {optionLoading.departmentHeads
+                            ? "Loading eligible department heads…"
+                            : optionErrors.departmentHeads
+                              ? "Department heads unavailable"
+                              : "Select a department head"}
+                        </option>
+                        {(
+                          JSON.parse(
+                            assignmentValues.departmentHeadOptions ?? "[]",
+                          ) as { value: string; label: string }[]
+                        ).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {optionErrors.departmentHeads && (
+                        <small role="alert">
+                          Department heads could not be loaded:{" "}
+                          {optionErrors.departmentHeads}
+                        </small>
+                      )}
+                      {!optionLoading.departmentHeads &&
+                        !optionErrors.departmentHeads &&
+                        JSON.parse(
+                          assignmentValues.departmentHeadOptions ?? "[]",
+                        ).length === 0 && (
+                          <small>No active department heads are available.</small>
+                        )}
+                    </>
+                  ) : operation.field === "teamUserId" ? (
+                    <>
+                      <select
+                        id={`assignment-${operation.field}`}
+                        value={assignmentValues[operation.field] ?? ""}
+                        disabled={
+                          optionLoading.teamUsers ||
+                          Boolean(optionErrors.teamUsers)
+                        }
+                        onChange={(event) =>
+                          setAssignmentValues((current) => ({
+                            ...current,
+                            [operation.field]: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">
+                          {optionLoading.teamUsers
+                            ? "Loading eligible users…"
+                            : optionErrors.teamUsers
+                              ? "Eligible users unavailable"
+                              : "Select a Team Lead or Team Member"}
+                        </option>
+                        {(
+                          JSON.parse(
+                            assignmentValues.teamUserOptions ?? "[]",
+                          ) as { value: string; label: string }[]
+                        ).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {optionErrors.teamUsers && (
+                        <small role="alert">
+                          Eligible users could not be loaded:{" "}
+                          {optionErrors.teamUsers}
+                        </small>
+                      )}
+                      {!optionLoading.teamUsers &&
+                        !optionErrors.teamUsers &&
+                        JSON.parse(
+                          assignmentValues.teamUserOptions ?? "[]",
+                        ).length === 0 && (
+                          <small>
+                            No unassigned Team Leads or Team Members are
+                            available.
+                          </small>
+                        )}
+                    </>
+                  ) : operation.options ? (
                     <select
                       id={`assignment-${operation.field}`}
                       value={assignmentValues[operation.field] ?? ""}
@@ -1366,6 +1742,19 @@ export default function ApiManagementPage({
               </div>
             ))}
           <div className={styles.dialogActions}>
+            {selectionDetailsInDialog && updateInDialog && (
+              <button
+                type="button"
+                className="rt-root rt-btn rt-btn--outline"
+                disabled={busy}
+                onClick={() => {
+                  setAssignmentDialogOpen(false);
+                  setUpdateDialogOpen(true);
+                }}
+              >
+                Edit {dialogEntityLabel}
+              </button>
+            )}
             {assignments
               .filter((operation) => operation.requiresValue === false)
               .filter((operation) => {
@@ -1380,7 +1769,7 @@ export default function ApiManagementPage({
               .map((operation) => (
                 <button
                   type="button"
-                  className={`rt-root rt-btn ${selectionDetailsInDialog ? operation.field.toLowerCase() === "deactivate" ? "rt-btn--danger" : "rt-btn--primary" : "rt-btn--outline"}`}
+                  className={`rt-root rt-btn ${selectionDetailsInDialog ? operation.confirmation ? "rt-btn--danger" : "rt-btn--primary" : "rt-btn--outline"}`}
                   key={operation.field}
                   disabled={busy || !selectedId.trim()}
                   onClick={() => {

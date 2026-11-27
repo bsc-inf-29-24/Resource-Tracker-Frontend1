@@ -56,6 +56,7 @@ export default function ApiResponsePanel({
       ) : (
         <ApiDataView
           data={data}
+          hideIdFields={title === "Users"}
           emptyTitle={emptyTitle}
           emptyDescription={emptyDescription}
         />

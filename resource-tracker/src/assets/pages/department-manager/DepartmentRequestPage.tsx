@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import DataTable from "../../components/tables/DataTable";
-import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import FilterToolbar from "../../components/filters/filterToolbar";
 import StatusLabel from "../../components/status/StatusLabel";
@@ -163,7 +162,7 @@ export default function DepartmentRequestPage() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Requests"
+        title="Departmental Requests"
         description={`Department requests for ${departmentName}`}
         // supplementary={
         //   <Link className={styles.linkButton} to="/department-manager/dashboard">
@@ -173,7 +172,9 @@ export default function DepartmentRequestPage() {
       />
 
       {persistenceWarning && (
-        <WarningMessage variant="inline" message={persistenceWarning} />
+        <p className={styles.warning} role="alert">
+          {persistenceWarning}
+        </p>
       )}
 
       <section className={styles.tableSection}>
@@ -192,7 +193,7 @@ export default function DepartmentRequestPage() {
           rows={filteredRequests}
           itemLabel="request"
           emptyTitle="No departmental requests found"
-          emptyDescription="Adjust the filters or search term to broaden the results."
+          emptyDescription="Try changing the filters or search term to widen the result set."
           onRowClick={(request) => navigate(`/department-manager/requests/${encodeURIComponent(request.id)}`)}
         />
       </section>

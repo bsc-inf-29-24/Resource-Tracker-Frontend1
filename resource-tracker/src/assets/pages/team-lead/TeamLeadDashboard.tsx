@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
 import EmptyState from "../../components/feedback/EmptyState";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
@@ -17,10 +18,18 @@ import {
 import { ApiError } from "../../data/api-client";
 import {
   resourceRequestsApi,
+  type ApiRequestStatus,
 } from "../../data/api-services";
 import styles from "./TeamLeadDashboard.module.css";
 
 type RequestRecord = Record<string, unknown>;
+
+const requestStatuses: ApiRequestStatus[] = [
+  "SUBMITTED",
+  "APPROVED",
+  "QUERIED",
+  "REJECTED",
+];
 
 function requestDate(record: RequestRecord): number {
   const value = record.submittedAt ?? record.createdAt;
@@ -62,6 +71,15 @@ export default function TeamLeadDashboard() {
   }, [loadRequests]);
 
   const rows = requests ?? [];
+  const counts = useMemo(
+    () => Object.fromEntries(
+      requestStatuses.map((status) => [
+        status,
+        rows.filter((request) => request.status === status).length,
+      ]),
+    ) as Record<ApiRequestStatus, number>,
+    [rows],
+  );
   const columns = useMemo<DataTableColumn<RequestRecord>[]>(() => {
     const keys = ["id", "itemDescription", "quantity", "status", "submittedAt"]
       .filter((key) => rows.some((row) => key in row));
@@ -101,6 +119,17 @@ export default function TeamLeadDashboard() {
           onRetry={() => void loadRequests()}
         />
       )}
+      <StatusCardGrid>
+        {requestStatuses.map((status) => (
+          <StatusCard
+            key={status}
+            label={humanizeApiKey(status)}
+            value={requests === undefined ? "Unavailable" : counts[status]}
+            loading={loading}
+            onClick={requests !== undefined ? () => navigate(`/team-lead/requests?status=${status}`) : undefined}
+          />
+        ))}
+      </StatusCardGrid>
       {!error && loading ? (
         <LoadingState message="Loading your requests from the backend..." />
       ) : !error ? (
@@ -123,6 +152,7 @@ export default function TeamLeadDashboard() {
             />
           )}
           <div className={styles.sectionHeading}>
+            <Link to="/team-lead/requests">View request history</Link>
             <button
               type="button"
               className="rt-root rt-btn rt-btn--outline"

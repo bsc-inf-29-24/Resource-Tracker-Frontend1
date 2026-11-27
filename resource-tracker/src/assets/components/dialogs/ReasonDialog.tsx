@@ -71,7 +71,7 @@ export default function ReasonDialog({
           id="reason-text"
           className={styles.textarea}
           rows={5}
-          placeholder="Enter a reason"
+          placeholder="Enter your reason..."
           value={reason}
           onChange={(e) => {
             setReason(e.target.value);

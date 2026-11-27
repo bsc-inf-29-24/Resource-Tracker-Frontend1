@@ -3,10 +3,6 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
-export interface ApiRequestFeedbackOptions {
-  successToast?: boolean;
-}
-
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -94,15 +90,10 @@ async function send<T>(
   path: string,
   options: RequestInit,
   accessToken?: string,
-  successToast = true,
 ): Promise<T> {
   const method = (options.method ?? "GET").toUpperCase();
   const notify = (type: "success" | "error", message: string) => {
-    if (
-      method !== "GET" &&
-      !path.startsWith("/api/v1/auth") &&
-      (type === "error" || successToast)
-    ) {
+    if (method !== "GET" && !path.startsWith("/api/v1/auth")) {
       window.dispatchEvent(new CustomEvent("resource-tracker:toast", { detail: { type, message } }));
     }
   };
@@ -121,7 +112,7 @@ async function send<T>(
   } catch {
     notify("error", "Unable to reach the Resource Tracker API.");
     throw new ApiError(
-      "Unable to reach the Resource Tracker API. Confirm that the backend is running, then retry.",
+      "Unable to reach the Resource Tracker API. Check that the backend is running and try again.",
       0,
       null,
     );
@@ -192,12 +183,10 @@ export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
   authenticated = true,
-  feedback: ApiRequestFeedbackOptions = {},
 ): Promise<T> {
   const tokens = authenticated ? getStoredAuthTokens() : null;
-  const notifySuccess = feedback.successToast !== false;
   try {
-    return await send<T>(path, options, tokens?.accessToken, notifySuccess);
+    return await send<T>(path, options, tokens?.accessToken);
   } catch (error) {
     if (
       !(error instanceof ApiError) ||
@@ -210,7 +199,7 @@ export async function apiRequest<T>(
 
     const refreshed = await refreshAuthTokens();
     try {
-      return await send<T>(path, options, refreshed.accessToken, notifySuccess);
+      return await send<T>(path, options, refreshed.accessToken);
     } catch (retryError) {
       if (retryError instanceof ApiError && retryError.status === 401) {
         clearAuthSession();

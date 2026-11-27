@@ -1,7 +1,4 @@
-import {
-  apiRequest,
-  type ApiRequestFeedbackOptions,
-} from "./api-client";
+import { apiRequest } from "./api-client";
 
 export type AssignableUserRole =
   | "TEAM_LEAD"
@@ -102,6 +99,7 @@ export interface ResourceInput {
 export type ResourceType = "insourced" | "outsourced";
 
 export type ApiRequestStatus =
+  | "DRAFT"
   | "SUBMITTED"
   | "QUERIED"
   | "APPROVED"
@@ -127,7 +125,7 @@ export interface UpdateResourceRequestInput {
   projectId?: number;
   lineManagerName?: string;
   teamId?: number;
-  status?: ApiRequestStatus;
+  status?: Exclude<ApiRequestStatus, "DRAFT">;
   note?: string;
 }
 
@@ -199,11 +197,11 @@ export const departmentsApi = {
   list: () => apiRequest<unknown>("/api/v1/departments"),
   get: (id: string) =>
     apiRequest<unknown>(`/api/v1/departments/${encodeURIComponent(id)}`),
-  create: (input: DepartmentInput, feedback?: ApiRequestFeedbackOptions) =>
+  create: (input: DepartmentInput) =>
     apiRequest<unknown>("/api/v1/departments", {
       method: "POST",
       body: JSON.stringify(input),
-    }, true, feedback),
+    }),
   update: (id: string, input: DepartmentInput) =>
     apiRequest<unknown>(`/api/v1/departments/${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -229,16 +227,10 @@ export const departmentsApi = {
     apiRequest<unknown>(
       `/api/v1/departments/${encodeURIComponent(id)}/resource-requests`,
     ),
-  assignHead: (
-    id: string,
-    userId: string,
-    feedback?: ApiRequestFeedbackOptions,
-  ) =>
+  assignHead: (id: string, userId: string) =>
     apiRequest<unknown>(
       `/api/v1/departments/${encodeURIComponent(id)}/assign-head/${encodeURIComponent(userId)}`,
       { method: "PATCH" },
-      true,
-      feedback,
     ),
 };
 
@@ -247,11 +239,11 @@ export const teamsApi = {
   unassignedUsers: () => apiRequest<unknown>("/api/v1/teams/unassigned-users"),
   get: (id: string) =>
     apiRequest<unknown>(`/api/v1/teams/${encodeURIComponent(id)}`),
-  create: (input: TeamInput, feedback?: ApiRequestFeedbackOptions) =>
+  create: (input: TeamInput) =>
     apiRequest<unknown>("/api/v1/teams", {
       method: "POST",
       body: JSON.stringify(input),
-    }, true, feedback),
+    }),
   update: (id: string, input: TeamInput) =>
     apiRequest<unknown>(`/api/v1/teams/${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -274,11 +266,6 @@ export const teamsApi = {
       `/api/v1/teams/${encodeURIComponent(id)}/team-lead`,
       { method: "PATCH", body: JSON.stringify({ userId }) },
     ),
-  assignUser: (id: string, userId: string) =>
-    apiRequest<unknown>(
-      `/api/v1/teams/${encodeURIComponent(id)}/assign-user`,
-      { method: "PATCH", body: JSON.stringify({ userId }) },
-    ),
 };
 
 export const projectsApi = {
@@ -289,11 +276,11 @@ export const projectsApi = {
     apiRequest<unknown>(
       `/api/v1/projects/department/${encodeURIComponent(id)}`,
     ),
-  create: (input: ProjectInput, feedback?: ApiRequestFeedbackOptions) =>
+  create: (input: ProjectInput) =>
     apiRequest<unknown>("/api/v1/projects", {
       method: "POST",
       body: JSON.stringify(input),
-    }, true, feedback),
+    }),
   update: (id: string, input: ProjectInput) =>
     apiRequest<unknown>(`/api/v1/projects/${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -408,7 +395,7 @@ export const resourcesApi = {
 export const resourceRequestsApi = {
   list: (teamId?: string, status?: ApiRequestStatus) =>
     apiRequest<unknown>(
-      withQuery("/api/v1/resource-request", {
+      withQuery("/resource-requests/api/v1/resource-request", {
         teamId,
         status,
       }),
@@ -416,18 +403,18 @@ export const resourceRequestsApi = {
   get: (id: string, include?: string) =>
     apiRequest<unknown>(
       withQuery(
-        `/api/v1/resource-request/${encodeURIComponent(id)}`,
+        `/resource-requests/api/v1/resource-request/${encodeURIComponent(id)}`,
         { include },
       ),
     ),
   create: (input: CreateResourceRequestInput) =>
-    apiRequest<unknown>("/api/v1/resource-request", {
+    apiRequest<unknown>("/resource-requests/api/v1/resource-request", {
       method: "POST",
       body: JSON.stringify(input),
     }),
   update: (id: string, input: UpdateResourceRequestInput) =>
     apiRequest<unknown>(
-      `/api/v1/resource-request/${encodeURIComponent(id)}`,
+      `/resource-requests/api/v1/resource-request/${encodeURIComponent(id)}`,
       { method: "PATCH", body: JSON.stringify(input) },
     ),
 };

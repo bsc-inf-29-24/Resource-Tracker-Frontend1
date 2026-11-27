@@ -116,7 +116,7 @@ export default function LineManagerReportsPage() {
           itemLabel="request"
           pageSize={10}
           emptyTitle="No requests in this period"
-          emptyDescription="Adjust the date range or filters to broaden the results."
+          emptyDescription="Adjust the date range or refresh to load current manager-scoped request data."
         />
       )}
     </section>

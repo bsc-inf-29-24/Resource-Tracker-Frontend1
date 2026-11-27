@@ -28,7 +28,6 @@ import styles from "./ApiManagementPage.module.css";
 interface ApiDataViewProps {
   data: unknown;
   title?: string;
-  hideIdFields?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
   expandableRecords?: boolean;
@@ -69,25 +68,12 @@ const preferredColumnOrder = [
   "updatedAt",
 ];
 
-function formatDateTime(value: unknown): string {
-  if (typeof value !== "string" && !(value instanceof Date)) {
-    return formatApiValue(value);
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? formatApiValue(value)
-    : new Intl.DateTimeFormat(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(date);
-}
-
 export default function ApiDataView({
   data,
   title,
-  hideIdFields = false,
   emptyTitle = "No records returned",
-  emptyDescription = "The backend response did not contain any records.",
+  emptyDescription = "The backend returned no records.",
+  expandableRecords = false,
   depth = 0,
   fieldIcons = false,
 }: ApiDataViewProps) {
@@ -97,10 +83,6 @@ export default function ApiDataView({
   const columns = useMemo<DataTableColumn<Record<string, unknown>>[]>(() => {
     const keys = Array.from(
       new Set(flatRecords.flatMap((record) => Object.keys(record))),
-    ).filter(
-      (key) =>
-        !hideIdFields ||
-        (key.split(".").at(-1) ?? key).toLowerCase() !== "id",
     );
     keys.sort((left, right) => {
       const leftKey = left.split(".").at(-1) ?? left;
@@ -115,36 +97,21 @@ export default function ApiDataView({
     return keys.map((key) => ({
       key,
       header: humanizeApiKey(key.replaceAll(".", " ")),
-      render: (record) => {
-        const fieldName = (key.split(".").at(-1) ?? key)
-          .toLowerCase()
-          .replace(/[_\-\s]/g, "");
-        return fieldName === "createdat" || fieldName === "updatedat"
-          ? formatDateTime(record[key])
-          : formatApiValue(record[key]);
-      },
+      render: (record) => formatApiValue(record[key]),
     }));
-  }, [flatRecords, hideIdFields]);
+  }, [flatRecords]);
 
   if (Array.isArray(response)) {
     if (response.length === 0) {
       return <EmptyState title={emptyTitle} description={emptyDescription} />;
     }
-    if (records.length === 0) {
+    if (records.length === 0 || columns.length === 0) {
       return (
         <ul className={styles.apiDataList}>
           {response.map((item, index) => (
             <li key={index}>{formatApiValue(item)}</li>
           ))}
         </ul>
-      );
-    }
-    if (columns.length === 0) {
-      return (
-        <EmptyState
-          title={emptyTitle}
-          description="The backend returned no displayable user details."
-        />
       );
     }
     return (
@@ -175,10 +142,7 @@ export default function ApiDataView({
   }
 
   const entries = Object.entries(response).filter(
-    ([key, value]) =>
-      !Array.isArray(value) &&
-      (!hideIdFields ||
-        (key.split(".").at(-1) ?? key).toLowerCase() !== "id"),
+    ([, value]) => !Array.isArray(value),
   );
   const nestedCollections = Object.entries(response).filter(([, value]) =>
     Array.isArray(value),
@@ -210,7 +174,6 @@ export default function ApiDataView({
             <h3>{humanizeApiKey(key)}</h3>
             <ApiDataView
               data={value}
-              hideIdFields={hideIdFields}
               emptyTitle={`No ${humanizeApiKey(key).toLowerCase()}`}
               emptyDescription="The backend returned an empty collection."
               expandableRecords={expandableRecords}

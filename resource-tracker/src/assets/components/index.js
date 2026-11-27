@@ -11,4 +11,3 @@ export { default as SearchFilterBar } from "./filters/SearchFilterBar";
 export { default as EmptyState } from "./feedback/EmptyState";
 export { default as LoadingState } from "./feedback/LoadingState";
 export { default as ErrorMessage } from "./feedback/ErrorMessage";
-export { default as WarningMessage } from "./feedback/WarningMessage";

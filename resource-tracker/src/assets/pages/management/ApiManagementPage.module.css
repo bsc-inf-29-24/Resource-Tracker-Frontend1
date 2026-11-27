@@ -52,105 +52,6 @@
  font-size: 14px;
 }
 
-.filterDialog {
-  box-sizing: border-box;
-  width: min(520px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  margin: auto;
-  padding: 1.5rem;
-  overflow: auto;
-  border: 1px solid var(--rt-border);
-  border-radius: var(--rt-radius-md);
-  color: var(--rt-text);
-  background: var(--rt-surface);
-  box-shadow: 0 18px 56px rgb(15 23 42 / 24%);
-}
-
-.filterDialog::backdrop {
-  background: rgb(15 23 42 / 48%);
-}
-
-.filterDialog form {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.filterDialogHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.filterDialogHeader h2 {
-  margin: 0;
-  color: var(--rt-green-900);
-  font-size: 1.25rem;
-}
-
-.dialogClose {
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid var(--rt-border);
-  border-radius: var(--rt-radius-sm);
-  color: var(--rt-text);
-  background: var(--rt-surface);
-  cursor: pointer;
-}
-
-.dialogClose:hover {
-  color: var(--rt-green-900);
-  background: var(--rt-green-50);
-}
-
-.dialogClose:focus-visible {
-  outline: 3px solid var(--rt-green-600);
-  outline-offset: 2px;
-}
-
-.filterDialogActions {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.tabs {
-  display: flex;
-  gap: 0.25rem;
-  border-bottom: 1px solid var(--rt-border);
-}
-
-.tab {
-  min-height: 2.75rem;
-  padding: 0.65rem 1rem;
-  border: 0;
-  border-bottom: 3px solid transparent;
-  color: var(--rt-text-muted);
-  background: transparent;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.tab:hover,
-.tab:focus-visible {
-  color: var(--rt-green-900);
-}
-
-.tab:focus-visible {
-  outline: 2px solid var(--rt-green-700);
-  outline-offset: -2px;
-}
-
-.activeTab {
-  border-bottom-color: var(--rt-green-700);
-  color: var(--rt-green-900);
-}
-
 .departmentForm {
   display: grid;
   gap: 1rem;
@@ -218,14 +119,6 @@
   justify-content: space-between;
 }
 
-.panelHeadingActionsOnly {
-  justify-content: flex-end;
-}
-
-.panelHeadingActionsOnly .actions {
-  margin-left: auto;
-}
-
 .panelHeading h2,
 .panel h2,
 .form h3 {
@@ -238,13 +131,6 @@
   gap: 1rem;
   border-top: 1px solid var(--rt-border);
   padding-top: 1rem;
-}
-
-.createFields {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
 }
 
 .grid {

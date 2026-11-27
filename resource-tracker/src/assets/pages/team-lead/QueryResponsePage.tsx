@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import LoadingState from "../../components/feedback/LoadingState";
 import PageHeader from "../../components/layout/PageHeader";
@@ -59,6 +59,7 @@ export default function QueryResponsePage() {
       <PageHeader
         title="Request query"
         description="View the query and request details recorded by the backend."
+        supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
       {loading ? (
         <LoadingState message="Loading request details..." />

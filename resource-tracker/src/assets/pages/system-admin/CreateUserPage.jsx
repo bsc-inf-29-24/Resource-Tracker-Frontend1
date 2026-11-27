@@ -1,8 +1,11 @@
-import { departmentsApi, usersApi } from "../../data/api-services";
+import { useNavigate } from "react-router-dom";
+import { usersApi } from "../../data/api-services";
 import CreateUserForm from "./CreateUserForm";
 import styles from "./SystemAdminPage.module.css";
 
 export default function CreateUserPage() {
+  const navigate = useNavigate();
+
   return (
     <div className={`rt-root ${styles.page}`}>
       {/* { <PageHeader
@@ -10,31 +13,8 @@ export default function CreateUserPage() {
         //description="Create an account using the fields and role values supported by the backend API."
       /> } */}
       <CreateUserForm
-        onSave={async (input, departmentId) => {
-          const response = await usersApi.create(input);
-          if (!departmentId) return;
-
-          const userId = response.user?.id;
-          if (!userId) {
-            return {
-              departmentAssignmentError:
-                "The user was created, but the backend did not return an ID needed for assignment.",
-            };
-          }
-
-          try {
-            await departmentsApi.assignHead(departmentId, userId, {
-              successToast: false,
-            });
-          } catch (error) {
-            return {
-              departmentAssignmentError:
-                error instanceof Error
-                  ? error.message
-                  : "The department head could not be assigned.",
-            };
-          }
-        }}
+        onSave={(input) => usersApi.create(input)}
+        onCancel={() => navigate("/system-admin/users")}
       />
     </div>
   );

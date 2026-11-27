@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import DataTable from "../../components/tables/DataTable";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
-import WarningMessage from "../../components/feedback/WarningMessage";
 import FilterToolbar from "../../components/filters/filterToolbar";
 import PageHeader from "../../components/layout/PageHeader";
 import StatusLabel from "../../components/status/StatusLabel";
@@ -155,7 +154,7 @@ export default function UserManagementPage() {
         Preview account records are stored in this browser. Activation does not grant secure login access; authentication is not connected.
       </p> */}
       {persistenceWarning && (
-        <WarningMessage
+        <ErrorMessage
           title="Using demonstration accounts"
           message={persistenceWarning}
         />

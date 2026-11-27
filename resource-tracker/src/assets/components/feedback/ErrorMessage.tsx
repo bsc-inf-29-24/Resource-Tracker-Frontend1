@@ -10,7 +10,7 @@ interface ErrorStateProps {
 }
 
 function ErrorMessage({
-  title = "An error occurred",
+  title = "Something went wrong",
   message,
   onRetry,
   variant = "block",
@@ -32,7 +32,7 @@ function ErrorMessage({
         <p className="rt-error-block__text">{message}</p>
         {onRetry && (
           <Button variant="outline" onClick={onRetry}>
-            Retry
+            Try again
           </Button>
         )}
       </div>

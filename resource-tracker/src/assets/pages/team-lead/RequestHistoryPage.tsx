@@ -22,6 +22,7 @@ import styles from "./RequestHistoryPage.module.css";
 type RequestRecord = Record<string, unknown>;
 
 const statuses: ApiRequestStatus[] = [
+  "DRAFT",
   "SUBMITTED",
   "QUERIED",
   "APPROVED",
@@ -143,6 +144,7 @@ export default function RequestHistoryPage() {
       <PageHeader
         title="Request history"
        // description="Review resource requests and their latest status from the backend."
+        supplementary={<Link to="/team-lead/dashboard"></Link>}
       />
       <div className={styles.filters}>
         <label htmlFor="request-status-filter">Filter by status</label>

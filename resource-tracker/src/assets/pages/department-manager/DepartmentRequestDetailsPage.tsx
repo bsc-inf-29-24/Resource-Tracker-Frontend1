@@ -1,7 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import RequestDetails from "../../components/requests/RequestDetails";
 import RequestTimeline from "../../components/requests/RequestTimeline";
-import WarningMessage from "../../components/feedback/WarningMessage";
 import { mockUsers } from "../../data/mock-data";
 import { useResourceRequests } from "../../data/request-store";
 import { getCurrentDepartmentManager } from "../../utils/department-manager";
@@ -16,6 +15,9 @@ export default function DepartmentRequestDetailsPage() {
   if (!request) {
     return (
       <section className={styles.page}>
+        <Link className={styles.backLink} to="/department-manager/requests">
+          Back to requests
+        </Link>
         <h1>Request not found</h1>
         <p>No request matching {id ?? "this ID"} is available in this browser.</p>
       </section>
@@ -25,6 +27,9 @@ export default function DepartmentRequestDetailsPage() {
   if (request.department !== manager?.department) {
     return (
       <section className={styles.page}>
+        <Link className={styles.backLink} to="/department-manager/requests">
+          Back to requests
+        </Link>
         <h1>Request unavailable</h1>
         <p>
           This request belongs to another department and is not visible to the current Department Manager.
@@ -36,13 +41,18 @@ export default function DepartmentRequestDetailsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.topActions}>
+        <Link className={styles.backLink} to="/department-manager/requests">
+          Back to requests
+        </Link>
         <Link className={styles.backLinkSecondary} to="/department-manager/dashboard">
           Return to dashboard
         </Link>
       </div>
 
       {persistenceWarning && (
-        <WarningMessage variant="inline" message={persistenceWarning} />
+        <p className={styles.warning} role="alert">
+          {persistenceWarning}
+        </p>
       )}
 
       <RequestDetails request={request} />

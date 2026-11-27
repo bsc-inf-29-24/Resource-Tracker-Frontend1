@@ -1,3 +1,4 @@
+import StatusCard, { StatusCardGrid } from "../../components/cards/StatusCard";
 import EmptyState from "../../components/feedback/EmptyState";
 import PageHeader from "../../components/layout/PageHeader";
 import StatusLabel from "../../components/status/StatusLabel";
@@ -7,6 +8,8 @@ import styles from "./AdminDashboard.module.css";
 
 export default function DashboardPage() {
   const { users } = useUsers();
+  const activeUsers = users.filter((user) => user.status === "Active");
+  const inactiveUsers = users.filter((user) => user.status === "Inactive");
   const departments = availableDepartments.map((department) => ({
     ...department,
     userCount: users.filter((user) => user.department === department.name)
@@ -33,6 +36,25 @@ export default function DashboardPage() {
         title="System Administrator"
         description="Manage account records and review department membership."
       />
+
+      <StatusCardGrid>
+        <StatusCard
+          label="Total users"
+          value={users.length}
+          note="Registered account records"
+        />
+        <StatusCard
+          label="Active users"
+          value={activeUsers.length}
+          note="Status marked active"
+        />
+        <StatusCard
+          label="Inactive users"
+          value={inactiveUsers.length}
+          note="Status marked inactive"
+        />
+      </StatusCardGrid>
+
 
       <section
         className={styles.departmentSection}

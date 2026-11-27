@@ -1,78 +1,38 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
+import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
-import { getApiRecords } from "../../data/api-response";
 import {
   assignableUserRoles,
-  departmentsApi,
   type CreateUserInput,
 } from "../../data/api-services";
 import styles from "./AdminUserForm.module.css";
 
-interface CreateUserSaveResult {
-  departmentAssignmentError?: string;
-}
-
 interface CreateUserFormProps {
-  onSave: (
-    input: CreateUserInput,
-    departmentId?: string,
-  ) => Promise<CreateUserSaveResult | undefined>;
+  onSave: (input: CreateUserInput) => Promise<unknown>;
+  onCancel: () => void;
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function CreateUserForm({
   onSave,
+  onCancel,
 }: CreateUserFormProps) {
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<CreateUserInput["role"]>("TEAM_LEAD");
-  const [departmentId, setDepartmentId] = useState("");
-  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
-  const [departmentsLoading, setDepartmentsLoading] = useState(true);
-  const [departmentsError, setDepartmentsError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
-  const [assignmentError, setAssignmentError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [success, setSuccess] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    void departmentsApi.list()
-      .then((response) => {
-        const options = getApiRecords(response).flatMap((record) => {
-          const id = record.id;
-          const name = record.name;
-          if (
-            (typeof id !== "string" && typeof id !== "number") ||
-            typeof name !== "string" ||
-            !name.trim()
-          ) {
-            return [];
-          }
-          return [{ id: String(id), name: name.trim() }];
-        });
-        if (active) setDepartments(options);
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          setDepartmentsError(
-            error instanceof Error
-              ? error.message
-              : "Departments could not be loaded.",
-          );
-        }
-      })
-      .finally(() => {
-        if (active) setDepartmentsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const isDirty = Boolean(
+    firstName || middleName || surname || email,
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,36 +45,25 @@ export default function CreateUserForm({
     if (!emailPattern.test(email.trim()) || email.trim().length > 254) {
       nextErrors.email = "Enter a valid email address (254 characters maximum).";
     }
-    if (role === "DEPARTMENT_HEAD" && !departmentId) {
-      nextErrors.department = "Select the department this user will lead.";
-    }
     setErrors(nextErrors);
     setSubmitError("");
-    setAssignmentError("");
-    setSuccessMessage("");
+    setSuccess(false);
     if (Object.keys(nextErrors).length > 0) return;
 
     setBusy(true);
     try {
-      const result = await onSave({
+      await onSave({
         firstName: firstName.trim(),
         ...(middleName.trim() ? { middleName: middleName.trim() } : {}),
         surname: surname.trim(),
         email: email.trim(),
         role,
-      }, role === "DEPARTMENT_HEAD" ? departmentId : undefined);
+      });
       setFirstName("");
       setMiddleName("");
       setSurname("");
       setEmail("");
-      setDepartmentId("");
-      const assignmentFailure = result?.departmentAssignmentError ?? "";
-      setAssignmentError(assignmentFailure);
-      setSuccessMessage(
-        assignmentFailure || !departmentId
-          ? "Account created successfully. A temporary password was emailed to the user."
-          : "Account created and assigned to the selected department. A temporary password was emailed to the user.",
-      );
+      setSuccess(true);
     } catch (error) {
       setSubmitError(
         error instanceof Error
@@ -131,14 +80,10 @@ export default function CreateUserForm({
       {submitError && (
         <ErrorMessage title="User account not created" message={submitError} />
       )}
-      {successMessage && (
+      {success && (
         <p className={styles.success} role="status">
-          {successMessage}
-        </p>
-      )}
-      {assignmentError && (
-        <p className={styles.fieldError} role="alert">
-          The account was created, but department assignment failed: {assignmentError}
+          Account created successfully. A temporary password was emailed to the user.{" "}
+          <Link to="/system-admin/users">Return to user management</Link>
         </p>
       )}
       <form
@@ -232,58 +177,18 @@ export default function CreateUserForm({
             ))}
           </select>
         </div>
-        {role === "DEPARTMENT_HEAD" && (
-          <div className={styles.field}>
-            <label htmlFor="create-user-department">Department</label>
-            <select
-              id="create-user-department"
-              value={departmentId}
-              onChange={(event) => {
-                setDepartmentId(event.target.value);
-                setErrors((current) => ({ ...current, department: "" }));
-              }}
-              aria-invalid={Boolean(errors.department)}
-              aria-describedby={errors.department ? "create-user-department-error" : undefined}
-              disabled={departmentsLoading || Boolean(departmentsError) || departments.length === 0}
-              required
-            >
-              <option value="">
-                {departmentsLoading
-                  ? "Loading departments..."
-                  : departmentsError
-                    ? "Departments unavailable"
-                    : departments.length === 0
-                      ? "No departments available"
-                      : "Select a department"}
-              </option>
-              {departments.map((department) => (
-                <option key={department.id} value={department.id}>
-                  {department.name}
-                </option>
-              ))}
-            </select>
-            {errors.department && (
-              <p
-                className={styles.fieldError}
-                id="create-user-department-error"
-                role="alert"
-              >
-                {errors.department}
-              </p>
-            )}
-            {departmentsError && (
-              <p className={styles.fieldError} role="alert">
-                Departments could not be loaded: {departmentsError}
-              </p>
-            )}
-            {!departmentsLoading && !departmentsError && departments.length === 0 && (
-              <p className={styles.fieldError} role="alert">
-                Create a department before assigning a department head.
-              </p>
-            )}
-          </div>
-        )}
         <div className={styles.actions}>
+          <button
+            type="button"
+            className="rt-root rt-btn rt-btn--outline"
+            disabled={busy}
+            onClick={() => {
+              if (isDirty) setConfirmCancel(true);
+              else onCancel();
+            }}
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             className="rt-root rt-btn rt-btn--primary"
@@ -293,6 +198,19 @@ export default function CreateUserForm({
           </button>
         </div>
       </form>
+      <ConfirmDialog
+        open={confirmCancel}
+        title="Discard user details?"
+        message="The entered information will be lost."
+        confirmLabel="Discard"
+        cancelLabel="Continue editing"
+        destructive
+        onCancel={() => setConfirmCancel(false)}
+        onConfirm={() => {
+          setConfirmCancel(false);
+          onCancel();
+        }}
+      />
     </>
   );
 }

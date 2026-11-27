@@ -41,6 +41,13 @@ export default function UserDetailsPage() {
 
   return (
     <section className={`rt-root ${styles.page}`}>
+      {/* <PageHeader
+        title="User account details"
+        description="The user-list response is inspected without assuming undocumented fields."
+      />
+      <Link to="/system-admin/users" className="rt-root rt-btn rt-btn--outline">
+        Back to users
+      </Link> */}
       {loading ? (
         <LoadingState message="Loading backend user records..." />
       ) : error ? (
@@ -56,7 +63,7 @@ export default function UserDetailsPage() {
             to={`/system-admin/users/${encodeURIComponent(id)}/edit`}
             className="rt-root rt-btn rt-btn--primary"
           >
-            Edit user
+            Edit role assignment
           </Link>
         </section>
       ) : data !== undefined ? (
@@ -67,7 +74,7 @@ export default function UserDetailsPage() {
       ) : (
         <EmptyState
           title="No user data"
-          description="The user list returned no data. Refresh the page to reload the list."
+          description="The user list returned no data. Refresh to try again."
         />
       )}
     </section>

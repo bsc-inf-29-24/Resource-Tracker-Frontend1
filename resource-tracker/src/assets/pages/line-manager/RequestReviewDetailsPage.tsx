@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
-import WarningMessage from "../../components/feedback/WarningMessage";
 import RequestDetails from "../../components/requests/RequestDetails";
 import RequestTimeline from "../../components/requests/RequestTimeline";
 import { useResourceRequests, addRequestQuery, recordDecision } from "../../data/request-store";
@@ -90,13 +89,21 @@ export default function RequestReviewDetailsPage() {
   if (!request) {
     return (
       <section className={`rt-root ${styles.page}`}>
+        <Link className={styles.backLink} to="/line-manager/requests">
+          Back to requests
+        </Link>
         {persistenceWarning && (
-          <WarningMessage variant="inline" message={persistenceWarning} />
+          <p className={styles.warning} role="alert">
+            {persistenceWarning}
+          </p>
         )}
         <h1>Request not found</h1>
         <p>
           {id ? `No request with ID ${id} is available in this browser.` : "A request ID was not provided."}
         </p>
+        <Link className="rt-btn rt-btn--primary" to="/line-manager/dashboard">
+          Return to dashboard
+        </Link>
       </section>
     );
   }
@@ -106,6 +113,9 @@ export default function RequestReviewDetailsPage() {
   return (
     <div className={`rt-root ${styles.page}`}>
       <div className={styles.topActions}>
+        <Link className={styles.backLink} to="/line-manager/requests">
+          Back to requests
+        </Link>
         <Link
           className={styles.historyLink}
           to={`/line-manager/decisions?requestId=${encodeURIComponent(request.id)}`}
@@ -115,7 +125,9 @@ export default function RequestReviewDetailsPage() {
       </div>
 
       {persistenceWarning && (
-        <WarningMessage variant="inline" message={persistenceWarning} />
+        <p className={styles.warning} role="alert">
+          {persistenceWarning}
+        </p>
       )}
       {notice && (
         <p

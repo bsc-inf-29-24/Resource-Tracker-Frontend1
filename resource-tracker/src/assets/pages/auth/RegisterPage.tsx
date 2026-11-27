@@ -49,7 +49,7 @@ export default function RegisterPage() {
       setError(
         registrationError instanceof Error
           ? registrationError.message
-          : "The account could not be created. Please retry.",
+          : "The account could not be created. Please try again.",
       );
     } finally {
       setBusy(false);

@@ -1,6 +1,5 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
-import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import StatusLabel from "../../components/status/StatusLabel";
 import { useUsers } from "../../data/user-store";
@@ -24,7 +23,7 @@ export default function UserDetailsPage() {
       <div className={`rt-root ${styles.page}`}>
         <PageHeader title="User account details" />
         {persistenceWarning && (
-          <WarningMessage
+          <ErrorMessage
             title="Using demonstration accounts"
             message={persistenceWarning}
           />
@@ -33,16 +32,24 @@ export default function UserDetailsPage() {
           title="User not found"
           message="The selected account is not available."
         />
+        <Link to="/system-admin/users">Return to user management</Link>
       </div>
     );
   }
 
   return (
     <div className={`rt-root ${styles.page}`}>
+      <button
+        type="button"
+        onClick={() => navigate("/system-admin/users")}
+        className="rt-root rt-btn rt-btn--outline"
+      >
+        Back to users
+      </button>
       <section className={styles.details}>
         <PageHeader title={user.name} description="User account details." />
         {persistenceWarning && (
-          <WarningMessage
+          <ErrorMessage
             title="Using demonstration accounts"
             message={persistenceWarning}
           />

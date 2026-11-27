@@ -232,7 +232,7 @@ export default function RequestTable({ requests }: RequestTableProps) {
         onPageChange={setPage}
         itemLabel="request"
         emptyTitle="No matching requests"
-        emptyDescription="Adjust or clear the search criteria and filters."
+        emptyDescription="Try changing or clearing the search and filters."
         emptyActionLabel="Clear filters"
         onEmptyAction={resetFilters}
       />

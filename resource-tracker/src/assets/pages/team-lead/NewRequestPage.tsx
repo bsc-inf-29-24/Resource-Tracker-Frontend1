@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/dialogs/ConfirmDialog";
 import ErrorMessage from "../../components/feedback/ErrorMessage";
 import PageHeader from "../../components/layout/PageHeader";
@@ -236,6 +236,7 @@ export default function NewRequestPage() {
       <PageHeader
         title="Submit a resource request"
         description="Provide the resource details and explain the need."
+        // supplementary={<Link to="/team-lead/requests">Request history</Link>}
       />
       {/* <p className={styles.previewNotice} role="note">
         Preview mode: choose a department, requesting team, and project for your request.
@@ -246,7 +247,10 @@ export default function NewRequestPage() {
         <ErrorMessage title="Request not submitted" message={submitError} />
       )}
       {successMessage && (
-        <p className={styles.success} role="status">{successMessage}</p>
+        <p className={styles.success} role="status">
+          {successMessage}{" "}
+          <Link to="/team-lead/requests">View request history</Link>
+        </p>
       )}
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         {isReviewing ? (

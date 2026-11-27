@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getDashboardPathForRole } from "../../data/auth-store";
@@ -50,7 +50,7 @@ export default function LoginPage() {
       setError(
         signInError instanceof Error
           ? signInError.message
-          : "Sign-in failed. Please retry.",
+          : "Sign-in failed. Please try again.",
       );
     } finally {
       setBusy(false);
@@ -59,9 +59,9 @@ export default function LoginPage() {
 
   return (
     <section className={`rt-root ${styles.card} ${styles.loginCard}`} aria-labelledby="login-title">
-      <p className={`${styles.eyebrow} ${styles.loginEyebrow}`}>Welcome back!</p>
+      <p className={`${styles.eyebrow} ${styles.loginEyebrow}`}>Welcome Back!</p>
       <h1 id="login-title" className={`${styles.title} ${styles.loginTitle}`}>
-        sign in
+        Sign in
       </h1>
 
       {error && (
@@ -78,19 +78,17 @@ export default function LoginPage() {
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <div className={styles.field}>
           <label htmlFor="login-email">Email</label>
-          <div className={styles.iconControl}>
-            <Mail className={styles.fieldIcon} aria-hidden="true" />
-            <input
-              id="login-email"
-              type="email"
-              autoComplete="username"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={Boolean(emailError)}
-              aria-describedby={emailError ? "login-email-error" : undefined}
-              required
-            />
-          </div>
+          <input
+            id="login-email"
+            type="email"
+            autoComplete="username"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(emailError)}
+            aria-describedby={emailError ? "login-email-error" : undefined}
+            required
+          />
           {emailError && (
             <p
               className={styles.fieldError}
@@ -104,11 +102,11 @@ export default function LoginPage() {
         <div className={styles.field}>
           <label htmlFor="login-password">Password</label>
           <div className={styles.passwordControl}>
-            <LockKeyhole className={styles.fieldIcon} aria-hidden="true" />
             <input
               id="login-password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
+              placeholder="Enter your password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={Boolean(passwordError)}
@@ -117,18 +115,14 @@ export default function LoginPage() {
               }
               required
             />
+
             <button
-              className={styles.passwordToggle}
               type="button"
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
               onClick={() => setShowPassword((visible) => !visible)}
             >
-              {showPassword ? (
-                <EyeOff aria-hidden="true" />
-              ) : (
-                <Eye aria-hidden="true" />
-              )}
+              {showPassword ? <EyeOff /> : <Eye />}
             </button>
           </div>
           {passwordError && (
@@ -142,7 +136,7 @@ export default function LoginPage() {
           )}
         </div>
         <div className={`${styles.links} ${styles.loginLinks}`}>
-          <Link to="/forgot-password">Forgot Password?</Link>
+          <Link to="/forgot-password">Forgot your password?</Link>
         </div>
         <button
           className={styles.submit}
@@ -153,7 +147,7 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className={styles.staffNotice}>Staff access only !</p>
+      <p className={styles.staffNotice}>Staff access only!</p>
     </section>
   );
 }

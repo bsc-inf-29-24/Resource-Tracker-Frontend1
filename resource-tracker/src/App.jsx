@@ -204,9 +204,6 @@ const DepartmentRequestListPage = page(() =>
     default: module.DepartmentRequestListPage,
   })),
 );
-const DepartmentDashboardPage = page(
-  () => import("./assets/pages/department-manager/DepartmentDashboard"),
-);
 const DepartmentRequestDetailsPageApi = page(() =>
   import("./assets/pages/management/ResourceRequestPages").then((module) => ({
     default: module.DepartmentRequestDetailsPage,
@@ -395,7 +392,7 @@ function App() {
               {/* Department Head */}
               <Route
                 path="/department-manager/dashboard"
-                element={<DepartmentDashboardPage />}
+                element={<Navigate to="/department-manager/requests" replace />}
               />
               <Route
                 path="/department-manager/requests"

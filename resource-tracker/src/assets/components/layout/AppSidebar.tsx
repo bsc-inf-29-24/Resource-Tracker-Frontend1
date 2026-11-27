@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   Bell,
-  Building2,
   ClipboardList,
   FileText,
   FolderKanban,
@@ -17,7 +16,6 @@ import styles from "./AppSidebar.module.css";
 function navigationIcon(label: string) {
   const normalized = label.toLowerCase();
   if (normalized.includes("dashboard")) return LayoutDashboard;
-  if (normalized.includes("department")) return Building2;
   if (normalized.includes("notification")) return Bell;
   if (normalized.includes("team")) return UsersRound;
   if (normalized.includes("project")) return FolderKanban;

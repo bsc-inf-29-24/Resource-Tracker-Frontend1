@@ -233,7 +233,7 @@ function ResourceRequest() {
             <textarea
               id="justification"
               name="justification"
-              placeholder="Provide the reason this resource is required."
+              placeholder="Explain why this resource is needed..."
               value={form.justification}
               onChange={handleChange}
               maxLength={300}

@@ -1,6 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
 import RequestTimeline from "../../components/requests/RequestTimeline";
-import WarningMessage from "../../components/feedback/WarningMessage";
 import PageHeader from "../../components/layout/PageHeader";
 import { mockUsers } from "../../data/mock-data";
 import { useResourceRequests } from "../../data/request-store";
@@ -32,7 +31,9 @@ export default function DecisionHistoryPage() {
       </div>
 
       {persistenceWarning && (
-        <WarningMessage variant="inline" message={persistenceWarning} />
+        <p className={styles.warning} role="alert">
+          {persistenceWarning}
+        </p>
       )}
 
       {historyRequests.length === 0 ? (
@@ -43,6 +44,7 @@ export default function DecisionHistoryPage() {
               ? "This request was not found or has no recorded history."
               : "Queries and decisions will appear here when they are recorded."}
           </p>
+          <Link to="/line-manager/requests">Return to requests</Link>
         </section>
       ) : (
         <div className={styles.records}>

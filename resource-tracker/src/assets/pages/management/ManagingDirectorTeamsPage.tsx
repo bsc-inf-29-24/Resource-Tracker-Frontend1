@@ -5,16 +5,9 @@ export default function ManagingDirectorTeamsPage() {
   return (
     <ApiManagementPage
       title="Teams"
-      description="Assign active Team Leads and Team Members to a team. Users inherit the department assigned to that team."
+      description="Teams returned by the teams endpoint for your account."
       recordsTitle="Team records"
       list={teamsApi.list}
-      assignments={[
-        {
-          label: "Assign user to team",
-          field: "teamUserId",
-          run: (teamId, userId) => teamsApi.assignUser(teamId, userId),
-        },
-      ]}
     />
   );
 }
